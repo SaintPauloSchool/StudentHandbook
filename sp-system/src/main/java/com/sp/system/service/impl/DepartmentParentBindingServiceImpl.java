@@ -39,4 +39,9 @@ public class DepartmentParentBindingServiceImpl extends ServiceImpl<DepartmentPa
     public List<String> getAllParentUserIds() {
         return departmentParentBindingMapper.selectAllParentUserIds();
     }
+    
+    @Override
+    public boolean checkHasBoundStudents(String parentUserId) {
+        return departmentParentBindingMapper.checkHasBoundStudents(parentUserId) > 0;
+    }
 }

@@ -63,4 +63,10 @@
         SELECT DISTINCT parent_user_id
         FROM sys_department_parent_binding
     </select>
+    
+    <select id="checkHasBoundStudents" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM sys_department_parent_binding
+        WHERE parent_user_id = #{parentUserId}
+    </select>
 </mapper>

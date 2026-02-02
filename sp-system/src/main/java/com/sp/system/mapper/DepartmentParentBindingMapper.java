@@ -37,4 +37,11 @@ public interface DepartmentParentBindingMapper extends BaseMapper<DepartmentPare
      * @return 家长用户ID列表
      */
     List<String> selectAllParentUserIds();
+    
+    /**
+     * 检查家长是否绑定了学生（即绑定了学生用户ID的记录）
+     * @param parentUserId 家长用户ID
+     * @return 记录数量
+     */
+    int checkHasBoundStudents(@Param("parentUserId") String parentUserId);
 }

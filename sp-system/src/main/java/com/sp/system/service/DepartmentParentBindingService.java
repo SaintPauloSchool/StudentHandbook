@@ -30,4 +30,11 @@ public interface DepartmentParentBindingService extends IService<DepartmentParen
      * @return 家长用户ID列表
      */
     List<String> getAllParentUserIds();
+    
+    /**
+     * 检查家长是否绑定了学生（即绑定了学生用户ID的记录）
+     * @param parentUserId 家长用户ID
+     * @return 是否有绑定
+     */
+    boolean checkHasBoundStudents(String parentUserId);
 }

@@ -2,12 +2,11 @@ package com.sp.web.controller;
 
 import com.sp.common.annotation.Anonymous;
 import com.sp.common.core.controller.BaseController;
-import com.sp.common.utils.WeChatWorkSchoolUtils;
 import com.sp.common.utils.WeChatWorkOAuth2Utils;
 import com.alibaba.fastjson.JSONObject;
 
 import com.sp.system.service.TokenService;
-import com.sp.system.service.IParentStudentRelationService;
+import com.sp.system.service.DepartmentParentBindingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +31,9 @@ public class WeChatWorkOAuthController extends BaseController {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private DepartmentParentBindingService departmentParentBindingService;
 
     @Value("${sp.token.expireTime:7}")
     private int expireTimeInDays;
@@ -75,14 +77,14 @@ public class WeChatWorkOAuthController extends BaseController {
             // 根据code获取家校用户信息（家长或学生）
             JSONObject userInfo = weChatWorkOAuth2Utils.getSchoolUserInfo(code);
 
-            logger.info("企业微信家校授权成功，用户userInfo: {}", userInfo);
+            logger.info("获取企业微信家校用户信息，用户userInfo: {}", userInfo);
 
             // 检查是否包含家长(parent_userid)或学生(student_userid)信息
             if (userInfo.containsKey("parent_userid") || userInfo.containsKey("student_userid")) {
                 // 获取用户信息成功
                 String userId = userInfo.containsKey("parent_userid") ?
                         userInfo.getString("parent_userid") : userInfo.getString("student_userid");
-                logger.info("企业微信家校授权成功，用户ID: {}", userId);
+                logger.info("處理授權用戶，用戶ID: {}", userId);
 
                 // 清除临时session数据（如果不是测试情况和默认情况）
                 if (!isWechatTest && !isDefault) {
@@ -103,6 +105,16 @@ public class WeChatWorkOAuthController extends BaseController {
                 // 如果是家长用户（在userInfo中直接检查），使用带有parentUserId的方法创建token
                 if (userInfo.containsKey("parent_userid")) {
                     String parentUserId = userInfo.getString("parent_userid");
+                    
+                    // 验证家长是否绑定了学生（检查是否在sys_department_parent_binding表中有绑定学生）
+                    if (!departmentParentBindingService.checkHasBoundStudents(parentUserId)) {
+                        logger.warn("家长用户 {} 不存在有效的学生关联，授权失败", parentUserId);
+                        // 重定向到错误页面
+                        response.sendRedirect("/sp-api/login?error=authorization_failed&message=" + 
+                                java.net.URLEncoder.encode("家长账户未关联任何学生，请联系学校管理员确认", "UTF-8"));
+                        return;
+                    }
+                    
                     token = tokenService.createTokenWithParentUserId(numericUserId, parentUserId);
                 } else {
                     token = tokenService.createToken(numericUserId);
@@ -110,18 +122,8 @@ public class WeChatWorkOAuthController extends BaseController {
 
                 logger.info("为用户 {} 生成token: {}", numericUserId, token);
 
-                // 构建重定向URL，将token作为参数传递给前端
-                String redirectUrl = "/sp-api/?token=" + token;
-
-                // 如果是测试状态，重定向到登录页面，否则重定义到首页
-                if (isWechatTest || isDefault) {
-                    redirectUrl = "/sp-api/?token=" + token;
-                } else {
-                    redirectUrl = "/sp-api/?token=" + token;
-                }
-
                 // 重定向到前端页面
-                response.sendRedirect(redirectUrl);
+                response.sendRedirect("/sp-api/?token=" + token);
             } else {
                 logger.error("获取企业微信家校用户信息失败: {}", userInfo.getString("errmsg"));
                 // 重定向到错误页面
