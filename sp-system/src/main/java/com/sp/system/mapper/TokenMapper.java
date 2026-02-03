@@ -39,4 +39,12 @@ public interface TokenMapper {
      * @return 删除记录数
      */
     int deleteById(@Param("id") Long id);
+    
+    /**
+     * 根据家长用户ID查找未过期的Token
+     * 
+     * @param parentUserId 家长用户ID
+     * @return Token信息
+     */
+    Token selectValidTokenByParentUserId(@Param("parentUserId") String parentUserId);
 }
