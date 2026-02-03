@@ -101,8 +101,8 @@ public class WeChatWorkOAuthController extends BaseController {
                 String token;
                 // 如果是家长用户（在userInfo中直接检查），使用带有parentUserId的方法创建token
                 if (userInfo.containsKey("parent_userid")) {
+                    //家长用户id
                     String parentUserId = userInfo.getString("parent_userid");
-                    
                     // 验证家长是否绑定了学生（检查是否在sys_department_parent_binding表中有绑定学生）
                     if (!departmentParentBindingService.checkHasBoundStudents(parentUserId)) {
                         logger.warn("家长用户 {} 不存在有效的学生关联，授权失败", parentUserId);

@@ -32,5 +32,11 @@
     <delete id="deleteById" parameterType="long">
         delete from sys_token where id = #{id}
     </delete>
+    
+    <select id="selectValidTokenByParentUserId" parameterType="string" resultMap="TokenResult">
+        select id, user_id, parent_user_id, token, expire_time, create_time, update_time
+        from sys_token
+        where parent_user_id = #{parentUserId} and expire_time > NOW()
+    </select>
 
 </mapper>

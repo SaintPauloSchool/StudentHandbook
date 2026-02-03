@@ -88,6 +88,13 @@ public class TokenServiceImpl implements TokenService {
      */
     @Transactional
     public String createTokenWithParentUserId(Long userId, String parentUserId) {
+        // 先检查该parentUserId是否存在未过期的token
+        Token existingToken = this.tokenMapper.selectValidTokenByParentUserId(parentUserId);
+        // 如果存在未过期的token，返回现有的token
+        if (existingToken != null) {
+            return existingToken.getToken();
+        }
+        
         // 先删除该用户之前的token
         this.tokenMapper.deleteByUserId(userId);
 
