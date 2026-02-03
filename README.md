@@ -165,6 +165,9 @@ StudentHandbook/
 - Axios進行API調用
 - Vite作為構建工具
 
+### 開發測試說明
+- 如果是dev開發時，請在[application.yml](sp-api/src/main/resources/application.yml)文件加上parentUserId數據測試，以便於調試家長學生關係相關功能
+
 ## 維護注意事項
 
 1. 定期同步企業微信數據

@@ -15,9 +15,11 @@ sp:
   # Token配置
   token:
     # 是否启用Token验证
-    enabled: true
+    enabled: false
     # Token过期时间（天），默认7天
     expireTime: 7
+    # 如果是dev開發時，請加上parentUserId數據測試，以便於調試家長學生關係相關功能
+    parentUserId: e4634d7bc64afa3e3462c6d6e4f6fd74
 
 # 开发环境配置
 server:
@@ -144,12 +146,6 @@ data:
       database: esp_center
       username: StuReader
       password: System4read
-    target:
-      host: 10.32.96.45
-      port: 3306
-      database: student_handbook
-      username: dba_user
-      password: StrongP@ssw0rd
 
 # Swagger配置
 swagger:

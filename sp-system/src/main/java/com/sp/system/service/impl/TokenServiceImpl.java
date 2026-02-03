@@ -29,8 +29,11 @@ public class TokenServiceImpl implements TokenService {
     @Value("${sp.token.expireTime}")
     private int expireTimeInDays;
     
-    @Value("${sp.token.enabled:true}")
+    @Value("${sp.token.enabled}")
     private boolean tokenEnabled;
+
+    @Value("${sp.token.parentUserId}")
+    private String parentUserId;
 
     @Override
     @Transactional
@@ -133,8 +136,9 @@ public class TokenServiceImpl implements TokenService {
         // 根据配置判断是否启用token验证
         if (!tokenEnabled) {
             // 如果token验证被禁用，返回null或默认值
-            logger.info("Token验证已禁用，跳过token验证");
-            return null; // 或者返回一个默认的parentUserId
+            logger.info("Token验证已禁用，跳过token验证，使用測試parentUserId：{}", parentUserId);
+            // 返回一个默认的parentUserId
+            return parentUserId;
         }
         
         try {

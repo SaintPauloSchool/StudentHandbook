@@ -1,10 +1,10 @@
 // 前端全局配置设置
 export default {
   // 微信验证开关
-  enableWeChatAuth: true,
+  enableWeChatAuth: false,
   
   // Token验证开关
-  enableTokenAuth: true,
+  enableTokenAuth: false,
   
   // 登录页面路径
   loginPath: '/login'
