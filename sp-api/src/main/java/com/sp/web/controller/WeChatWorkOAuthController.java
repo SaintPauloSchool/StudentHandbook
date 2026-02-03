@@ -117,7 +117,7 @@ public class WeChatWorkOAuthController extends BaseController {
                     token = tokenService.createToken(numericUserId);
                 }
 
-                logger.info("为用户 {} 生成token: {}", numericUserId, token);
+                logger.info("用户 {} 目前使用token: {}", numericUserId, token);
 
                 // 重定向到前端页面
                 response.sendRedirect("/sp-api/?token=" + token);
