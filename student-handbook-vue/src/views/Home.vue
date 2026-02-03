@@ -36,6 +36,7 @@
 <script>
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
+import settings from '@/config/settings' // 导入全局配置设置
 
 export default {
   name: 'Home',
@@ -43,10 +44,14 @@ export default {
     return {}
   },
   mounted() {
-    // 检查是否存在token，如果没有则重定向到登录页面
-    this.checkToken();
     // 检查URL参数中是否有token（来自微信授权回调）
     this.checkTokenFromUrl();
+    
+    // 根据配置决定是否执行Token验证
+    if (settings.enableTokenAuth) {
+      // 检查是否存在token，如果没有则重定向到登录页面
+      this.checkToken();
+    }
 
   },
 

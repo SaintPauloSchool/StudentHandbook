@@ -1,6 +1,7 @@
 // 封装axios的请求工具函数
 import axios from 'axios'
 import {ElMessage} from 'element-plus' // 导入Element Plus的消息组件
+import settings from '@/config/settings' // 导入全局配置设置
 
 // 创建axios实例
 const getBaseURL = () => {
@@ -20,10 +21,12 @@ const service = axios.create({
 service.interceptors.request.use(
     config => {
         // 在发送请求之前做些什么
-        const token = localStorage.getItem('token')
-        if (token) {
-            // 让每个请求携带自定义token
-            config.headers['Authorization'] = 'Bearer ' + token
+        if (settings.enableTokenAuth) { // 只有在启用Token验证时才添加token
+            const token = localStorage.getItem('token')
+            if (token) {
+                // 让每个请求携带自定义token
+                config.headers['Authorization'] = 'Bearer ' + token
+            }
         }
         return config
     },
@@ -50,15 +53,17 @@ service.interceptors.response.use(
     },
     error => {
         console.log('err' + error)// for debug
-        if (error.response && error.response.status === 401) {
-            // token过期/无效，跳转到登录页面
-            localStorage.removeItem('token')
-            // 重定向到登录页面
-            window.location.href = '/sp-api/login'
-            ElMessage.error('請先登錄')
-        } else if (error.response && error.response.status === 403) {
-            // 无权限访问
-            ElMessage.error('無權限訪問資源')
+        if (settings.enableTokenAuth) { // 只有在启用Token验证时才进行跳转
+            if (error.response && error.response.status === 401) {
+                // token过期/无效，跳转到登录页面
+                localStorage.removeItem('token')
+                // 重定向到登录页面
+                window.location.href = '/sp-api/login'
+                ElMessage.error('請先登錄')
+            } else if (error.response && error.response.status === 403) {
+                // 无权限访问
+                ElMessage.error('無權限訪問資源')
+            }
         }
         return Promise.reject(error)
     }

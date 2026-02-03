@@ -135,6 +135,7 @@
 import service from '@/utils/request.js'
 import {API_ENDPOINTS} from '@/config/api.js'
 import {ElMessage} from 'element-plus'
+import settings from '@/config/settings' // 导入全局配置设置
 
 export default {
   name: 'StudentHandbook',
@@ -198,12 +199,15 @@ export default {
     // 切換用戶菜單顯示狀態
     async toggleUserMenu() {
       try {
-        // 从前端存储获取token
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        // 检查是否启用Token验证
+        if (settings.enableTokenAuth) {
+          // 从前端存储获取token
+          const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
-        if (!token) {
-          ElMessage.error('請先登錄獲取訪問令牌');
-          return;
+          if (!token) {
+            ElMessage.error('請先登錄獲取訪問令牌');
+            return;
+          }
         }
 
         // 调用后端API获取当前token关联的学生列表

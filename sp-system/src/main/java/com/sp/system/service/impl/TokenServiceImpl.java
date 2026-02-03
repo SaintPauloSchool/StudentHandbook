@@ -29,6 +29,9 @@ public class TokenServiceImpl extends ServiceImpl<TokenMapper, Token> implements
     
     @Value("${sp.token.expireTime:7}")
     private int expireTimeInDays;
+    
+    @Value("${sp.token.enabled:true}")
+    private boolean tokenEnabled;
 
     @Override
     @Transactional
@@ -127,6 +130,13 @@ public class TokenServiceImpl extends ServiceImpl<TokenMapper, Token> implements
 
     @Override
     public String getParentUserIdFromRequest(HttpServletRequest request) {
+        // 根据配置判断是否启用token验证
+        if (!tokenEnabled) {
+            // 如果token验证被禁用，返回null或默认值
+            logger.info("Token验证已禁用，跳过token验证");
+            return null; // 或者返回一个默认的parentUserId
+        }
+        
         try {
             // 从请求头中获取token
             String token = request.getHeader("Authorization");

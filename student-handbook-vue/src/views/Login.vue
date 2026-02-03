@@ -25,6 +25,7 @@
 <script>
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
+import settings from '@/config/settings' // 导入全局配置设置
 
 export default {
   name: 'Login',
@@ -49,8 +50,14 @@ export default {
     // 检查URL参数中的授权code
     this.checkWeChatAuthCode();
 
-    // 自动触发微信登录流程
-    this.autoWechatLogin();
+    // 根据配置决定是否执行微信登录流程
+    if (settings.enableWeChatAuth) {
+      // 自动触发微信登录流程
+      this.autoWechatLogin();
+    } else {
+      // 如果未启用微信验证，则直接跳转到首页
+      this.$router.push('/');
+    }
   },
   methods: {
     // 检查URL参数中的token
@@ -131,8 +138,13 @@ export default {
     retryLogin() {
       this.showError = false;
       this.errorMessage = '授權失敗無法進入系統，請聯繫學校管理員';
-      // 重新触发微信登录
-      this.autoWechatLogin();
+      if (settings.enableWeChatAuth) {
+        // 重新触发微信登录
+        this.autoWechatLogin();
+      } else {
+        // 如果未启用微信验证，则直接跳转到首页
+        this.$router.push('/');
+      }
     },
 
     // 自动微信登录

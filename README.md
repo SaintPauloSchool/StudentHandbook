@@ -172,6 +172,78 @@ StudentHandbook/
 3. 保持企業微信配置的安全性
 4. 定期備份數據庫
 
+## 前端認證開關配置
+
+本項目提供了兩個全局開關，用於控制前端的認證行為：
+
+1. 微信驗證開關：控制是否啟用微信授權登錄
+2. Token驗證開關：控制是否啟用Token驗證
+
+### 配置文件
+
+配置文件位於 `student-handbook-vue/src/config/settings.js`，包含以下配置項：
+
+```javascript
+export default {
+  // 微信驗證開關
+  enableWeChatAuth: true,
+  
+  // Token驗證開關
+  enableTokenAuth: true,
+  
+  // 登錄頁面路徑
+  loginPath: '/login'
+}
+```
+
+### 功能說明
+
+#### 微信驗證開關 (enableWeChatAuth)
+- 當設置為 `true` 時：
+  - 啟用微信相關功能
+  - 在微信環境中自動加載微信JS-SDK
+  - 執行微信授權流程
+  - 在登錄頁面自動觸發微信登錄
+
+- 當設置為 `false` 時：
+  - 禁用微信相關功能
+  - 不加載微信JS-SDK
+  - 跳過微信授權流程
+  - 直接跳轉到首頁
+
+#### Token驗證開關 (enableTokenAuth)
+- 當設置為 `true` 時：
+  - 啟用Token驗證
+  - 在請求頭中添加Authorization字段
+  - 攔截401/403錯誤並跳轉到登錄頁
+  - 在路由守衛中檢查Token有效性
+
+- 當設置為 `false` 時：
+  - 禁用Token驗證
+  - 不在請求頭中添加Authorization字段
+  - 不攔截401/403錯誤
+  - 路由守衛允許所有訪問
+
+### 使用場景
+
+#### 開發環境
+在開發環境中，可以將這兩個開關設為 `false`，以便於調試和測試，無需每次都要經過認證流程。
+
+#### 測試環境
+在測試環境中，可以根據需要啟用或禁用特定的驗證方式，以測試不同的業務邏輯。
+
+#### 生產環境
+在生產環境中，建議保持兩個開關都為 `true`，以確保安全性。
+
+### 修改配置
+要修改開關設置，只需編輯 `student-handbook-vue/src/config/settings.js` 文件中的對應值即可。
+
+### 注意事項
+1. 當禁用Token驗證時，所有API請求將不會攜帶Token信息
+2. 當禁用微信驗證時，用戶無法通過微信進行登錄
+3. 修改配置後需要重新構建和部署前端應用才能生效
+4. 在StudentHandbook.vue組件中，當禁用Token驗證時，切換學生功能將不再檢查token的存在性
+
 ## 貢獻
 
 如需貢獻代碼或報告問題，請提交Issue或Pull Request。
