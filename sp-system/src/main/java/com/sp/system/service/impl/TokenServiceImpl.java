@@ -92,6 +92,7 @@ public class TokenServiceImpl implements TokenService {
         Token existingToken = this.tokenMapper.selectValidTokenByParentUserId(parentUserId);
         // 如果存在未过期的token，返回现有的token
         if (existingToken != null) {
+            logger.info("用户parentUserId： {} ， 返回token: {}", parentUserId, existingToken);
             return existingToken.getToken();
         }
         
@@ -112,6 +113,7 @@ public class TokenServiceImpl implements TokenService {
         // 使用自定义的insertToken方法
         this.tokenMapper.insertToken(token);
 
+        logger.info("用户parentUserId： {} ， 生成token: {}", parentUserId, tokenValue);
         return tokenValue;
     }
     

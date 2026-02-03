@@ -10,7 +10,6 @@ import com.sp.system.service.DepartmentParentBindingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -117,7 +116,7 @@ public class WeChatWorkOAuthController extends BaseController {
                     token = tokenService.createToken(numericUserId);
                 }
 
-                logger.info("为用户 {} 生成token: {}", numericUserId, token);
+                logger.info("用户 {} 目前使用token: {}", numericUserId, token);
 
                 // 重定向到前端页面
                 response.sendRedirect("/sp-api/?token=" + token);
