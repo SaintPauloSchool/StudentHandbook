@@ -26,7 +26,7 @@ public class TokenServiceImpl implements TokenService {
     @Autowired
     private TokenMapper tokenMapper;
     
-    @Value("30")
+    @Value("${sp.token.expireTime}")
     private int expireTimeInDays;
     
     @Value("${sp.token.enabled:true}")
