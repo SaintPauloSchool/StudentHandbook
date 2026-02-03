@@ -18,7 +18,7 @@ public class SpApplication extends SpringBootServletInitializer
     public static void main(String[] args)
     {
         SpringApplication.run(SpApplication.class, args);
-        System.out.println("启动成功!");
+        // 启动成功日志记录已由日志框架自动处理
     }
     
     @Override

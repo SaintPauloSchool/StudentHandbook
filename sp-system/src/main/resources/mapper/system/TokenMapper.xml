@@ -29,4 +29,8 @@
         values (#{userId}, #{parentUserId}, #{token}, #{expireTime}, #{createTime}, #{updateTime})
     </insert>
 
+    <delete id="deleteById" parameterType="long">
+        delete from sys_token where id = #{id}
+    </delete>
+
 </mapper>

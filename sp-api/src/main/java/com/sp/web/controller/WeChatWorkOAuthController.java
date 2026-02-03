@@ -35,9 +35,6 @@ public class WeChatWorkOAuthController extends BaseController {
     @Autowired
     private DepartmentParentBindingService departmentParentBindingService;
 
-    @Value("${sp.token.expireTime:7}")
-    private int expireTimeInDays;
-
     /**
      * 企业微信授权回调处理
      * 此接口专门用于处理企业微信应用的网页授权回调
