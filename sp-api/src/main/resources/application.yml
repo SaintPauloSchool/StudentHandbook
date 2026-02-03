@@ -15,7 +15,7 @@ sp:
   # Token配置
   token:
     # 是否启用Token验证
-    enabled: false
+    enabled: true
     # Token过期时间（天），默认7天
     expireTime: 7
     # 如果是dev開發時，請加上parentUserId數據測試，以便於調試家長學生關係相關功能
