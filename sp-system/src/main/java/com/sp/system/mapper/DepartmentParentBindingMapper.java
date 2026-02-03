@@ -1,6 +1,5 @@
 package com.sp.system.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sp.system.entity.DepartmentParentBinding;
 import org.apache.ibatis.annotations.Param;
 
@@ -10,7 +9,7 @@ import java.util.List;
  * 部门家长绑定数据层
  *
  */
-public interface DepartmentParentBindingMapper extends BaseMapper<DepartmentParentBinding> {
+public interface DepartmentParentBindingMapper {
 
     /**
      * 根据家长ID查询绑定的部门

@@ -1,6 +1,5 @@
 package com.sp.system.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sp.system.entity.DepartmentParentBinding;
 import com.sp.system.mapper.DepartmentParentBindingMapper;
 import com.sp.system.service.DepartmentParentBindingService;
@@ -15,7 +14,7 @@ import java.util.List;
  *
  */
 @Service
-public class DepartmentParentBindingServiceImpl extends ServiceImpl<DepartmentParentBindingMapper, DepartmentParentBinding> implements DepartmentParentBindingService {
+public class DepartmentParentBindingServiceImpl implements DepartmentParentBindingService {
 
     @Autowired
     private DepartmentParentBindingMapper departmentParentBindingMapper;

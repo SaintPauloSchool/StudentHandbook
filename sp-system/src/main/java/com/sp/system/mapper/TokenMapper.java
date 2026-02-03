@@ -1,6 +1,5 @@
 package com.sp.system.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sp.system.entity.Token;
 import org.apache.ibatis.annotations.Param;
 
@@ -8,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
  * TokenMapper接口
  *
  */
-public interface TokenMapper extends BaseMapper<Token> {
+public interface TokenMapper {
     /**
      * 根据token值查询Token信息
      *
@@ -32,4 +31,12 @@ public interface TokenMapper extends BaseMapper<Token> {
      * @return 插入记录数
      */
     int insertToken(Token token);
+    
+    /**
+     * 根据ID删除Token
+     * 
+     * @param id Token ID
+     * @return 删除记录数
+     */
+    int deleteById(@Param("id") Long id);
 }

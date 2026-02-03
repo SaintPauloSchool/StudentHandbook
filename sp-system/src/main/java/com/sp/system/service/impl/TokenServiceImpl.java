@@ -1,6 +1,5 @@
 package com.sp.system.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sp.system.entity.Token;
 import com.sp.system.mapper.TokenMapper;
 import com.sp.system.service.TokenService;
@@ -20,14 +19,14 @@ import java.time.LocalDateTime;
  *
  */
 @Service
-public class TokenServiceImpl extends ServiceImpl<TokenMapper, Token> implements TokenService {
+public class TokenServiceImpl implements TokenService {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenServiceImpl.class);
 
     @Autowired
     private TokenMapper tokenMapper;
     
-    @Value("${sp.token.expireTime:7}")
+    @Value("30")
     private int expireTimeInDays;
     
     @Value("${sp.token.enabled:true}")
@@ -40,7 +39,7 @@ public class TokenServiceImpl extends ServiceImpl<TokenMapper, Token> implements
             return false;
         }
 
-        Token token = this.baseMapper.selectByTokenValue(tokenValue);
+        Token token = this.tokenMapper.selectByTokenValue(tokenValue);
         if (token == null) {
             return false;
         }
@@ -129,6 +128,7 @@ public class TokenServiceImpl extends ServiceImpl<TokenMapper, Token> implements
     }
 
     @Override
+    @Transactional
     public String getParentUserIdFromRequest(HttpServletRequest request) {
         // 根据配置判断是否启用token验证
         if (!tokenEnabled) {

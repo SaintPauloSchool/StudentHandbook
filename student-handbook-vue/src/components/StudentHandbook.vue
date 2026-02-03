@@ -329,8 +329,11 @@ export default {
     groupDataByTime(data) {
       const grouped = {};
 
+      // 确保 data 是数组，如果不是则使用空数组
+      const dataArray = Array.isArray(data) ? data : [];
+      
       //按時間分組，使用class_log表的字段
-      data.forEach(item => {
+      dataArray.forEach(item => {
         // 过滤非'功課'和'測驗'类型的条目
         if (item.courseType !== '功課' && item.courseType !== '測驗') {
           return;
