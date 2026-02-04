@@ -6,7 +6,7 @@ spring:
     druid:
       # 主库数据源
       master:
-        url: jdbc:mysql://10.32.96.45:3306/student_handbook?useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
+        url: jdbc:mysql://10.32.96.45:3306/student_handbook?useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&initialTimeout=2&connectTimeout=60000&socketTimeout=60000
         username: dba_user
         password: StrongP@ssw0rd
         # 初始连接数
@@ -26,12 +26,21 @@ spring:
         # 配置一个连接在池中最小生存的时间，单位是毫秒
         minEvictableIdleTimeMillis: 300000
         # 配置一个连接在池中最大生存的时间，单位是毫秒
-        maxEvictableIdleTimeMillis: 900000
+        maxEvictableIdleTimeMillis: 1800000
         # 配置检测连接是否有效
-        validationQuery: SELECT 1 FROM DUAL
+        validationQuery: SELECT 1
         testWhileIdle: true
-        testOnBorrow: false
+        testOnBorrow: true
         testOnReturn: false
+        # 启用异常时移除连接
+        removeAbandoned: true
+        removeAbandonedTimeout: 180
+        logAbandoned: true
+        # MySQL特定配置
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        # 启用ping检查
+        keepAlive: true
       # 从库数据源
       slave:
         # 从数据源开关/默认关闭

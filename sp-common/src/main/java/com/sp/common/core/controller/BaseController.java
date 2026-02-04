@@ -14,14 +14,13 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sp.common.core.domain.AjaxResult;
 import com.sp.common.core.domain.AjaxResult.Type;
-import com.sp.common.core.domain.entity.SysUser;
 import com.sp.common.core.page.PageDomain;
 import com.sp.common.core.page.TableDataInfo;
 import com.sp.common.core.page.TableSupport;
 import com.sp.common.utils.DateUtils;
 import com.sp.common.utils.PageUtils;
 import com.sp.common.utils.ServletUtils;
-import com.sp.common.utils.ShiroUtils;
+import com.sp.common.utils.SecurityUtils;
 import com.sp.common.utils.StringUtils;
 import com.sp.common.utils.sql.SqlUtil;
 
@@ -194,35 +193,4 @@ public class BaseController
         return StringUtils.format("redirect:{}", url);
     }
 
-    /**
-     * 获取用户缓存信息
-     */
-    public SysUser getSysUser()
-    {
-        return ShiroUtils.getSysUser();
-    }
-
-    /**
-     * 设置用户缓存信息
-     */
-    public void setSysUser(SysUser user)
-    {
-        ShiroUtils.setSysUser(user);
-    }
-
-    /**
-     * 获取登录用户id
-     */
-    public Long getUserId()
-    {
-        return getSysUser().getUserId();
-    }
-
-    /**
-     * 获取登录用户名
-     */
-    public String getLoginName()
-    {
-        return getSysUser().getLoginName();
-    }
 }

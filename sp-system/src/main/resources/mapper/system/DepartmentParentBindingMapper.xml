@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sp.system.mapper.DepartmentParentBindingMapper">
+
+    <resultMap type="com.sp.system.entity.DepartmentParentBinding" id="DepartmentParentBindingResult">
+        <result property="id" column="id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="parentUserId" column="parent_user_id"/>
+        <result property="studentUserId" column="student_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="selectByParentUserId" parameterType="string" resultType="java.lang.Long">
+        SELECT department_id FROM sys_department_parent_binding WHERE parent_user_id = #{parentUserId}
+    </select>
+
+    <delete id="deleteByDepartmentId" parameterType="long">
+        DELETE FROM sys_department_parent_binding WHERE department_id = #{departmentId}
+    </delete>
+
+    <insert id="insertIgnore" parameterType="com.sp.system.entity.DepartmentParentBinding">
+        INSERT INTO sys_department_parent_binding
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="departmentId != null">
+                department_id,
+            </if>
+            <if test="parentUserId != null and parentUserId != ''">
+                parent_user_id,
+            </if>
+            <if test="studentUserId != null and studentUserId != ''">
+                student_user_id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="departmentId != null">
+                #{departmentId},
+            </if>
+            <if test="parentUserId != null and parentUserId != ''">
+                #{parentUserId},
+            </if>
+            <if test="studentUserId != null and studentUserId != ''">
+                #{studentUserId},
+            </if>
+            <if test="createTime != null">
+                #{createTime},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime},
+            </if>
+        </trim>
+        ON DUPLICATE KEY UPDATE
+            update_time = #{updateTime}
+    </insert>
+
+    <select id="selectAllParentUserIds" resultType="java.lang.String">
+        SELECT DISTINCT parent_user_id
+        FROM sys_department_parent_binding
+    </select>
+    
+    <select id="checkHasBoundStudents" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM sys_department_parent_binding
+        WHERE parent_user_id = #{parentUserId}
+    </select>
+</mapper>

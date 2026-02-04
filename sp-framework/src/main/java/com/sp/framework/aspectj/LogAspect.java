@@ -19,15 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.support.spring.PropertyPreFilters;
 import com.sp.common.annotation.Log;
-import com.sp.common.core.domain.entity.SysUser;
-import com.sp.common.core.text.Convert;
-import com.sp.common.enums.BusinessStatus;
-import com.sp.common.utils.ExceptionUtil;
-import com.sp.common.utils.ServletUtils;
-import com.sp.common.utils.ShiroUtils;
 import com.sp.common.utils.StringUtils;
-import com.sp.framework.manager.AsyncManager;
-import com.sp.framework.manager.factory.AsyncFactory;
 
 /**
  * 操作日志记录处理
@@ -131,58 +123,7 @@ public class LogAspect
         }
     }
 
-    /**
-     * 获取注解中对方法的描述信息 用于Controller层注解
-     * 
-     * @param log 日志
-     * @param operLog 操作日志
-     * @throws Exception
-     */
-/*    public void getControllerMethodDescription(JoinPoint joinPoint, Log log, SysOperLog operLog, Object jsonResult) throws Exception
-    {
-        // 设置action动作
-        operLog.setBusinessType(log.businessType().ordinal());
-        // 设置标题
-        operLog.setTitle(log.title());
-        // 设置操作人类别
-        operLog.setOperatorType(log.operatorType().ordinal());
-        // 是否需要保存request，参数和值
-        if (log.isSaveRequestData())
-        {
-            // 获取参数的信息，传入到数据库中。
-            setRequestValue(joinPoint, operLog, log.excludeParamNames());
-        }
-        // 是否需要保存response，参数和值
-        if (log.isSaveResponseData() && StringUtils.isNotNull(jsonResult))
-        {
-            operLog.setJsonResult(StringUtils.substring(JSONObject.toJSONString(jsonResult), 0, 2000));
-        }
-    }*/
 
-    /**
-     * 获取请求的参数，放到log中
-     * 
-     * @param operLog 操作日志
-     * @throws Exception 异常
-     */
-/*    private void setRequestValue(JoinPoint joinPoint, SysOperLog operLog, String[] excludeParamNames) throws Exception
-    {
-        Map<String, String[]> map = ServletUtils.getRequest().getParameterMap();
-        if (StringUtils.isNotEmpty(map))
-        {
-            String params = JSONObject.toJSONString(map, excludePropertyPreFilter(excludeParamNames));
-            operLog.setOperParam(StringUtils.substring(params, 0, 2000));
-        }
-        else
-        {
-            Object args = joinPoint.getArgs();
-            if (StringUtils.isNotNull(args))
-            {
-                String params = argsArrayToString(joinPoint.getArgs(), excludeParamNames);
-                operLog.setOperParam(StringUtils.substring(params, 0, 2000));
-            }
-        }
-    }*/
 
     /**
      * 忽略敏感属性

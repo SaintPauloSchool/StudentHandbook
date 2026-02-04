@@ -47,16 +47,10 @@
             </exclusions>
         </dependency>
 
-        <!-- Shiro使用Spring框架 -->
+        <!-- thymeleaf模板引擎 -->
         <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-spring</artifactId>
-        </dependency>
-
-        <!-- thymeleaf模板引擎和shiro框架的整合 -->
-        <dependency>
-            <groupId>com.github.theborakompanioni</groupId>
-            <artifactId>thymeleaf-extras-shiro</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- 解析客户端操作系统、浏览器等 -->

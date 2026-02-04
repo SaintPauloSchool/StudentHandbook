@@ -4,8 +4,8 @@ import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
   // 根据模式设置基础路径
-  const isTest = mode === 'test';
-  const base = isTest ? '/' : '/sp-api/';
+  // 生产环境和测试环境都需要使用/sp-api/作为基础路径
+  const base = (mode === 'production' || mode === 'test') ? '/sp-api/' : '/';
 
   return {
     plugins: [vue()],

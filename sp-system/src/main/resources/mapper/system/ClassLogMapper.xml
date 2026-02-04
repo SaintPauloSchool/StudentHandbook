@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sp.system.mapper.ClassLogMapper">
+
+    <resultMap type="com.sp.system.entity.ClassLog" id="ClassLogResult">
+        <result property="id"    column="id"    />
+        <result property="studentClass"    column="studentClass"    />
+        <result property="teacher"    column="teacher"    />
+        <result property="course"    column="course"    />
+        <result property="courseType"    column="courseType"    />
+        <result property="content"    column="content"    />
+        <result property="startDate"    column="startDate"    />
+        <result property="endDate"    column="endDate"    />
+        <result property="updateDate"    column="updateDate"    />
+    </resultMap>
+
+    <sql id="selectClassLogVo">
+        SELECT id, studentClass, teacher, course, courseType, content, startDate, endDate, updateDate 
+        FROM class_log
+    </sql>
+    
+    <select id="selectClassLogsByIds" parameterType="java.util.List" resultMap="ClassLogResult">
+        <include refid="selectClassLogVo"/>
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    
+    <insert id="insertClassLog" parameterType="com.sp.system.entity.ClassLog">
+        INSERT INTO class_log (id, studentClass, teacher, course, courseType, content, startDate, endDate, updateDate)
+        VALUES (#{id}, #{studentClass}, #{teacher}, #{course}, #{courseType}, #{content}, #{startDate}, #{endDate}, #{updateDate})
+    </insert>
+    
+    <update id="updateClassLogById" parameterType="com.sp.system.entity.ClassLog">
+        UPDATE class_log
+        SET 
+            studentClass = #{studentClass},
+            teacher = #{teacher},
+            course = #{course},
+            courseType = #{courseType},
+            content = #{content},
+            startDate = #{startDate},
+            endDate = #{endDate},
+            updateDate = #{updateDate}
+        WHERE id = #{id}
+    </update>
+    
+    <select id="selectClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
+        <include refid="selectClassLogVo"/>
+        WHERE studentClass = #{studentClass}
+        AND DATE(startDate) >= CURDATE()
+        AND courseType IN ('功課', '測驗')
+        ORDER BY startDate
+    </select>
+    
+    <select id="selectPastMonthClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
+        <include refid="selectClassLogVo"/>
+        WHERE studentClass = #{studentClass}
+        AND startDate BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+        AND courseType IN ('功課', '測驗')
+        ORDER BY startDate DESC
+    </select>
+    
+    <select id="selectTodayClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
+        <include refid="selectClassLogVo"/>
+        WHERE studentClass = #{studentClass}
+        AND DATE(startDate) = CURDATE()
+        AND courseType IN ('功課', '測驗')
+        ORDER BY startDate
+    </select>
+    
+    <select id="selectNextSevenDaysClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
+        <include refid="selectClassLogVo"/>
+        WHERE studentClass = #{studentClass}
+        AND DATE(startDate) BETWEEN DATE_ADD(CURDATE(), INTERVAL 1 DAY) AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+        AND courseType IN ('功課', '測驗')
+        ORDER BY startDate
+    </select>
+    
+    <select id="selectClassLogByIdAndStudentClass" parameterType="map" resultMap="ClassLogResult">
+        <include refid="selectClassLogVo"/>
+        WHERE id = #{id}
+        AND studentClass = #{studentClass}
+        AND courseType IN ('功課', '測驗')
+        LIMIT 1
+    </select>
+</mapper>

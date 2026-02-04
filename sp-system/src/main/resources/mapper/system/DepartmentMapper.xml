@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sp.system.mapper.DepartmentMapper">
+
+    <resultMap id="DepartmentResultMap" type="com.sp.system.entity.Department">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="registerYear" column="register_year"/>
+        <result property="standardGrade" column="standard_grade"/>
+        <result property="order" column="order_num"/>
+        <result property="isGraduated" column="is_graduated"/>
+        <result property="openGroupChat" column="open_group_chat"/>
+        <result property="groupChatId" column="group_chat_id"/>
+    </resultMap>
+
+    <insert id="batchInsertDepartments" parameterType="java.util.List">
+        INSERT INTO sys_department (id, parent_id, name, type, register_year, standard_grade, 
+                                   order_num, is_graduated, open_group_chat, group_chat_id)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.parentId}, #{item.name}, #{item.type}, #{item.registerYear}, 
+             #{item.standardGrade}, #{item.order}, #{item.isGraduated}, #{item.openGroupChat}, 
+             #{item.groupChatId})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            parent_id = VALUES(parent_id),
+            name = VALUES(name),
+            type = VALUES(type),
+            register_year = VALUES(register_year),
+            standard_grade = VALUES(standard_grade),
+            order_num = VALUES(order_num),
+            is_graduated = VALUES(is_graduated),
+            open_group_chat = VALUES(open_group_chat),
+            group_chat_id = VALUES(group_chat_id)
+    </insert>
+
+    <select id="selectById" parameterType="java.lang.Long" resultMap="DepartmentResultMap">
+        SELECT id, parent_id, name, type, register_year, standard_grade, order_num, 
+               is_graduated, open_group_chat, group_chat_id
+        FROM sys_department
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectClassDepartmentId" resultType="java.lang.Long">
+        SELECT d1.id
+        FROM sys_department d1
+        JOIN sys_department d2 ON d1.parent_id = d2.id
+        JOIN sys_department d3 ON d2.parent_id = d3.id
+        WHERE 
+          d3.type = 3 AND d3.name = '2025' AND d3.parent_id = 2
+          AND d2.type = 2 AND d2.name = 'P2'
+          AND d1.type = 1 AND d1.name = 'P2_F_家長'
+    </select>
+
+</mapper>

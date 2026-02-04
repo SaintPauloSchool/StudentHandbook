@@ -4,15 +4,15 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.sp.common.constant.PermissionConstants;
 import com.sp.common.utils.MessageUtils;
 
 /**
- * permission 工具类
+ * permission 工具类（基于Spring Security重构）
  *
  */
 public class PermissionUtils
@@ -91,10 +91,10 @@ public class PermissionUtils
      */
     public static Object getPrincipalProperty(String property)
     {
-        Subject subject = SecurityUtils.getSubject();
-        if (subject != null)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null)
         {
-            Object principal = subject.getPrincipal();
+            Object principal = authentication.getPrincipal();
             try
             {
                 BeanInfo bi = Introspector.getBeanInfo(principal.getClass());

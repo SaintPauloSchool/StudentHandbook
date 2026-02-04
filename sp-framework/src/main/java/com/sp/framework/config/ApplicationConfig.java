@@ -3,6 +3,7 @@ package com.sp.framework.config;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * 程序注解配置
@@ -13,6 +14,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableAspectJAutoProxy(exposeProxy = true)
 // 指定要扫描的Mapper类的包的路径
 @MapperScan("com.sp.**.mapper")
+// 启用事务管理
+@EnableTransactionManagement
 public class ApplicationConfig
 {
 

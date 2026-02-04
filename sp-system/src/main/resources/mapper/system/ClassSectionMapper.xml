@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sp.system.mapper.ClassSectionMapper">
+
+    <resultMap type="com.sp.system.entity.ClassSection" id="ClassSectionResult">
+        <result property="id"    column="id"    />
+        <result property="classSectionDsedj"    column="class_section_dsedj"    />
+        <result property="classSectionSp"    column="class_section_sp"    />
+    </resultMap>
+
+    <sql id="selectClassSectionVo">
+        SELECT id, class_section_dsedj, class_section_sp 
+        FROM class_section
+    </sql>
+
+    <select id="selectClassSectionByDsedj" parameterType="java.lang.String" resultMap="ClassSectionResult">
+        <include refid="selectClassSectionVo"/>
+        WHERE class_section_dsedj = #{classSectionDsedj}
+    </select>
+
+</mapper>

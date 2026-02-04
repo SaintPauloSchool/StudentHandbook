@@ -1,9 +1,9 @@
 package com.sp.framework.aspectj;
 
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import com.sp.common.core.context.PermissionContextHolder;
 import com.sp.common.utils.StringUtils;
@@ -16,14 +16,20 @@ import com.sp.common.utils.StringUtils;
 @Component
 public class PermissionsAspect
 {
-    @Before("@annotation(controllerRequiresPermissions)")
-    public void doBefore(JoinPoint point, RequiresPermissions controllerRequiresPermissions) throws Throwable
+    @Before("@annotation(controllerPreAuthorize)")
+    public void doBefore(JoinPoint point, PreAuthorize controllerPreAuthorize) throws Throwable
     {
-        handleRequiresPermissions(point, controllerRequiresPermissions);
+        handleRequiresPermissions(point, controllerPreAuthorize);
     }
 
-    protected void handleRequiresPermissions(final JoinPoint joinPoint, RequiresPermissions requiresPermissions)
+    protected void handleRequiresPermissions(final JoinPoint joinPoint, PreAuthorize preAuthorize)
     {
-        PermissionContextHolder.setContext(StringUtils.join(requiresPermissions.value(), ","));
+        // 提取权限表达式中的权限字符串
+        String permissionExpression = preAuthorize.value();
+        // 简单提取权限名称（假设格式为"hasAuthority('permission')"）
+        if (permissionExpression.startsWith("hasAuthority('") && permissionExpression.endsWith("')")) {
+            String permission = permissionExpression.substring(14, permissionExpression.length() - 2);
+            PermissionContextHolder.setContext(permission);
+        }
     }
 }

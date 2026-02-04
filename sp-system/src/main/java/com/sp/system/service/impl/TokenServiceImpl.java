@@ -1,0 +1,181 @@
+package com.sp.system.service.impl;
+
+import com.sp.system.entity.Token;
+import com.sp.system.mapper.TokenMapper;
+import com.sp.system.service.TokenService;
+import com.sp.common.utils.uuid.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+
+/**
+ * TokenService实现类
+ *
+ */
+@Service
+public class TokenServiceImpl implements TokenService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TokenServiceImpl.class);
+
+    @Autowired
+    private TokenMapper tokenMapper;
+    
+    @Value("${sp.token.expireTime}")
+    private int expireTimeInDays;
+    
+    @Value("${sp.token.enabled}")
+    private boolean tokenEnabled;
+
+    @Value("${sp.token.parentUserId}")
+    private String parentUserId;
+
+    @Override
+    @Transactional
+    public boolean validateToken(String tokenValue) {
+        if (tokenValue == null || tokenValue.isEmpty()) {
+            return false;
+        }
+
+        Token token = this.tokenMapper.selectByTokenValue(tokenValue);
+        if (token == null) {
+            return false;
+        }
+
+        // 检查token是否过期
+        if (token.getExpireTime().isBefore(LocalDateTime.now())) {
+            // 删除过期token
+            this.tokenMapper.deleteById(token.getId());
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public String createToken(Long userId) {
+        // 先删除该用户之前的token
+        this.tokenMapper.deleteByUserId(userId);
+
+        // 创建新token
+        String tokenValue = UUID.randomUUID().toString();
+
+        Token token = new Token();
+        token.setUserId(userId);
+        token.setToken(tokenValue);
+        token.setCreateTime(LocalDateTime.now());
+        token.setUpdateTime(LocalDateTime.now());
+        token.setExpireTime(LocalDateTime.now().plusDays(expireTimeInDays));
+
+        // 使用自定义的insertToken方法
+        this.tokenMapper.insertToken(token);
+
+        return tokenValue;
+    }
+    
+    /**
+     * 为家长用户创建token
+     *
+     * @param userId 用户ID
+     * @param parentUserId 家长用户ID
+     * @return token值
+     */
+    @Transactional
+    public String createTokenWithParentUserId(Long userId, String parentUserId) {
+        // 先检查该parentUserId是否存在未过期的token
+        Token existingToken = this.tokenMapper.selectValidTokenByParentUserId(parentUserId);
+        // 如果存在未过期的token，返回现有的token
+        if (existingToken != null) {
+            logger.info("用户parentUserId： {} ， 返回token: {}", parentUserId, existingToken);
+            return existingToken.getToken();
+        }
+        
+        // 先删除该用户之前的token
+        this.tokenMapper.deleteByUserId(userId);
+
+        // 创建新token
+        String tokenValue = UUID.randomUUID().toString();
+
+        Token token = new Token();
+        token.setUserId(userId);
+        token.setParentUserId(parentUserId);
+        token.setToken(tokenValue);
+        token.setCreateTime(LocalDateTime.now());
+        token.setUpdateTime(LocalDateTime.now());
+        token.setExpireTime(LocalDateTime.now().plusDays(expireTimeInDays));
+
+        // 使用自定义的insertToken方法
+        this.tokenMapper.insertToken(token);
+
+        logger.info("用户parentUserId： {} ， 生成token: {}", parentUserId, tokenValue);
+        return tokenValue;
+    }
+    
+    @Override
+    @Transactional
+    public String getParentUserIdByToken(String tokenValue) {
+        if (tokenValue == null || tokenValue.isEmpty()) {
+            return null;
+        }
+        
+        Token token = this.tokenMapper.selectByTokenValue(tokenValue);
+        if (token == null) {
+            return null;
+        }
+        
+        // 检查token是否过期
+        if (token.getExpireTime().isBefore(LocalDateTime.now())) {
+            // 删除过期token
+            this.tokenMapper.deleteById(token.getId());
+            return null;
+        }
+        
+        return token.getParentUserId();
+    }
+
+    @Override
+    @Transactional
+    public String getParentUserIdFromRequest(HttpServletRequest request) {
+        // 根据配置判断是否启用token验证
+        if (!tokenEnabled) {
+            // 如果token验证被禁用，返回null或默认值
+            logger.info("Token验证已禁用，跳过token验证，使用測試parentUserId：{}", parentUserId);
+            // 返回一个默认的parentUserId
+            return parentUserId;
+        }
+        
+        try {
+            // 从请求头中获取token
+            String token = request.getHeader("Authorization");
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            } else {
+                // 尝试从参数中获取
+                token = request.getParameter("token");
+            }
+
+            if (token == null || token.isEmpty()) {
+                logger.error("验证token失败: 缺少访问令牌");
+                return null;
+            }
+
+            // 验证token是否有效并获取家长ID
+            String parentUserId = getParentUserIdByToken(token);
+            if (parentUserId == null) {
+                logger.error("验证token失败: 无效的访问令牌或用户未登录");
+                return null;
+            }
+            
+            return parentUserId;
+        } catch (Exception e) {
+            logger.error("验证token时发生异常: {}", e.getMessage());
+            return null;
+        }
+    }
+}

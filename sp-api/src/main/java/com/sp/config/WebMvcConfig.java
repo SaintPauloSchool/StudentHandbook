@@ -1,15 +1,18 @@
 package com.sp.config;
 
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.annotation.Bean;
+import com.sp.framework.interceptor.TokenInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Autowired
+    private TokenInterceptor tokenInterceptor;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -28,10 +31,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 添加对sp-api路径下assets目录的支持
         registry.addResourceHandler("/sp-api/assets/**")
                 .addResourceLocations("classpath:/dist/assets/");
-                
-        // 添加对sp-api根路径的支持
-        registry.addResourceHandler("/sp-api/**")
-                .addResourceLocations("classpath:/dist/");
     }
 
     @Override
@@ -45,14 +44,23 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addViewController("/sp-api").setViewName("forward:/dist/index.html");
     }
     
-    /*
-    @Bean
-    public ServletRegistrationBean<DispatcherServlet> dispatcherServletRegistration() {
-        ServletRegistrationBean<DispatcherServlet> registration = new ServletRegistrationBean<>(
-                new CustomDispatcherServlet(), "/sp-api/*");
-        registration.setName("customDispatcherServlet");
-        registration.setLoadOnStartup(1);
-        return registration;
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 注册token拦截器，排除不需要验证的路径
+        registry.addInterceptor(tokenInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/login",
+                        "/captchaImage",
+                        "/profile/**",
+                        "/system/handbook/list",
+                        "/system/handbook/students",
+                        "/sp-api/",
+                        "/sp-api",
+                        "/sp-api/assets/**",
+                        "/sp-api/dist/**",
+                        "/dist/**",
+                        "/assets/**"
+                );
     }
-    */
 }
