@@ -178,7 +178,7 @@ export default {
   mounted() {
     this.checkIsMobile()
     this.activeButton = 'today'; // 初始化時設置當天按鈕為活躍狀態
-    this.fetchHandbookList()
+    this.fetchTodayHandbookList()
     window.addEventListener('resize', this.checkIsMobile)
     // 添加滾動事件監聽器
     window.addEventListener('scroll', this.handleScroll)
@@ -281,52 +281,6 @@ export default {
         this.$router.push('/');
       }
     },
-
-    // 獲取學生手冊列表（從class_log表）
-    async fetchHandbookList() {
-      this.loading = true
-      try {
-        // 使用封裝的service實例，確保攜帶token
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_LIST)
-
-        // 根據後端返回的數據結構處理數據（現在是class_log表的結構）
-        let rawData = [];
-        if (response.data && response.data.rows) {
-          rawData = response.data.rows;
-        } else if (Array.isArray(response.data)) {
-          // 如果後端直接返回數組
-          rawData = response.data;
-        } else {
-          // 如果是其他結構，嘗試直接使用
-          rawData = response.data;
-        }
-
-        // 按時間分組數據
-        this.groupDataByTime(rawData);
-
-        // 根據當前視圖模式過濾數據
-        if (this.viewMode === 'nextSevenDays') {
-          this.showNextSevenDaysDataInner();
-        } else if (this.viewMode === 'pastMonth') {
-          this.showPastMonthDataInner();
-        } else {
-          // 默認為顯示今天數據
-          this.showTodayDataInner();
-        }
-
-
-      } catch (error) {
-        console.error('獲取學生手冊列表失敗:', error)
-        ElMessage.error('獲取數據失敗: ' + (error.message || '未知錯誤'))
-        // 使用空數組，不顯示示例數據
-        this.groupDataByTime([]);
-        // 即使出现错误也要应用当天视图
-        this.showTodayDataInner();
-      } finally {
-        this.loading = false
-      }
-    },
-
 
     //按時間分組數據
     groupDataByTime(data) {
@@ -869,7 +823,7 @@ export default {
           this.studentSelectionDialogVisible = false;
 
           // 刷新手冊列表以显示新选择的学生的数据
-          this.fetchHandbookList();
+          this.fetchTodayHandbookList();
         } else {
           ElMessage.error(response.data.msg || '切換學生失敗');
         }

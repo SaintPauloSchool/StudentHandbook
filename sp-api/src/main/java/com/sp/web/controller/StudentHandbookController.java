@@ -38,26 +38,6 @@ public class StudentHandbookController extends BaseController {
     @Autowired
     private TokenService tokenService;
 
-    @Log(title = "查询课程日志列表", businessType = BusinessType.SELECT)
-    @GetMapping("/list")
-    public TableDataInfo list() {
-        try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
-            if (parentUserId == null) {
-                return ResponseUtils.createUnauthorizedResponse();
-            }
-
-            // 通过Service获取课程日志列表
-            List<ClassLog> classLogs = classLogService.getClassLogListByParentUserId(parentUserId);
-
-            return ResponseUtils.createSuccessResponse(classLogs);
-        } catch (Exception e) {
-            logger.error("获取课程日志列表失败: {}", e.getMessage());
-            return ResponseUtils.createErrorResponse();
-        }
-    }
-
     @Log(title = "查询过去一个月课程日志列表", businessType = BusinessType.SELECT)
     @GetMapping("/pastMonth")
     public TableDataInfo listPastMonth() {
