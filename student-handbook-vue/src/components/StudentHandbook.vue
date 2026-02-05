@@ -19,7 +19,7 @@
           </el-button>
 
           <!-- 用戶切換按鈕 -->
-          <el-button v-if="false" class="user-switch-btn" type="primary" plain @click="toggleUserMenu">
+          <el-button class="user-switch-btn" type="primary" plain @click="toggleUserMenu">
             <template #icon>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path
@@ -104,16 +104,17 @@
         </div>
         <div class="student-selection-content">
           <div class="student-list">
-            <el-radio-group v-model="selectedStudent" class="student-options-group">
-              <el-radio
+            <div class="student-options-group">
+              <div
                   v-for="relation in studentRelations"
                   :key="relation.studentUserId"
-                  :label="relation.studentName"
                   class="student-item-radio"
+                  :class="{ 'selected': selectedStudentUserId === relation.studentUserId }"
+                  @click="selectStudent(relation.studentUserId, relation.studentName)"
               >
                 <span class="student-name">{{ relation.studentName }}</span>
-              </el-radio>
-            </el-radio-group>
+              </div>
+            </div>
             <!-- 学生列表为空时的提示 -->
             <div v-if="studentRelations.length === 0" class="empty-student-list">
               <p class="no-student-text">暂无学生数据</p>
@@ -155,7 +156,8 @@ export default {
       // 學生選擇相關
       studentSelectionDialogVisible: false, // 控制學生選擇對話框顯示
       studentOptions: [], // 學生選項
-      selectedStudent: '', // 已選擇的學生
+      selectedStudent: '', // 已選擇的學生姓名（用于显示）
+      selectedStudentUserId: '', // 已選擇的學生ID（用于数据传输）
       studentRelations: [], // 存儲家長與學生關係的完整數據
 
       // 滑動相關數據
@@ -222,7 +224,8 @@ export default {
             this.studentRelations = relations;
             // 从relations数据中提取studentName作为选项
             this.studentOptions = relations.map(relation => relation.studentName);
-            this.selectedStudent = relations[0].studentName; // 默认选择第一个学生的姓名
+            this.selectedStudent = relations[0].studentName; // 默认显示第一个学生的姓名
+            this.selectedStudentUserId = relations[0].studentUserId; // 默认选择第一个学生的ID
             this.studentSelectionDialogVisible = true;
           } else {
             ElMessage.info('當前帳號未關聯任何學生');
@@ -331,7 +334,7 @@ export default {
 
       // 确保 data 是数组，如果不是则使用空数组
       const dataArray = Array.isArray(data) ? data : [];
-      
+
       //按時間分組，使用class_log表的字段
       dataArray.forEach(item => {
         // 过滤非'功課'和'測驗'类型的条目
@@ -473,7 +476,7 @@ export default {
     // 獲取日期對應的星期幾
     getDayOfWeek(dateString) {
       if (!dateString) return '';
-      
+
       // 解析日期字符串
       let date = this.parseDate(dateString);
       if (!(date instanceof Date) || isNaN(date)) {
@@ -497,7 +500,7 @@ export default {
       // 星期幾的中文映射
       const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
       const weekday = date.getDay(); // 0 (Sunday) to 6 (Saturday)
-      
+
       return `(${weekdays[weekday]})`;
     },
 
@@ -513,7 +516,7 @@ export default {
         behavior: 'smooth'
       });
     },
-    
+
     // 獲取當天的學生手冊列表
     async fetchTodayHandbookList() {
       this.loading = true;
@@ -561,7 +564,7 @@ export default {
         behavior: 'smooth'
       });
     },
-    
+
     // 獲取過去一個月的學生手冊列表
     async fetchPastMonthHandbookList() {
       this.loading = true;
@@ -596,7 +599,7 @@ export default {
         this.loading = false;
       }
     },
-    
+
     //按時間分組數據但不排序（保持後端返回的順序）
     groupDataByTimeWithoutSort(data) {
       const grouped = {};
@@ -645,7 +648,7 @@ export default {
       //根據原始順序構建結果數組，不進行額外排序
       this.allGroupedHandbookList = order.map(timeKey => {
         const item = grouped[timeKey];
-        
+
         // 只保留'功課'和'測驗'类别，过滤掉其他类别
         item.categoryGroups = Object.values(item.categories).filter(categoryGroup => {
           return categoryGroup.category === '功課' || categoryGroup.category === '測驗';
@@ -673,14 +676,14 @@ export default {
             return a.content.localeCompare(b.content);
           });
         });
-        
+
         return item;
       });
 
       // 重置到第一頁
       this.currentPage = 1;
     },
-    
+
     // 檢查是否在過去一個月內
     isInPastMonth(dateString) {
       const now = new Date();
@@ -689,17 +692,17 @@ export default {
       // 設置一個月前的日期
       const pastMonthStart = new Date(now);
       pastMonthStart.setMonth(now.getMonth() - 1);
-      
+
       // 設置今天的時間範圍
       const todayStart = new Date(now);
       todayStart.setHours(0, 0, 0, 0);
-      
+
       const todayEnd = new Date(now);
       todayEnd.setHours(23, 59, 59, 999);
 
       return checkDate >= pastMonthStart && checkDate <= todayEnd;
     },
-    
+
     // 顯示過去一個月數據（內部函數）
     showPastMonthDataInner() {
       const pastMonthData = [];
@@ -734,7 +737,7 @@ export default {
         behavior: 'smooth'
       });
     },
-    
+
     // 獲取未來七天（不含今天）的學生手冊列表
     async fetchNextSevenDaysHandbookList() {
       this.loading = true;
@@ -819,9 +822,16 @@ export default {
       this.studentSelectionDialogVisible = false;
     },
 
+    // 选择学生
+    selectStudent(studentUserId, studentName) {
+      this.selectedStudentUserId = studentUserId;
+      this.selectedStudent = studentName;
+      console.log('选择了学生:', studentName, 'ID:', studentUserId);
+    },
+
     // 确认切换学生
     async confirmStudentSwitchTemp() {
-      if (!this.selectedStudent) {
+      if (!this.selectedStudentUserId) {
         ElMessage.warning('請選擇一個學生');
         return;
       }
@@ -832,38 +842,32 @@ export default {
           ElMessage.error('學生關係數據未加載');
           return;
         }
-        
-        // 根据选择的学生姓名找到对应的studentUserId
-        const selectedRelation = this.studentRelations.find(
-          relation => relation && relation.studentName === this.selectedStudent
-        );
-        
-        if (!selectedRelation) {
-          ElMessage.error('找不到對於學生信息');
+
+        // 直接使用已选择的学生信息
+        const studentName = this.selectedStudent;
+        const studentUserId = this.selectedStudentUserId;
+
+        // 确保必要数据存在
+        if (!studentUserId || !studentName) {
+          ElMessage.error('學生信息不完整');
           return;
         }
-        
-        const studentUserId = selectedRelation.studentUserId;
-        
-        // 确保studentUserId存在
-        if (!studentUserId) {
-          ElMessage.error('學生用戶ID缺失');
-          return;
-        }
-        
+
+        console.log('准备切换到学生:', studentName, 'ID:', studentUserId);
+
         // 调用后端API切换学生
         const response = await service.post(API_ENDPOINTS.SWITCH_STUDENT, {
-          studentName: this.selectedStudent,
+          studentName: studentName,
           studentUserId: studentUserId
         });
-        
+
         if (response.data.code === 200) {
           ElMessage.success({
             message: `已成功切換到學生`,
             duration: 1000
           });
           this.studentSelectionDialogVisible = false;
-          
+
           // 刷新手冊列表以显示新选择的学生的数据
           this.fetchHandbookList();
         } else {
@@ -1287,70 +1291,32 @@ export default {
 }
 
 .student-item-radio:hover {
-  background: #2563eb; /* 輕微背景色，但排除已選中項目 */
-  border: 2px solid #2563eb !important; /* 深灰色邊框 */
-  color: white !important; /* 白色文字 */
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3) !important;
+  background: #dbeafe; /* 懸停時的淺藍色背景 */
+  border: 1px solid #3b82f6 !important; /* 懸停時的藍色邊框 */
+  color: #1e40af !important; /* 懸停時的深藍色文字 */
   transform: translateY(-1px);
 }
 
-/* 使用最強的深度選擇器覆蓋Element Plus默認樣式 */
-:deep(.el-radio__input.is-checked .el-radio__inner),
-:deep(.el-radio.is-checked .el-radio__input .el-radio__inner) {
-  background: #0f172a !important; /* 深灰色圓點 */
-  border-color: #0f172a !important;
+/* 選中狀態的樣式 */
+.student-item-radio.selected {
+  background: #2563eb !important; /* 選中時的深藍色背景 */
+  border: 2px solid #1d4ed8 !important; /* 選中時的深藍色邊框 */
+  color: white !important; /* 選中時的白色文字 */
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+  transform: translateY(-2px);
 }
 
-:deep(.el-radio__input.is-checked + .el-radio__label),
-:deep(.el-radio.is-checked .el-radio__label) {
-  color: white !important; /* 白色文字 */
-  font-weight: 600 !important;
-}
-
-.student-name {
-  font-size: 16px;
-  color: white;
-  transition: color 0.3s ease;
-  font-weight: 600;
-}
-
-:deep(.el-radio.is-checked .student-name),
-:deep(.el-radio__input.is-checked + .el-radio__label .student-name),
-:deep(.el-radio.is-checked .student-item-radio .student-name),
-:deep(.el-radio__input.is-checked .student-item-radio .student-name) {
+.student-item-radio.selected .student-name {
   color: white !important;
   font-weight: 700 !important;
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.5) !important;
 }
 
-/* 添加选中状态下整个学生项目的样式 */
-:deep(.el-radio.is-checked .student-item-radio),
-:deep(.el-radio__input.is-checked .student-item-radio) {
-  background: #0f172a !important; /* 深色背景高亮 */
-  border: 2px solid #0f172a !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3) !important;
-  transform: translateY(-1px);
-}
-
-/* 针对手持设备优化选中状态 */
-@media (max-width: 768px) {
-  :deep(.el-radio.is-checked .student-item-radio),
-  :deep(.el-radio__input.is-checked .student-item-radio) {
-    background: #0f172a !important;
-    border: 2px solid #0f172a !important;
-    color: white !important;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.4) !important;
-  }
-
-  :deep(.el-radio.is-checked .student-name),
-  :deep(.el-radio__input.is-checked + .el-radio__label .student-name),
-  :deep(.el-radio.is-checked .student-item-radio .student-name),
-  :deep(.el-radio__input.is-checked .student-item-radio .student-name) {
-    color: white !important;
-    font-weight: 700 !important;
-    text-shadow: 0 0 2px rgba(255, 255, 255, 0.5) !important;
-  }
+.student-name {
+  font-size: 16px;
+  color: #374151; /* 默認深灰色文字 */
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 

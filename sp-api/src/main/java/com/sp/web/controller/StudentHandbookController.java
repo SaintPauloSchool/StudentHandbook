@@ -178,6 +178,8 @@ public class StudentHandbookController extends BaseController {
                 return AjaxResult.error("学生用户ID不能为空");
             }
 
+            System.out.println(studentName + " " + studentUserId);
+
             // 验证家长是否确实关联了该学生
             List<ParentStudentRelation> relations = parentStudentRelationService.selectByParentId(parentUserId);
             boolean studentExists = relations.stream()
