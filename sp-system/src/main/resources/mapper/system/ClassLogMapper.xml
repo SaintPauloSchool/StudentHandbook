@@ -48,14 +48,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         WHERE id = #{id}
     </update>
     
-    <select id="selectClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
-        <include refid="selectClassLogVo"/>
-        WHERE studentClass = #{studentClass}
-        AND DATE(startDate) >= CURDATE()
-        AND courseType IN ('功課', '測驗')
-        ORDER BY startDate
-    </select>
-    
     <select id="selectPastMonthClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
         <include refid="selectClassLogVo"/>
         WHERE studentClass = #{studentClass}
@@ -79,12 +71,5 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         AND courseType IN ('功課', '測驗')
         ORDER BY startDate
     </select>
-    
-    <select id="selectClassLogByIdAndStudentClass" parameterType="map" resultMap="ClassLogResult">
-        <include refid="selectClassLogVo"/>
-        WHERE id = #{id}
-        AND studentClass = #{studentClass}
-        AND courseType IN ('功課', '測驗')
-        LIMIT 1
-    </select>
+
 </mapper>

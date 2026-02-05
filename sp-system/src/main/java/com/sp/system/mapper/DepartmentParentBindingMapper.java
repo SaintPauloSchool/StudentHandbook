@@ -12,11 +12,12 @@ import java.util.List;
 public interface DepartmentParentBindingMapper {
 
     /**
-     * 根据家长ID查询绑定的部门
+     * 根据家长ID和学生ID查询绑定的部门
      * @param parentUserId 家长用户ID
-     * @return 部门ID列表
+     * @param studentUserId 学生用户ID
+     * @return 部门ID（只返回一条）
      */
-    List<Long> selectByParentUserId(@Param("parentUserId") String parentUserId);
+    Long selectByParentUserId(@Param("parentUserId") String parentUserId, @Param("studentUserId") String studentUserId);
 
     /**
      * 根据部门ID删除绑定记录

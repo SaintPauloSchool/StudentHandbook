@@ -1,7 +1,6 @@
 <template>
   <div class="student-handbook"
        @touchstart="handleTouchStart"
-       @touchmove="handleTouchMove"
        @touchend="handleTouchEnd">
     <div class="header-container">
       <!-- 頁面標題和按鈕容器 -->
@@ -150,12 +149,10 @@ export default {
       pageSize: 7, //每頁顯示條數
       isMobile: false,
       showBackToTop: false,
-      viewMode: 'today', // 視圖模式: 'today' 或 'nextSevenDays'
       activeButton: 'today', // 追蹤當前選中的按鈕
 
       // 學生選擇相關
       studentSelectionDialogVisible: false, // 控制學生選擇對話框顯示
-      studentOptions: [], // 學生選項
       selectedStudent: '', // 已選擇的學生姓名（用于显示）
       selectedStudentUserId: '', // 已選擇的學生ID（用于数据传输）
       studentRelations: [], // 存儲家長與學生關係的完整數據
@@ -222,8 +219,6 @@ export default {
           if (relations && relations.length > 0) {
             // 存储完整的关系数据，包含studentName和studentUserId
             this.studentRelations = relations;
-            // 从relations数据中提取studentName作为选项
-            this.studentOptions = relations.map(relation => relation.studentName);
             this.selectedStudent = relations[0].studentName; // 默认显示第一个学生的姓名
             this.selectedStudentUserId = relations[0].studentUserId; // 默认选择第一个学生的ID
             this.studentSelectionDialogVisible = true;
@@ -253,67 +248,48 @@ export default {
       })
     },
 
-    // 觸摸開始事件
     handleTouchStart(event) {
-      const touch = event.touches[0];
-      this.touchStartX = touch.clientX;
-      this.touchStartY = touch.clientY;
+      this.touchStartX = event.touches[0].clientX;
     },
-    // 觸摸結束事件
+    
     handleTouchEnd(event) {
-      const touch = event.changedTouches[0];
-      this.touchEndX = touch.clientX;
-      this.touchEndY = touch.clientY;
-
+      this.touchEndX = event.changedTouches[0].clientX;
       this.handleSwipeGesture();
     },
-    //處理滑動手勢
+    
     handleSwipeGesture() {
       const deltaX = this.touchEndX - this.touchStartX;
-      const deltaY = this.touchEndY - this.touchStartY;
-      const absDeltaX = Math.abs(deltaX);
-      const absDeltaY = Math.abs(deltaY);
-
-      //判斷是否為有效的向右滑動
-      // 條件：水平滑動距離大於垂直滑動距離，且水平滑動距離足夠大（50px），且方向為向右
-      if (absDeltaX > absDeltaY && absDeltaX > 50 && deltaX > 0) {
-        // 回到首頁
+      // 向右滑動返回首頁
+      if (Math.abs(deltaX) > 50 && deltaX > 0) {
         this.$router.push('/');
       }
     },
 
-    //按時間分組數據
+    // 數據分組處理
     groupDataByTime(data) {
       const grouped = {};
-
-      // 确保 data 是数组，如果不是则使用空数组
       const dataArray = Array.isArray(data) ? data : [];
 
-      //按時間分組，使用class_log表的字段
       dataArray.forEach(item => {
-        // 过滤非'功課'和'測驗'类型的条目
-        if (item.courseType !== '功課' && item.courseType !== '測驗') {
-          return;
-        }
+        if (item.courseType !== '功課' && item.courseType !== '測驗') return;
 
-        // 使用startDate作为分组键
         const timeKey = item.startDate || item.updateDate || '未設定日期';
         if (!grouped[timeKey]) {
           grouped[timeKey] = {
-            timeRange: timeKey, // 使用日期作为卡片标题
+            timeRange: timeKey,
             entries: [],
-            categories: {} // 用於存儲類別分組
+            categories: {}
           };
         }
 
-        //添加條目到總列表
-        grouped[timeKey].entries.push({
+        const entry = {
           subject: item.course || '未設定課程',
           content: item.content || '無內容',
           category: item.courseType || '未分類'
-        });
+        };
+        
+        grouped[timeKey].entries.push(entry);
 
-        //按類別分組
         const category = item.courseType || '未分類';
         if (!grouped[timeKey].categories[category]) {
           grouped[timeKey].categories[category] = {
@@ -321,90 +297,45 @@ export default {
             entries: []
           };
         }
-        grouped[timeKey].categories[category].entries.push({
-          subject: item.course || '未設定課程',
-          content: item.content || '無內容',
-          category: item.courseType || '未分類'
-        });
+        grouped[timeKey].categories[category].entries.push(entry);
       });
 
-      //轉換為數組並按時間順序排序（從早到晚）
-      this.allGroupedHandbookList = Object.values(grouped).sort((a, b) => {
-        // 將日期字符串轉換為實際日期對象進行比較
-        const dateA = this.parseDate(a.timeRange);
-        const dateB = this.parseDate(b.timeRange);
-        return dateA - dateB;
-      });
-
-      //對每個時間分組內的類別進行排序，並將類別對象轉換為數組
-      this.allGroupedHandbookList.forEach(item => {
-        // 只保留'功課'和'測驗'类别，过滤掉其他类别
-        item.categoryGroups = Object.values(item.categories).filter(categoryGroup => {
-          return categoryGroup.category === '功課' || categoryGroup.category === '測驗';
-        });
-
-        // 對類別進行排序
-        item.categoryGroups.sort((a, b) => {
-          // 确保'測驗'排在前面，然后是'功課'
-          if (a.category === '測驗' && b.category !== '測驗') return -1;
-          if (b.category === '測驗' && a.category !== '測驗') return 1;
-          if (a.category === '功課' && b.category !== '功課') return -1;
-          if (b.category === '功課' && a.category !== '功課') return 1;
-          return a.category.localeCompare(b.category);
-        });
-
-        // 對每個類別內的條目進行排序
-        item.categoryGroups.forEach(categoryGroup => {
-          categoryGroup.entries.sort((a, b) => {
-            //先按科目排序
-            const subjectComparison = a.subject.localeCompare(b.subject);
-            if (subjectComparison !== 0) {
-              return subjectComparison;
-            }
-            // 如果科目相同，按內容排序
-            return a.content.localeCompare(b.content);
-          });
-        });
-      });
-
-      // 重置到第一頁
+      this.processGroupedData(grouped);
       this.currentPage = 1;
     },
 
-    // 檢查是否是今天
-    isToday(dateString) {
-      const today = new Date();
-      const checkDate = this.parseDate(dateString);
+    // 處理分組後的數據（帶排序）
+    processGroupedData(grouped) {
+      // 按時間排序
+      this.allGroupedHandbookList = Object.values(grouped).sort((a, b) => 
+        this.parseDate(a.timeRange) - this.parseDate(b.timeRange)
+      );
 
-      return today.getDate() === checkDate.getDate() &&
-          today.getMonth() === checkDate.getMonth() &&
-          today.getFullYear() === checkDate.getFullYear();
-    },
+      // 處理每個分組
+      this.allGroupedHandbookList.forEach(item => {
+        // 過濾並排序類別
+        item.categoryGroups = Object.values(item.categories)
+          .filter(cat => cat.category === '功課' || cat.category === '測驗')
+          .sort((a, b) => {
+            if (a.category === '測驗' && b.category !== '測驗') return -1;
+            if (b.category === '測驗' && a.category !== '測驗') return 1;
+            return a.category.localeCompare(b.category);
+          });
 
-    // 檢查是否是未來7天內（不含今天）
-    isInNextSevenDays(dateString) {
-      const today = new Date();
-      const checkDate = this.parseDate(dateString);
-
-      // 設置明天開始時間（不含今天）
-      const startDate = new Date(today);
-      startDate.setDate(today.getDate() + 1);
-      startDate.setHours(0, 0, 0, 0);
-
-      // 設置7天後的時間
-      const endDate = new Date(today);
-      endDate.setDate(today.getDate() + 7);
-      endDate.setHours(23, 59, 59, 999);
-
-      return checkDate >= startDate && checkDate <= endDate;
+        // 排序每個類別內的條目
+        item.categoryGroups.forEach(categoryGroup => {
+          categoryGroup.entries.sort((a, b) => 
+            a.subject.localeCompare(b.subject) || a.content.localeCompare(b.content)
+          );
+        });
+      });
     },
 
     // 解析日期字符串為Date對象的輔助函數
     parseDate(dateString) {
-      // 支持多種日期格式：dd/mm/yyyy, yyyy-mm-dd, yyyy-mm-dd HH:MM:SS
       if (!dateString) return new Date();
 
-      // 如果是包含时间的完整日期格式 (yyyy-mm-dd HH:MM:SS)
+      // 如果是包含時間的完整日期格式
       if (typeof dateString === 'string' && dateString.includes(':')) {
         return new Date(dateString);
       }
@@ -423,7 +354,6 @@ export default {
         return new Date(dateString);
       }
 
-      // 默认返回当前日期
       return new Date();
     },
 
@@ -431,36 +361,15 @@ export default {
     getDayOfWeek(dateString) {
       if (!dateString) return '';
 
-      // 解析日期字符串
-      let date = this.parseDate(dateString);
-      if (!(date instanceof Date) || isNaN(date)) {
-        // 如果解析失敗，嘗試其他格式
-        // 支援 dd/MM/yyyy 格式
-        if (typeof dateString === 'string' && dateString.includes('/')) {
-          const parts = dateString.split('/');
-          if (parts.length === 3) {
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // 月份從0開始
-            const year = parseInt(parts[2], 10);
-            date = new Date(year, month, day);
-          }
-        } else if (typeof dateString === 'string' && dateString.includes('-')) {
-          date = new Date(dateString);
-        } else {
-          return '';
-        }
-      }
+      const date = this.parseDate(dateString);
+      if (!(date instanceof Date) || isNaN(date)) return '';
 
-      // 星期幾的中文映射
       const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-      const weekday = date.getDay(); // 0 (Sunday) to 6 (Saturday)
-
-      return `(${weekdays[weekday]})`;
+      return `(${weekdays[date.getDay()]})`;
     },
 
     // 顯示當天數據
     showTodayData() {
-      this.viewMode = 'today';
       this.activeButton = 'today'; // 更新活動按鈕狀態
       // 直接調用新的接口獲取當天的數據
       this.fetchTodayHandbookList();
@@ -471,33 +380,38 @@ export default {
       });
     },
 
-    // 獲取當天的學生手冊列表
-    async fetchTodayHandbookList() {
+    // 通用數據獲取方法
+    async fetchData(endpoint, groupMethod = 'groupDataByTime') {
       this.loading = true;
       try {
+        // 構建帶有studentUserId參數的URL
+        let url = endpoint;
+        if (this.selectedStudentUserId) {
+          const separator = url.includes('?') ? '&' : '?';
+          url += `${separator}studentUserId=${encodeURIComponent(this.selectedStudentUserId)}`;
+        }
+        
         // 使用封裝的service實例，確保攜帶token
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_TODAY);
+        const response = await service.get(url);
 
         // 根據後端返回的數據結構處理數據
         let rawData = [];
         if (response.data && response.data.rows) {
           rawData = response.data.rows;
         } else if (Array.isArray(response.data)) {
-          // 如果後端直接返回數組
           rawData = response.data;
         } else {
-          // 如果是其他結構，嘗試直接使用
           rawData = response.data;
         }
 
-        // 按時間分組數據
-        this.groupDataByTime(rawData);
+        // 根據指定方法分組數據
+        this[groupMethod](rawData);
 
         // 重置到第一頁
         this.currentPage = 1;
 
       } catch (error) {
-        console.error('獲取當天學生手冊列表失敗:', error);
+        console.error(`獲取數據失敗:`, error);
         ElMessage.error('獲取數據失敗: ' + (error.message || '未知錯誤'));
         // 使用空數組
         this.groupDataByTime([]);
@@ -506,9 +420,13 @@ export default {
       }
     },
 
+    // 獲取當天的學生手冊列表
+    async fetchTodayHandbookList() {
+      await this.fetchData(API_ENDPOINTS.STUDENT_HANDBOOK_TODAY, 'groupDataByTime');
+    },
+
     // 顯示過去一個月數據
     showPastMonthData() {
-      this.viewMode = 'pastMonth';
       this.activeButton = 'pastMonth'; // 更新活動按鈕狀態
       // 直接調用新的接口獲取過去一個月的數據
       this.fetchPastMonthHandbookList();
@@ -521,37 +439,7 @@ export default {
 
     // 獲取過去一個月的學生手冊列表
     async fetchPastMonthHandbookList() {
-      this.loading = true;
-      try {
-        // 使用封裝的service實例，確保攜帶token
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_PAST_MONTH);
-
-        // 根據後端返回的數據結構處理數據
-        let rawData = [];
-        if (response.data && response.data.rows) {
-          rawData = response.data.rows;
-        } else if (Array.isArray(response.data)) {
-          // 如果後端直接返回數組
-          rawData = response.data;
-        } else {
-          // 如果是其他結構，嘗試直接使用
-          rawData = response.data;
-        }
-
-        // 按時間分組數據，但不進行額外排序，保持後端返回的順序
-        this.groupDataByTimeWithoutSort(rawData);
-
-        // 重置到第一頁
-        this.currentPage = 1;
-
-      } catch (error) {
-        console.error('獲取過去一個月學生手冊列表失敗:', error);
-        ElMessage.error('獲取數據失敗: ' + (error.message || '未知錯誤'));
-        // 使用空數組
-        this.groupDataByTime([]);
-      } finally {
-        this.loading = false;
-      }
+      await this.fetchData(API_ENDPOINTS.STUDENT_HANDBOOK_PAST_MONTH, 'groupDataByTimeWithoutSort');
     },
 
     //按時間分組數據但不排序（保持後端返回的順序）
@@ -599,89 +487,37 @@ export default {
         });
       });
 
-      //根據原始順序構建結果數組，不進行額外排序
+      this.processGroupedDataPreserveOrder(grouped, order);
+      this.currentPage = 1;
+    },
+
+    // 處理分組數據（保持順序）
+    processGroupedDataPreserveOrder(grouped, order) {
       this.allGroupedHandbookList = order.map(timeKey => {
         const item = grouped[timeKey];
-
-        // 只保留'功課'和'測驗'类别，过滤掉其他类别
-        item.categoryGroups = Object.values(item.categories).filter(categoryGroup => {
-          return categoryGroup.category === '功課' || categoryGroup.category === '測驗';
-        });
-
-        // 對類別進行排序
-        item.categoryGroups.sort((a, b) => {
-          // 确保'測驗'排在前面，然后是'功課'
-          if (a.category === '測驗' && b.category !== '測驗') return -1;
-          if (b.category === '測驗' && a.category !== '測驗') return 1;
-          if (a.category === '功課' && b.category !== '功課') return -1;
-          if (b.category === '功課' && a.category !== '功課') return 1;
-          return a.category.localeCompare(b.category);
-        });
-
-        // 對每個類別內的條目進行排序
-        item.categoryGroups.forEach(categoryGroup => {
-          categoryGroup.entries.sort((a, b) => {
-            //先按科目排序
-            const subjectComparison = a.subject.localeCompare(b.subject);
-            if (subjectComparison !== 0) {
-              return subjectComparison;
-            }
-            // 如果科目相同，按內容排序
-            return a.content.localeCompare(b.content);
+        
+        // 處理類別
+        item.categoryGroups = Object.values(item.categories)
+          .filter(cat => cat.category === '功課' || cat.category === '測驗')
+          .sort((a, b) => {
+            if (a.category === '測驗' && b.category !== '測驗') return -1;
+            if (b.category === '測驗' && a.category !== '測驗') return 1;
+            return a.category.localeCompare(b.category);
           });
+
+        // 排序列內條目
+        item.categoryGroups.forEach(categoryGroup => {
+          categoryGroup.entries.sort((a, b) => 
+            a.subject.localeCompare(b.subject) || a.content.localeCompare(b.content)
+          );
         });
 
         return item;
       });
-
-      // 重置到第一頁
-      this.currentPage = 1;
-    },
-
-    // 檢查是否在過去一個月內
-    isInPastMonth(dateString) {
-      const now = new Date();
-      const checkDate = this.parseDate(dateString);
-
-      // 設置一個月前的日期
-      const pastMonthStart = new Date(now);
-      pastMonthStart.setMonth(now.getMonth() - 1);
-
-      // 設置今天的時間範圍
-      const todayStart = new Date(now);
-      todayStart.setHours(0, 0, 0, 0);
-
-      const todayEnd = new Date(now);
-      todayEnd.setHours(23, 59, 59, 999);
-
-      return checkDate >= pastMonthStart && checkDate <= todayEnd;
-    },
-
-    // 顯示過去一個月數據（內部函數）
-    showPastMonthDataInner() {
-      const pastMonthData = [];
-
-      this.allGroupedHandbookList.forEach(item => {
-        if (this.isInPastMonth(item.timeRange)) {
-          pastMonthData.push(item);
-        }
-      });
-
-      // 更新數據為過去一個月的數據，並按倒序排序（最新的在前）
-      this.allGroupedHandbookList = pastMonthData.sort((a, b) => {
-        // 將日期字符串轉換為實際日期對象進行比較
-        const dateA = this.parseDate(a.timeRange);
-        const dateB = this.parseDate(b.timeRange);
-        return dateB - dateA; // 倒序：較新的日期在前
-      });
-
-      // 重置到第一頁
-      this.currentPage = 1;
     },
 
     // 顯示未來七天數據
     showNextSevenDaysData() {
-      this.viewMode = 'nextSevenDays';
       this.activeButton = 'future'; // 更新活動按鈕狀態
       // 直接調用新的接口獲取未來七天（不含今天）的數據
       this.fetchNextSevenDaysHandbookList();
@@ -694,81 +530,7 @@ export default {
 
     // 獲取未來七天（不含今天）的學生手冊列表
     async fetchNextSevenDaysHandbookList() {
-      this.loading = true;
-      try {
-        // 使用封裝的service實例，確保攜帶token
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_NEXT_SEVEN_DAYS);
-
-        // 根據後端返回的數據結構處理數據
-        let rawData = [];
-        if (response.data && response.data.rows) {
-          rawData = response.data.rows;
-        } else if (Array.isArray(response.data)) {
-          // 如果後端直接返回數組
-          rawData = response.data;
-        } else {
-          // 如果是其他結構，嘗試直接使用
-          rawData = response.data;
-        }
-
-        // 按時間分組數據
-        this.groupDataByTime(rawData);
-
-        // 重置到第一頁
-        this.currentPage = 1;
-
-      } catch (error) {
-        console.error('獲取未來七天學生手冊列表失敗:', error);
-        ElMessage.error('獲取數據失敗: ' + (error.message || '未知錯誤'));
-        // 使用空數組
-        this.groupDataByTime([]);
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // 顯示當天數據（內部函數）
-    showTodayDataInner() {
-      const todayData = [];
-
-      this.allGroupedHandbookList.forEach(item => {
-        if (this.isToday(item.timeRange)) {
-          todayData.push(item);
-        }
-      });
-
-      // 更新數據為今天數據，並按倒序排序（最新的在前）
-      this.allGroupedHandbookList = todayData.sort((a, b) => {
-        // 將日期字符串轉換為實際日期對象進行比較
-        const dateA = this.parseDate(a.timeRange);
-        const dateB = this.parseDate(b.timeRange);
-        return dateB - dateA; // 倒序：較新的日期在前
-      });
-
-      // 重置到第一頁
-      this.currentPage = 1;
-    },
-
-    // 顯示未來七天數據（內部函數）
-    showNextSevenDaysDataInner() {
-      const nextSevenDaysData = [];
-
-      this.allGroupedHandbookList.forEach(item => {
-        if (this.isInNextSevenDays(item.timeRange)) {
-          nextSevenDaysData.push(item);
-        }
-      });
-
-      // 更新數據為未來七天的數據，並按倒序排序（最新的在前）
-      this.allGroupedHandbookList = nextSevenDaysData.sort((a, b) => {
-        // 將日期字符串轉換為實際日期對象進行比較
-        const dateA = this.parseDate(a.timeRange);
-        const dateB = this.parseDate(b.timeRange);
-        return dateB - dateA; // 倒序：較新的日期在前
-      });
-
-      // 重置到第一頁
-      this.currentPage = 1;
+      await this.fetchData(API_ENDPOINTS.STUDENT_HANDBOOK_NEXT_SEVEN_DAYS, 'groupDataByTime');
     },
 
     // 关闭学生选择对话框
@@ -780,10 +542,9 @@ export default {
     selectStudent(studentUserId, studentName) {
       this.selectedStudentUserId = studentUserId;
       this.selectedStudent = studentName;
-      console.log('选择了学生:', studentName, 'ID:', studentUserId);
     },
 
-    // 确认切换学生
+    // 確認切換學生
     async confirmStudentSwitchTemp() {
       if (!this.selectedStudentUserId) {
         ElMessage.warning('請選擇一個學生');
@@ -791,45 +552,51 @@ export default {
       }
 
       try {
-        // 检查studentRelations是否存在
-        if (!this.studentRelations || !Array.isArray(this.studentRelations)) {
-          ElMessage.error('學生關係數據未加載');
+        // 驗證必要數據
+        if (!this.studentRelations?.length || !this.selectedStudent || !this.selectedStudentUserId) {
+          ElMessage.error('學生信息不完整或未加載');
           return;
         }
 
-        // 直接使用已选择的学生信息
-        const studentName = this.selectedStudent;
-        const studentUserId = this.selectedStudentUserId;
+        // 驗證學生關聯關係
+        const isValidStudent = this.studentRelations.some(relation => 
+          relation.studentName === this.selectedStudent && 
+          relation.studentUserId === this.selectedStudentUserId
+        );
 
-        // 确保必要数据存在
-        if (!studentUserId || !studentName) {
-          ElMessage.error('學生信息不完整');
+        if (!isValidStudent) {
+          ElMessage.error('家長未關聯該學生，無法切換');
           return;
         }
 
-        console.log('准备切换到学生:', studentName, 'ID:', studentUserId);
-
-        // 调用后端API切换学生
+        // 調用後端API
         const response = await service.post(API_ENDPOINTS.SWITCH_STUDENT, {
-          studentName: studentName,
-          studentUserId: studentUserId
+          studentName: this.selectedStudent,
+          studentUserId: this.selectedStudentUserId
         });
 
         if (response.data.code === 200) {
           ElMessage.success({
-            message: `已成功切換到學生`,
+            message: '已成功切換到學生',
             duration: 1000
           });
           this.studentSelectionDialogVisible = false;
 
-          // 刷新手冊列表以显示新选择的学生的数据
-          this.fetchTodayHandbookList();
+          // 根據當前視圖刷新數據
+          const refreshMethods = {
+            'today': this.fetchTodayHandbookList,
+            'pastMonth': this.fetchPastMonthHandbookList,
+            'future': this.fetchNextSevenDaysHandbookList
+          };
+          
+          const refreshMethod = refreshMethods[this.activeButton] || this.fetchTodayHandbookList;
+          await refreshMethod.call(this);
         } else {
           ElMessage.error(response.data.msg || '切換學生失敗');
         }
       } catch (error) {
         console.error('切換學生失敗:', error);
-        ElMessage.error('切換學生失敗: ' + (error.message || '切換學生失敗'));
+        ElMessage.error('切換學生失敗: ' + (error.message || '未知錯誤'));
       }
     }
   }
@@ -874,21 +641,6 @@ export default {
   justify-content: space-between;
   gap: 15px;
   width: 100%;
-}
-
-.left-aligned {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.right-aligned {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.center-aligned {
-  display: flex;
-  justify-content: center;
 }
 
 .navigation-buttons {
