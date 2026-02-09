@@ -23,29 +23,29 @@ public class ClassLogSyncTask {
 
     @Autowired
     private ExternalClassLogService externalClassLogService;
-    
+
     @Autowired
     private IClassLogService classLogService;
 
     private static final AtomicBoolean isExecuting = new AtomicBoolean(false);
-    
+
     /**
-     * 每週一到週五午5点40分执行课程日志数据同步（北京时间）
+     * 每週一到週五17点50分执行课程日志数据同步（北京时间）
      */
-    @Scheduled(cron = "0 40 17 ? * MON-FRI", zone = "Asia/Shanghai")
+    @Scheduled(cron = "0 50 17 ? * MON-FRI", zone = "Asia/Shanghai")
     public void syncClassLogData() {
         // 使用AtomicBoolean确保同一时间只有一个实例在执行
         if (!isExecuting.compareAndSet(false, true)) {
             logger.info("课程日志数据同步任务已在执行中，跳过本次执行");
             return;
         }
-        
+
         try {
             logger.info("开始执行课程日志数据同步任务");
 
             // 从外部数据库获取所有课程日志数据
             List<ClassLog> classLogs = externalClassLogService.getAllClassLogsFromExternal();
-            
+
             if (classLogs != null && !classLogs.isEmpty()) {
                 logger.info("从外部数据库获取到 {} 条课程日志数据", classLogs.size());
 
