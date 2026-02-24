@@ -6,18 +6,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <resultMap type="com.sp.system.entity.ClassLog" id="ClassLogResult">
         <result property="id"    column="id"    />
-        <result property="studentClass"    column="studentClass"    />
+        <result property="studentClass"    column="student_class"    />
         <result property="teacher"    column="teacher"    />
         <result property="course"    column="course"    />
-        <result property="courseType"    column="courseType"    />
+        <result property="courseType"    column="course_type"    />
         <result property="content"    column="content"    />
-        <result property="startDate"    column="startDate"    />
-        <result property="endDate"    column="endDate"    />
-        <result property="updateDate"    column="updateDate"    />
+        <result property="startDate"    column="start_date"    />
+        <result property="endDate"    column="end_date"    />
+        <result property="updateDate"    column="update_date"    />
     </resultMap>
 
     <sql id="selectClassLogVo">
-        SELECT id, studentClass, teacher, course, courseType, content, startDate, endDate, updateDate 
+        SELECT id, student_class, teacher, course, course_type, content, start_date, end_date, update_date 
         FROM class_log
     </sql>
     
@@ -30,21 +30,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
     
     <insert id="insertClassLog" parameterType="com.sp.system.entity.ClassLog">
-        INSERT INTO class_log (id, studentClass, teacher, course, courseType, content, startDate, endDate, updateDate)
+        INSERT INTO class_log (id, student_class, teacher, course, course_type, content, start_date, end_date, update_date)
         VALUES (#{id}, #{studentClass}, #{teacher}, #{course}, #{courseType}, #{content}, #{startDate}, #{endDate}, #{updateDate})
     </insert>
     
     <update id="updateClassLogById" parameterType="com.sp.system.entity.ClassLog">
         UPDATE class_log
         SET 
-            studentClass = #{studentClass},
+            student_class = #{studentClass},
             teacher = #{teacher},
             course = #{course},
-            courseType = #{courseType},
+            course_type = #{courseType},
             content = #{content},
-            startDate = #{startDate},
-            endDate = #{endDate},
-            updateDate = #{updateDate}
+            start_date = #{startDate},
+            end_date = #{endDate},
+            update_date = #{updateDate}
         WHERE id = #{id}
     </update>
     

@@ -80,7 +80,7 @@ public class ExternalClassLogService {
      */
     public List<ClassLog> getAllClassLogsFromExternal() {
         try {
-            String sql = "SELECT distinct id, studentClass, teacher, course, courseType, content, startDate, endDate FROM class_log_temp WHERE startDate >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) ORDER BY startDate";
+            String sql = "SELECT distinct id, student_class, teacher, course, course_type, content, start_date, end_date FROM class_log_temp WHERE start_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) ORDER BY start_date";
             return sourceJdbcTemplate.query(sql, new ClassLogRowMapper());
         } catch (Exception e) {
             logger.error("从外部数据库获取课程日志数据失败: {}", e.getMessage());
@@ -97,14 +97,14 @@ public class ExternalClassLogService {
         public ClassLog mapRow(ResultSet rs, int rowNum) throws SQLException {
             ClassLog classLog = new ClassLog();
             classLog.setId(rs.getString("id"));
-            classLog.setStudentClass(rs.getString("studentClass"));
+            classLog.setStudentClass(rs.getString("student_class"));
             classLog.setTeacher(rs.getString("teacher"));
             classLog.setCourse(rs.getString("course"));
-            classLog.setCourseType(rs.getString("courseType"));
+            classLog.setCourseType(rs.getString("course_type"));
             classLog.setContent(rs.getString("content"));
-            classLog.setStartDate(rs.getString("startDate"));
-            classLog.setEndDate(rs.getString("endDate"));
-            classLog.setUpdateDate(rs.getString("updateDate"));
+            classLog.setStartDate(rs.getString("start_date"));
+            classLog.setEndDate(rs.getString("end_date"));
+            classLog.setUpdateDate(rs.getString("update_date"));
             return classLog;
         }
     }
