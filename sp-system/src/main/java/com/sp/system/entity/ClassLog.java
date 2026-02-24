@@ -5,14 +5,14 @@ package com.sp.system.entity;
  */
 public class ClassLog {
     private String id;
-    private String studentClass;      // 班级
+    private String studentClass;      // 班级 (对应数据库字段: student_class)
     private String teacher;           // 教师
     private String course;            // 课程
-    private String courseType;        // 课程类型
+    private String courseType;        // 课程类型 (对应数据库字段: course_type)
     private String content;           // 内容
-    private String startDate;         // 开始日期
-    private String endDate;           // 结束日期
-    private String updateDate;        // 更新日期
+    private String startDate;         // 开始日期 (对应数据库字段: start_date)
+    private String endDate;           // 结束日期 (对应数据库字段: end_date)
+    private String updateDate;        // 更新日期 (对应数据库字段: update_date)
 
     // Getter和Setter方法
     public String getId() {
