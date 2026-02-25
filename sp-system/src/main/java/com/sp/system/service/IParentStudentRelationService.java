@@ -19,12 +19,16 @@ public interface IParentStudentRelationService {
     List<ParentStudentRelation> selectByParentId(String parentUserId);
 
     /**
-     * 安全插入家长学生关系（如果不存在则插入，否则更新）
+     * 创建并保存家长学生关系记录
      *
-     * @param parentStudentRelation 家长学生关系
-     * @return 结果
+     * @param parentUserId    家长用户ID
+     * @param studentUserId  学生用户ID
+     * @param studentName    学生姓名
+     * @param relation       关系描述
+     * @param mobile         家长手机号
+     * @param externalUserid 家长外部用户ID
      */
-    int insertIfNotExists(ParentStudentRelation parentStudentRelation);
-
+    void createAndSaveParentStudentRelation(String parentUserId, String studentUserId, String studentName, 
+                                          String relation, String mobile, String externalUserid);
 
 }

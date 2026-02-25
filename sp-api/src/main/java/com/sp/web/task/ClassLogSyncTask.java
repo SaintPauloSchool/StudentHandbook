@@ -32,7 +32,7 @@ public class ClassLogSyncTask {
     /**
      * 每週一到週五17点50分执行课程日志数据同步（北京时间）
      */
-    @Scheduled(cron = "0 50 17 ? * MON-FRI", zone = "Asia/Shanghai")
+    //@Scheduled(cron = "0 50 17 ? * MON-FRI", zone = "Asia/Shanghai")
     public void syncClassLogData() {
         // 使用AtomicBoolean确保同一时间只有一个实例在执行
         if (!isExecuting.compareAndSet(false, true)) {

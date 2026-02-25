@@ -15,10 +15,6 @@
         SELECT department_id FROM sys_department_parent_binding WHERE parent_user_id = #{parentUserId}
     </select>
 
-    <delete id="deleteByDepartmentId" parameterType="long">
-        DELETE FROM sys_department_parent_binding WHERE department_id = #{departmentId}
-    </delete>
-
     <insert id="insertIgnore" parameterType="com.sp.system.entity.DepartmentParentBinding">
         INSERT INTO sys_department_parent_binding
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -69,4 +65,33 @@
         FROM sys_department_parent_binding
         WHERE parent_user_id = #{parentUserId}
     </select>
+    
+    <select id="selectByDepartmentId" parameterType="long" resultMap="DepartmentParentBindingResult">
+        SELECT id, department_id, parent_user_id, student_user_id, create_time, update_time
+        FROM sys_department_parent_binding
+        WHERE department_id = #{departmentId}
+    </select>
+    
+    <update id="updateById" parameterType="com.sp.system.entity.DepartmentParentBinding">
+        UPDATE sys_department_parent_binding
+        <set>
+            <if test="departmentId != null">
+                department_id = #{departmentId},
+            </if>
+            <if test="parentUserId != null and parentUserId != ''">
+                parent_user_id = #{parentUserId},
+            </if>
+            <if test="studentUserId != null">
+                student_user_id = #{studentUserId},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM sys_department_parent_binding WHERE id = #{id}
+    </delete>
 </mapper>
