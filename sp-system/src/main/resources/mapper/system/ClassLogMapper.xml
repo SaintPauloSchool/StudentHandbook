@@ -17,7 +17,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectClassLogVo">
-        SELECT id, student_class, teacher, course, course_type, content, start_date, end_date, update_date 
+        SELECT id, student_class, teacher, course, course_type, content, start_date, end_date, update_date
         FROM class_log
     </sql>
     

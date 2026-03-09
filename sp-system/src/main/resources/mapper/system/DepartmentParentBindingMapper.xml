@@ -11,8 +11,13 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <select id="selectByParentUserId" parameterType="string" resultType="java.lang.Long">
-        SELECT department_id FROM sys_department_parent_binding WHERE parent_user_id = #{parentUserId}
+    <select id="selectByParentUserId" parameterType="map" resultType="java.lang.Long">
+        SELECT department_id FROM sys_department_parent_binding
+        WHERE parent_user_id = #{parentUserId}
+        <if test="studentUserId != null and studentUserId != ''">
+            AND student_user_id = #{studentUserId}
+        </if>
+        LIMIT 1
     </select>
 
     <insert id="insertIgnore" parameterType="com.sp.system.entity.DepartmentParentBinding">
@@ -65,13 +70,13 @@
         FROM sys_department_parent_binding
         WHERE parent_user_id = #{parentUserId}
     </select>
-    
+
     <select id="selectByDepartmentId" parameterType="long" resultMap="DepartmentParentBindingResult">
         SELECT id, department_id, parent_user_id, student_user_id, create_time, update_time
         FROM sys_department_parent_binding
         WHERE department_id = #{departmentId}
     </select>
-    
+
     <update id="updateById" parameterType="com.sp.system.entity.DepartmentParentBinding">
         UPDATE sys_department_parent_binding
         <set>
@@ -90,7 +95,7 @@
         </set>
         WHERE id = #{id}
     </update>
-    
+
     <delete id="deleteById" parameterType="long">
         DELETE FROM sys_department_parent_binding WHERE id = #{id}
     </delete>

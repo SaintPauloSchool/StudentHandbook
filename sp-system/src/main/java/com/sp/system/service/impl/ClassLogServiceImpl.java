@@ -35,11 +35,19 @@ public class ClassLogServiceImpl implements IClassLogService {
     
     @Autowired
     private IClassSectionService classSectionService;
-    
+
+    /**
+     * 根据家长用户ID和学生用户ID获取过去一个月课程日志列表
+     *
+     * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
+     * @return 过去一个月课程日志列表
+     */
     @Override
-    public List<ClassLog> getPastMonthClassLogListByParentUserId(String parentUserId) {
+    public List<ClassLog> getPastMonthClassLogListByParentUserId(String parentUserId, String studentUserId) {
         try {
-            String classSectionSp = getClassSectionSpByParentUserId(parentUserId);
+            // 获取班级部门ID
+            String classSectionSp = getClassSectionSpByParentUserId(parentUserId, studentUserId);
             if (classSectionSp == null) {
                 return Collections.emptyList();
             }
@@ -49,33 +57,23 @@ public class ClassLogServiceImpl implements IClassLogService {
             // 根据规范，仅返回'功課'和'測驗'类型的课程日志
             return filterValidClassLogs(classLogs);
         } catch (Exception e) {
-            logger.error("根据家长用户ID获取过去一个月课程日志列表失败: {}", e.getMessage());
+            logger.error("根据家长用户ID和学生用户ID获取过去一个月课程日志列表失败: {}", e.getMessage());
             return java.util.Collections.emptyList();
         }
     }
-    
+
+    /**
+     * 根据家长用户ID和学生用户ID获取当天课程日志列表
+     *
+     * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
+     * @return 当天课程日志列表
+     */
     @Override
-    public List<ClassLog> getClassLogListByParentUserId(String parentUserId) {
+    public List<ClassLog> getTodayClassLogListByParentUserId(String parentUserId, String studentUserId) {
         try {
-            String classSectionSp = getClassSectionSpByParentUserId(parentUserId);
-            if (classSectionSp == null) {
-                return Collections.emptyList();
-            }
-            
-            // 使用class_section_sp查询class_log数据
-            List<ClassLog> classLogs = classLogMapper.selectClassLogByStudentClass(classSectionSp);
-            // 根据规范，仅返回'功課'和'測驗'类型的课程日志
-            return filterValidClassLogs(classLogs);
-        } catch (Exception e) {
-            logger.error("根据家长用户ID获取课程日志列表失败: {}", e.getMessage());
-            return java.util.Collections.emptyList();
-        }
-    }
-    
-    @Override
-    public List<ClassLog> getTodayClassLogListByParentUserId(String parentUserId) {
-        try {
-            String classSectionSp = getClassSectionSpByParentUserId(parentUserId);
+            // 获取班级部门ID
+            String classSectionSp = getClassSectionSpByParentUserId(parentUserId, studentUserId);
             if (classSectionSp == null) {
                 return Collections.emptyList();
             }
@@ -85,15 +83,23 @@ public class ClassLogServiceImpl implements IClassLogService {
             // 根据规范，仅返回'功課'和'測驗'类型的课程日志
             return filterValidClassLogs(classLogs);
         } catch (Exception e) {
-            logger.error("根据家长用户ID获取当天课程日志列表失败: {}", e.getMessage());
+            logger.error("根据家长用户ID和学生用户ID获取当天课程日志列表失败: {}", e.getMessage());
             return java.util.Collections.emptyList();
         }
     }
-    
+
+    /**
+     * 根据家长用户ID和学生用户ID获取未来七天课程日志列表
+     *
+     * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
+     * @return 未来七天课程日志列表
+     */
     @Override
-    public List<ClassLog> getNextSevenDaysClassLogListByParentUserId(String parentUserId) {
+    public List<ClassLog> getNextSevenDaysClassLogListByParentUserId(String parentUserId, String studentUserId) {
         try {
-            String classSectionSp = getClassSectionSpByParentUserId(parentUserId);
+            // 获取班级部门ID
+            String classSectionSp = getClassSectionSpByParentUserId(parentUserId, studentUserId);
             if (classSectionSp == null) {
                 return Collections.emptyList();
             }
@@ -103,36 +109,21 @@ public class ClassLogServiceImpl implements IClassLogService {
             // 根据规范，仅返回'功課'和'測驗'类型的课程日志
             return filterValidClassLogs(classLogs);
         } catch (Exception e) {
-            logger.error("根据家长用户ID获取未来七天课程日志列表失败: {}", e.getMessage());
+            logger.error("根据家长用户ID和学生用户ID获取未来七天课程日志列表失败: {}", e.getMessage());
             return java.util.Collections.emptyList();
         }
     }
-    
-    @Override
-    public ClassLog getClassLogDetailByParentUserId(String id, String parentUserId) {
-        try {
-            String classSectionSp = getClassSectionSpByParentUserId(parentUserId);
-            if (classSectionSp == null) {
-                return null;
-            }
-            
-            // 从外部class_log表获取指定ID且匹配学生班级的数据
-            ClassLog classLog = classLogMapper.selectClassLogByIdAndStudentClass(id, classSectionSp);
-            // 根据规范，仅返回'功課'和'測驗'类型的课程日志
-            if (classLog != null && !(COURSE_TYPE_HOMEWORK.equals(classLog.getCourseType()) || COURSE_TYPE_EXAM.equals(classLog.getCourseType()))) {
-                return null; // 如果日志类型不符合要求，返回null
-            }
-            return classLog;
-        } catch (Exception e) {
-            logger.error("根据家长用户ID获取课程日志详细信息失败: {}", e.getMessage());
-            return null;
-        }
-    }
-    
+
+    /**
+     * 批量插入或更新课程日志数据
+     *
+     * @param classLogs 课程日志数据列表
+     */
     @Override
     @Transactional
     public void batchUpsertClassLogs(List<ClassLog> classLogs) {
         try {
+            // 检查参数
             if (classLogs == null || classLogs.isEmpty()) {
                 logger.info("没有需要传输的课程日志数据");
                 return;
@@ -217,17 +208,18 @@ public class ClassLogServiceImpl implements IClassLogService {
     }
     
     /**
-     * 根据家长用户ID获取对应的班级代码(SP)
+     * 根据家长用户ID和学生用户ID获取对应的班级代码(SP)
      * 
      * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
      * @return 班级代码(SP)，如果无法获取则返回null
      */
-    private String getClassSectionSpByParentUserId(String parentUserId) {
+    private String getClassSectionSpByParentUserId(String parentUserId, String studentUserId) {
         try {
-            // 根据parentUserId查询部门信息
-            List<Department> departments = departmentService.getDepartmentsByParentUserId(parentUserId);
+            // 根据parentUserId和studentUserId查询部门信息
+            List<Department> departments = departmentService.getDepartmentsByParentUserId(parentUserId, studentUserId);
             if (departments.isEmpty()) {
-                logger.warn("未找到家长用户 {} 对应的部门信息", parentUserId);
+                logger.warn("未找到家长用户 {} 和学生用户 {} 对应的部门信息", parentUserId, studentUserId);
                 return null;
             }
             
@@ -243,7 +235,7 @@ public class ClassLogServiceImpl implements IClassLogService {
             
             return classSection.getClassSectionSp();
         } catch (Exception e) {
-            logger.error("根据家长用户ID获取班级代码时发生异常: {}", e.getMessage(), e);
+            logger.error("根据家长用户ID和学生用户ID获取班级代码时发生异常: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -269,6 +261,11 @@ public class ClassLogServiceImpl implements IClassLogService {
         }
     }
 
+    /**
+     * 批量插入课程日志数据
+     *
+     * @param classLog 课程日志列表
+     */
     @Transactional
     public void insertClassLog(ClassLog classLog) {
         try {
@@ -279,6 +276,11 @@ public class ClassLogServiceImpl implements IClassLogService {
         }
     }
 
+    /**
+     * 批量更新课程日志数据
+     *
+     * @param classLog 课程日志列表
+     */
     @Transactional
     public void updateClassLog(ClassLog classLog) {
         try {
