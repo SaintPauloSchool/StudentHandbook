@@ -38,29 +38,9 @@ public class StudentHandbookController extends BaseController {
     @Autowired
     private TokenService tokenService;
 
-    @Log(title = "查询课程日志列表", businessType = BusinessType.SELECT)
-    @GetMapping("/list")
-    public TableDataInfo list() {
-        try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
-            if (parentUserId == null) {
-                return ResponseUtils.createUnauthorizedResponse();
-            }
-
-            // 通过Service获取课程日志列表
-            List<ClassLog> classLogs = classLogService.getClassLogListByParentUserId(parentUserId);
-
-            return ResponseUtils.createSuccessResponse(classLogs);
-        } catch (Exception e) {
-            logger.error("获取课程日志列表失败: {}", e.getMessage());
-            return ResponseUtils.createErrorResponse();
-        }
-    }
-
     @Log(title = "查询过去一个月课程日志列表", businessType = BusinessType.SELECT)
     @GetMapping("/pastMonth")
-    public TableDataInfo listPastMonth() {
+    public TableDataInfo listPastMonth(@RequestParam(required = false) String studentUserId) {
         try {
             // 验证token
             String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
@@ -69,7 +49,7 @@ public class StudentHandbookController extends BaseController {
             }
 
             // 通过Service获取过去一个月的课程日志列表
-            List<ClassLog> classLogs = classLogService.getPastMonthClassLogListByParentUserId(parentUserId);
+            List<ClassLog> classLogs = classLogService.getPastMonthClassLogListByParentUserId(parentUserId, studentUserId);
 
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
@@ -80,7 +60,7 @@ public class StudentHandbookController extends BaseController {
 
     @Log(title = "查询当天课程日志列表", businessType = BusinessType.SELECT)
     @GetMapping("/today")
-    public TableDataInfo listToday() {
+    public TableDataInfo listToday(@RequestParam(required = false) String studentUserId) {
         try {
             // 验证token
             String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
@@ -89,7 +69,7 @@ public class StudentHandbookController extends BaseController {
             }
 
             // 通过Service获取当天的课程日志列表
-            List<ClassLog> classLogs = classLogService.getTodayClassLogListByParentUserId(parentUserId);
+            List<ClassLog> classLogs = classLogService.getTodayClassLogListByParentUserId(parentUserId, studentUserId);
 
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
@@ -100,7 +80,7 @@ public class StudentHandbookController extends BaseController {
 
     @Log(title = "查询未来七天课程日志列表（不含当天）", businessType = BusinessType.SELECT)
     @GetMapping("/nextSevenDays")
-    public TableDataInfo listNextSevenDays() {
+    public TableDataInfo listNextSevenDays(@RequestParam(required = false) String studentUserId) {
         try {
             // 验证token
             String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
@@ -109,32 +89,12 @@ public class StudentHandbookController extends BaseController {
             }
 
             // 通过Service获取未来七天的课程日志列表
-            List<ClassLog> classLogs = classLogService.getNextSevenDaysClassLogListByParentUserId(parentUserId);
+            List<ClassLog> classLogs = classLogService.getNextSevenDaysClassLogListByParentUserId(parentUserId, studentUserId);
 
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
             logger.error("获取未来七天课程日志列表失败: {}", e.getMessage());
             return ResponseUtils.createErrorResponse();
-        }
-    }
-
-    @Log(title = "获取课程日志详细信息", businessType = BusinessType.SELECT)
-    @GetMapping(value = "/{id}")
-    public AjaxResult getInfo(@PathVariable("id") String id) {
-        try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
-            if (parentUserId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
-            }
-
-            // 通过Service获取课程日志详细信息
-            ClassLog classLog = classLogService.getClassLogDetailByParentUserId(id, parentUserId);
-
-            return AjaxResult.success(classLog);
-        } catch (Exception e) {
-            logger.error("获取课程日志详细信息失败: {}", e.getMessage());
-            return AjaxResult.error("获取课程日志详细信息失败: " + e.getMessage());
         }
     }
 

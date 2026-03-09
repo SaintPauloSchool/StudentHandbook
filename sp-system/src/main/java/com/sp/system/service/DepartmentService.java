@@ -15,11 +15,12 @@ public interface DepartmentService {
     void batchSaveDepartments(List<Department> departments);
 
     /**
-     * 根据家长用户ID获取关联的部门信息
+     * 根据家长用户ID和学生ID获取关联的部门信息
      * @param parentUserId 家长用户ID
-     * @return 部门列表
+     * @param studentUserId 学生用户ID
+     * @return 部门列表（只返回一条）
      */
-    List<Department> getDepartmentsByParentUserId(String parentUserId);
+    List<Department> getDepartmentsByParentUserId(String parentUserId, String studentUserId);
 
     /**
      * 查询特定结构的班级部门ID
