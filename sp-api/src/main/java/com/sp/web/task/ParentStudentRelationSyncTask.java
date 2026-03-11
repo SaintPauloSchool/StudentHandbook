@@ -57,84 +57,89 @@ public class ParentStudentRelationSyncTask {
         }
 
         try {
-            // 动态获取目标部门ID
-            Long targetDepartmentId = departmentService.getClassDepartmentId();
-            if (targetDepartmentId == null) {
-                logger.error("无法获取目标部门ID，同步任务终止");
-                return;
+            // 动态获取目标部门 ID 列表
+            List<Long> targetDepartmentIds = departmentService.getClassDepartmentId();
+            // 确保部门 ID 列表不为空
+            if (targetDepartmentIds == null || targetDepartmentIds.isEmpty()) {
+                logger.error("无法获取目标部门 ID，同步任务终止");
+               return;
             }
+            // 打印目标部门 ID
+            logger.info("成功获取到 {} 个目标部门 ID: {}", targetDepartmentIds.size(), targetDepartmentIds);
+            // 遍历每个部门 ID 进行同步
+            for (Long targetDepartmentId : targetDepartmentIds) {
+                logger.info("开始执行部门 ID {} 的家长学生关系同步", targetDepartmentId);
+                
+                // 获取 access_token 并调用获取部门家长列表接口
+                String accessToken = weChatWorkSchoolUtils.getAccessToken();
+                String parentListUrl = "https://qyapi.weixin.qq.com/cgi-bin/school/user/list_parent?access_token=" + accessToken + "&department_id=" + targetDepartmentId;
 
-            logger.info("开始执行家长学生关系同步任务，部门ID: {}", targetDepartmentId);
+                String parentResponse = HttpUtils.sendGet(parentListUrl);
+                logger.info("获取部门家长列表结果：{}", parentResponse);
 
-            // 获取access_token并调用获取部门家长列表接口
-            String accessToken = weChatWorkSchoolUtils.getAccessToken();
-            String parentListUrl = "https://qyapi.weixin.qq.com/cgi-bin/school/user/list_parent?access_token=" + accessToken + "&department_id=" + targetDepartmentId;
+                // 解析家长列表并保存到数据库
+                JSONObject parentJson = JSONObject.parseObject(parentResponse);
+                // 不存在錯誤編碼則處裡數據
+                if (parentJson.getInteger("errcode") != null && parentJson.getInteger("errcode") == 0) {
+                    // 獲取家长数据
+                    JSONArray parentsArray = parentJson.getJSONArray("parents");
+                    // 家長數據存在，則處裡家长数据
+                    if (parentsArray != null && !parentsArray.isEmpty()) {
 
-            String parentResponse = HttpUtils.sendGet(parentListUrl);
-            logger.info("获取部门家长列表结果: {}", parentResponse);
+                        // 記錄獲取到的家長數據
+                        logger.info("部门 ID {} 成功获取到 {} 个家长信息", targetDepartmentId, parentsArray.size());
 
-            // 解析家长列表并保存到数据库
-            JSONObject parentJson = JSONObject.parseObject(parentResponse);
-            // 不存在錯誤編碼則處裡數據
-            if (parentJson.getInteger("errcode") != null && parentJson.getInteger("errcode") == 0) {
-                // 獲取家长数据
-                JSONArray parentsArray = parentJson.getJSONArray("parents");
-                // 家長數據存在，則處裡家长数据
-                if (parentsArray != null && !parentsArray.isEmpty()) {
+                        // 获取当前部门下所有已存在的家长绑定记录
+                        List<DepartmentParentBinding> existingBindings = departmentParentBindingService.selectByDepartmentId(targetDepartmentId);
 
-                    // 記錄獲取到的家長數據
-                    logger.info("成功获取到 {} 个家长信息", parentsArray.size());
+                        // 创建现有记录的映射，便于快速查找
+                        Map<String, DepartmentParentBinding> existingBindingMap = new HashMap<>();
+                        for (DepartmentParentBinding binding : existingBindings) {
+                            existingBindingMap.put(binding.getParentUserId(), binding);
+                        }
 
-                    // 获取当前部门下所有已存在的家长绑定记录
-                    List<DepartmentParentBinding> existingBindings = departmentParentBindingService.selectByDepartmentId(targetDepartmentId);
+                        // 创建用于保存的 家长 - 孩子绑定记录
+                        Set<String> currentParentUserIds = new HashSet<>();
 
-                    // 创建现有记录的映射，便于快速查找
-                    Map<String, DepartmentParentBinding> existingBindingMap = new HashMap<>();
-                    for (DepartmentParentBinding binding : existingBindings) {
-                        existingBindingMap.put(binding.getParentUserId(), binding);
-                    }
+                        // 遍历家长数据并保存到数据库
+                        for (int i = 0; i < parentsArray.size(); i++) {
+                            // 获取當前家长数据
+                            JSONObject parentObj = parentsArray.getJSONObject(i);
 
-                    // 创建用于保存的 家长-孩子绑定记录
-                    Set<String> currentParentUserIds = new HashSet<>();
+                            String parentUserId = parentObj.getString("parent_userid");
+                            String mobile = parentObj.getString("mobile");
+                            String externalUserid = parentObj.getString("external_userid");
 
-                    // 遍历家长数据并保存到数据库
-                    for (int i = 0; i < parentsArray.size(); i++) {
-                        // 获取當前家长数据
-                        JSONObject parentObj = parentsArray.getJSONObject(i);
+                            // 记录当前处理的家长 ID
+                            currentParentUserIds.add(parentUserId);
 
-                        String parentUserId = parentObj.getString("parent_userid");
-                        String mobile = parentObj.getString("mobile");
-                        String externalUserid = parentObj.getString("external_userid");
+                            // 处理孩子信息数组
+                            JSONArray childrenArray = parentObj.getJSONArray("children");
 
-                        // 记录当前处理的家长ID
-                        currentParentUserIds.add(parentUserId);
+                            // 委托给 Service 层处理家长学生关系同步
+                            departmentParentBindingService.processParentChildren(targetDepartmentId, parentUserId, childrenArray, existingBindingMap);
 
-                        // 处理孩子信息数组
-                        JSONArray childrenArray = parentObj.getJSONArray("children");
-
-                        // 委托给Service层处理家长学生关系同步
-                        departmentParentBindingService.processParentChildren(targetDepartmentId, parentUserId, childrenArray, existingBindingMap);
-
-                        // 创建并保存家长学生关系记录（如果有孩子的话）
-                        if (childrenArray != null && !childrenArray.isEmpty()) {
-                            // 遍历孩子信息
-                            for (int j = 0; j < childrenArray.size(); j++) {
-                                JSONObject childObj = childrenArray.getJSONObject(j);
-                                String childStudentUserId = childObj.getString("student_userid");
-                                String relation = childObj.getString("relation");
-                                String name = childObj.getString("name");
-                                // 委托给Service层创建家长-孩子关系记录
-                                parentStudentRelationService.createAndSaveParentStudentRelation(parentUserId, childStudentUserId, name, relation, mobile, externalUserid);
+                            // 创建并保存家长学生关系记录（如果有孩子的话）
+                            if (childrenArray != null && !childrenArray.isEmpty()) {
+                                // 遍历孩子信息
+                                for (int j = 0; j < childrenArray.size(); j++) {
+                                    JSONObject childObj = childrenArray.getJSONObject(j);
+                                    String childStudentUserId = childObj.getString("student_userid");
+                                    String relation = childObj.getString("relation");
+                                    String name = childObj.getString("name");
+                                    // 委托给 Service 层创建家长 - 孩子关系记录
+                                    parentStudentRelationService.createAndSaveParentStudentRelation(parentUserId, childStudentUserId, name, relation, mobile, externalUserid);
+                                }
                             }
                         }
+                        // 委托给 Service 层删除不再存在的家长绑定记录
+                        departmentParentBindingService.deleteObsoleteParentBindings(existingBindings, currentParentUserIds, targetDepartmentId);
+                    } else {
+                        logger.info("部门 ID {} 的家长列表为空", targetDepartmentId);
                     }
-                    // 委托给Service层删除不再存在的家长绑定记录
-                    departmentParentBindingService.deleteObsoleteParentBindings(existingBindings, currentParentUserIds, targetDepartmentId);
                 } else {
-                    logger.info("部门家长列表为空");
+                    logger.error("获取部门 ID {} 的家长列表失败：{}", targetDepartmentId, parentJson.getString("errmsg"));
                 }
-            } else {
-                logger.error("获取部门家长列表失败: {}", parentJson.getString("errmsg"));
             }
         } catch (Exception e) {
             logger.error("同步家长学生关系数据失败", e);

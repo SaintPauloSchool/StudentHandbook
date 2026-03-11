@@ -23,8 +23,8 @@ public interface DepartmentService {
     List<Department> getDepartmentsByParentUserId(String parentUserId, String studentUserId);
 
     /**
-     * 查询特定结构的班级部门ID
-     * @return 部门ID
+     * 查询特定结构的班级部门 ID
+     * @return 部门 ID 列表
      */
-    Long getClassDepartmentId();
+    List<Long> getClassDepartmentId();
 }
