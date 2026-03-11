@@ -63,12 +63,12 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     /**
-     * 获取班级部门ID
+     * 获取班级部门 ID
      *
-     * @return 班级部门ID
+     * @return 班级部门 ID 列表
      */
     @Override
-    public Long getClassDepartmentId() {
-        return departmentMapper.selectClassDepartmentId();
+    public List<Long> getClassDepartmentId() {
+       return departmentMapper.selectClassDepartmentId();
     }
 }
