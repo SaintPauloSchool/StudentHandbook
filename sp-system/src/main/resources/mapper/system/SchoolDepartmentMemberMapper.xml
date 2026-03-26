@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sp.system.mapper.SchoolDepartmentMemberMapper">
+
+    <resultMap id="SchoolDepartmentMemberResultMap" type="com.sp.system.entity.SchoolDepartmentMember">
+        <id property="id" column="id"/>
+        <result property="userid" column="userid"/>
+        <result property="name" column="name"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="openUserid" column="open_userid"/>
+    </resultMap>
+
+    <insert id="batchInsertSchoolDepartmentMembers" parameterType="java.util.List">
+        INSERT INTO sys_school_department_member (userid, name, department_id, open_userid)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userid}, #{item.name}, #{item.departmentId}, #{item.openUserid})
+        </foreach>
+    </insert>
+
+    <select id="selectByDepartmentId" parameterType="java.lang.Long" resultMap="SchoolDepartmentMemberResultMap">
+        SELECT userid,
+               name,
+               department_id,
+               open_userid
+        FROM sys_school_department_member
+        WHERE department_id = #{departmentId}
+        ORDER BY userid
+    </select>
+
+    <select id="selectAll" resultMap="SchoolDepartmentMemberResultMap">
+        SELECT userid,
+               name,
+               department_id,
+               open_userid
+        FROM sys_school_department_member
+        ORDER BY department_id, userid
+    </select>
+
+    <delete id="deleteByDepartmentId" parameterType="java.lang.Long">
+        DELETE FROM sys_school_department_member
+        WHERE department_id = #{departmentId}
+    </delete>
+
+    <update id="updateSchoolDepartmentMember" parameterType="com.sp.system.entity.SchoolDepartmentMember">
+        UPDATE sys_school_department_member
+        SET name = #{name},
+            open_userid = #{openUserid}
+        WHERE userid = #{userid} AND department_id = #{departmentId}
+    </update>
+
+    <delete id="deleteSchoolDepartmentMemberByUseridAndDepartmentId">
+        DELETE FROM sys_school_department_member
+        WHERE userid = #{userid} AND department_id = #{departmentId}
+    </delete>
+
+</mapper>

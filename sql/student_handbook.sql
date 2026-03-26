@@ -100,3 +100,31 @@ INSERT INTO `class_section` VALUES
                                 (73,'SC1_A_家長','F4A'),(74,'SC1_B_家長','F4B'),(75,'SC1_C_家長','F4C'),(76,'SC1_D_家長','F4D'),(77,'SC1_E_家長','F4E'),(78,'SC1_F_家長','F4F'),
                                 (79,'SC2_A_家長','F5A'),(80,'SC2_B_家長','F5B'),(81,'SC2_C_家長','F5C'),(82,'SC2_D_家長','F5D'),(83,'SC2_E_家長','F5E'),(84,'SC2_F_家長','F5F'),
                                 (85,'SC3_A_家長','F6A'),(86,'SC3_B_家長','F6B'),(87,'SC3_C_家長','F6C'),(88,'SC3_D_家長','F6D'),(89,'SC3_E_家長','F6E'),(90,'SC3_F_家長','F6F');
+-- ----------------------------
+-- 学校部门表
+DROP TABLE IF EXISTS `sys_school_department`;
+CREATE TABLE IF NOT EXISTS `sys_school_department` (
+    `id` bigint(20) NOT NULL COMMENT '部门 id',
+    `parent_id` int(11) DEFAULT NULL COMMENT '父部门 id',
+    `name` varchar(255) DEFAULT NULL COMMENT '部门名称',
+    `name_en` varchar(255) DEFAULT NULL COMMENT '部门英文名称',
+    `order_num` int(11) DEFAULT NULL COMMENT '在父部门中的次序值',
+    `department_leader` text DEFAULT NULL COMMENT '部门负责人的 UserID（JSON 数组字符串）',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学校部门表';
+-- ----------------------------
+-- 学校部门成员表
+DROP TABLE IF EXISTS `sys_school_department_member`;
+CREATE TABLE IF NOT EXISTS `sys_school_department_member` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+    `userid` varchar(100) NOT NULL COMMENT '成员 UserID',
+    `name` varchar(255) DEFAULT NULL COMMENT '成员名称',
+    `department_id` bigint(20) NOT NULL COMMENT '部门 ID',
+    `open_userid` varchar(100) DEFAULT NULL COMMENT '全局唯一 UserID',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学校部门成员表';
+-- ----------------------------

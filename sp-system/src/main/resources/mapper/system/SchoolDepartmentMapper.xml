@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sp.system.mapper.SchoolDepartmentMapper">
+
+    <resultMap id="SchoolDepartmentResultMap" type="com.sp.system.entity.SchoolDepartment">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="name" column="name"/>
+        <result property="nameEn" column="name_en"/>
+        <result property="order" column="order_num"/>
+        <result property="departmentLeader" column="department_leader"/>
+    </resultMap>
+
+    <insert id="batchInsertSchoolDepartments" parameterType="java.util.List">
+        INSERT INTO sys_school_department (id, parent_id, name, name_en, order_num, department_leader)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.parentId}, #{item.name}, #{item.nameEn}, #{item.order},
+            #{item.departmentLeader})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        parent_id = VALUES(parent_id),
+        name = VALUES(name),
+        name_en = VALUES(name_en),
+        order_num = VALUES(order_num),
+        department_leader = VALUES(department_leader)
+    </insert>
+
+    <select id="selectById" parameterType="java.lang.Long" resultMap="SchoolDepartmentResultMap">
+        SELECT id,
+               parent_id,
+               name,
+               name_en,
+               order_num,
+               department_leader
+        FROM sys_school_department
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="SchoolDepartmentResultMap">
+        SELECT id,
+               parent_id,
+               name,
+               name_en,
+               order_num,
+               department_leader
+        FROM sys_school_department
+        ORDER BY parent_id, order_num
+    </select>
+
+    <update id="updateSchoolDepartment" parameterType="com.sp.system.entity.SchoolDepartment">
+        UPDATE sys_school_department
+        SET parent_id = #{parentId},
+            name = #{name},
+            name_en = #{nameEn},
+            order_num = #{order},
+            department_leader = #{departmentLeader}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteSchoolDepartmentById" parameterType="java.lang.Long">
+        DELETE FROM sys_school_department
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

@@ -10,11 +10,11 @@ spring:
         username: dba_user
         password: StrongP@ssw0rd
         # 初始连接数
-        initialSize: 5
+        initialSize: 3
         # 最小连接池数量
-        minIdle: 5
-        # 最大连接池数量
-        maxActive: 10
+        minIdle: 3
+        # 最大连接池数量mvn clean package
+        maxActive: 8
         # 配置获取连接等待超时的时间
         maxWait: 60000
         # 配置连接超时时间
