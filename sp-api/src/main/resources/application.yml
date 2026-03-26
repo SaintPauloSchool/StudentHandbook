@@ -15,7 +15,7 @@ sp:
   # Token配置
   token:
     # 是否启用Token验证
-    enabled: true
+    enabled: false
     # Token过期时间（天），默认7天
     expireTime: 7
     # 如果是dev開發時，請加上parentUserId數據測試，以便於調試家長學生關係相關功能
@@ -62,7 +62,7 @@ logging:
 # 用户配置
 user:
   password:
-    # 密码错误{maxRetryCount}次锁定10分钟
+  # 密码错误{maxRetryCount}次锁定10分钟
   indexUrl: /index
 
 
@@ -82,7 +82,7 @@ spring:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
   profiles:
-    active: test
+    active: dev
   # 文件上传
   servlet:
     multipart:
