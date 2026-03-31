@@ -102,8 +102,8 @@ INSERT INTO `class_section` VALUES
                                 (85,'SC3_A_家長','F6A'),(86,'SC3_B_家長','F6B'),(87,'SC3_C_家長','F6C'),(88,'SC3_D_家長','F6D'),(89,'SC3_E_家長','F6E'),(90,'SC3_F_家長','F6F');
 -- ----------------------------
 -- 学校部门表
-DROP TABLE IF EXISTS `sys_school_department`;
-CREATE TABLE IF NOT EXISTS `sys_school_department` (
+DROP TABLE IF EXISTS `wecom_school_department`;
+CREATE TABLE IF NOT EXISTS `wecom_school_department` (
     `id` bigint(20) NOT NULL COMMENT '部门 id',
     `parent_id` int(11) DEFAULT NULL COMMENT '父部门 id',
     `name` varchar(255) DEFAULT NULL COMMENT '部门名称',
@@ -113,11 +113,11 @@ CREATE TABLE IF NOT EXISTS `sys_school_department` (
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学校部门表';
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='企業微信学校部门表';
 -- ----------------------------
 -- 学校部门成员表
-DROP TABLE IF EXISTS `sys_school_department_member`;
-CREATE TABLE IF NOT EXISTS `sys_school_department_member` (
+DROP TABLE IF EXISTS `wecom_school_department_member`;
+CREATE TABLE IF NOT EXISTS `wecom_school_department_member` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
     `userid` varchar(100) NOT NULL COMMENT '成员 UserID',
     `name` varchar(255) DEFAULT NULL COMMENT '成员名称',
@@ -126,5 +126,5 @@ CREATE TABLE IF NOT EXISTS `sys_school_department_member` (
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学校部门成员表';
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='企業微信学校部门成员表';
 -- ----------------------------
