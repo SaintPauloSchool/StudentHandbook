@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sp.system.mapper.WecomSchoolDepartmentMemberMapper">
+
+    <resultMap id="WecomSchoolDepartmentMemberResultMap" type="com.sp.system.entity.WecomSchoolDepartmentMember">
+        <id property="id" column="id"/>
+        <result property="userid" column="userid"/>
+        <result property="name" column="name"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="openUserid" column="open_userid"/>
+    </resultMap>
+
+    <insert id="batchInsertSchoolDepartmentMembers" parameterType="java.util.List">
+        INSERT INTO wecom_school_department_member (userid, name, department_id, open_userid)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userid}, #{item.name}, #{item.departmentId}, #{item.openUserid})
+        </foreach>
+    </insert>
+
+    <select id="selectByDepartmentId" parameterType="java.lang.Long" resultMap="WecomSchoolDepartmentMemberResultMap">
+        SELECT userid,
+               name,
+               department_id,
+               open_userid
+        FROM wecom_school_department_member
+        WHERE department_id = #{departmentId}
+        ORDER BY userid
+    </select>
+
+    <update id="updateSchoolDepartmentMember" parameterType="com.sp.system.entity.WecomSchoolDepartmentMember">
+        UPDATE wecom_school_department_member
+        SET name = #{name},
+            open_userid = #{openUserid}
+        WHERE userid = #{userid} AND department_id = #{departmentId}
+    </update>
+
+    <delete id="deleteSchoolDepartmentMemberByUseridAndDepartmentId">
+        DELETE FROM wecom_school_department_member
+        WHERE userid = #{userid} AND department_id = #{departmentId}
+    </delete>
+
+</mapper>
