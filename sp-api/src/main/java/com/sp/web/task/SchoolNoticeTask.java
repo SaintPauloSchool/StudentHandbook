@@ -53,6 +53,10 @@ public class SchoolNoticeTask {
 
             // 从sys_department_parent_binding表获取parent_user_id列表
             List<String> toParentUserId = departmentParentBindingService.getAllParentUserIds();
+            if (toParentUserId == null) {
+                toParentUserId = new ArrayList<>();
+            }
+            logger.info("获取到家长用户ID数量: {}, 列表: {}", toParentUserId.size(), toParentUserId);
 
             noticeRequest.put("to_parent_userid", toParentUserId);
             noticeRequest.put("to_student_userid", new ArrayList<>());
@@ -81,7 +85,9 @@ public class SchoolNoticeTask {
             String url = "https://qyapi.weixin.qq.com/cgi-bin/externalcontact/message/send?access_token=" + accessToken;
 
             // 发送POST请求
-            String response = HttpUtils.sendPost(url, JSON.toJSONString(noticeRequest));
+            String requestBody = JSON.toJSONString(noticeRequest);
+            logger.info("发送请求体: {}", requestBody);
+            String response = HttpUtils.sendPost(url, requestBody);
             logger.info("定时发送学校通知完成，响应结果: {}", response);
 
             // 解析响应结果
