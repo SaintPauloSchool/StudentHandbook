@@ -33,7 +33,7 @@
 
       <!-- 通知正文 -->
       <div class="notice-body">
-        <div class="content-text" v-html="notice.content"></div>
+        <div class="content-text" v-html="formattedContent"></div>
         
         <!-- 附件/图片 -->
         <div class="attachments" v-if="hasAttachments">
@@ -56,16 +56,51 @@
 
       <!-- 问题列表（如果有） -->
       <div class="questions-section" v-if="questions && questions.length > 0">
-        <h3 class="section-title">問卷調查</h3>
+        <h3 class="section-title">問卷</h3>
         <div 
           class="question-item" 
           v-for="question in questions" 
           :key="question.questionId"
         >
-          <div class="question-header">
+          <!-- 若為邏輯表單 (題型 5) -->
+          <div class="logic-form-wrapper" v-if="question.questionType === '5' && getLogicFormData(question)">
+             <div class="logic-form-header">
+               <h4 class="form-title">{{ getLogicFormData(question).title }}</h4>
+               <p class="form-desc" v-if="getLogicFormData(question).description">{{ getLogicFormData(question).description }}</p>
+             </div>
+             
+             <div class="logic-nodes-list">
+               <FormQuestionNode 
+                 v-for="rootNode in getLogicFormData(question).roots"
+                 :key="rootNode.node.id"
+                 :question="rootNode.node"
+                 :all-nodes="getLogicFormData(question).allNodes"
+                 :level="0"
+                 :display-num="rootNode.displayNum"
+               />
+             </div>
+          </div>
+
+          <!-- 一般題型 -->
+          <div class="normal-question-wrapper" v-else>
+            <div class="question-header">
             <span class="question-number">{{ question.sortOrder }}.</span>
             <span class="question-title">{{ question.questionTitle }}</span>
             <span class="required-mark" v-if="question.isRequired === '1'">*</span>
+          </div>
+          
+          <!-- 渲染 content 裡的 JSON 或富文本 -->
+          <div class="question-content" v-if="question.content">
+            <div v-if="parseContentJson(question.content)" class="content-json-wrapper">
+              <template v-for="(item, idx) in parseContentJson(question.content)" :key="idx">
+                <span v-if="item.type === 'text' || item.type === 'string'" class="json-text">{{ item.value || item.text || item.content || item }}</span>
+                <input v-else-if="item.type === 'input' || item.type === 'blank'" type="text" class="json-input" :placeholder="item.placeholder || '請輸入'" />
+                <textarea v-else-if="item.type === 'textarea'" class="json-textarea" :placeholder="item.placeholder || '請輸入'"></textarea>
+                <img v-else-if="item.type === 'image'" :src="item.url || item.value" class="json-image" />
+                <span v-else class="json-text">{{ item.value || item.text || item }}</span>
+              </template>
+            </div>
+            <div v-else class="content-html" v-html="question.content"></div>
           </div>
           
           <!-- 单选题 -->
@@ -94,13 +129,21 @@
 
           <!-- 填空题 -->
           <div class="question-input" v-else-if="question.questionType === '3'">
-            <input type="text" class="text-input" placeholder="請輸入您的答案" />
+            <div v-if="parseContentJson(question.fillBlanks)" class="fill-blanks-container">
+              <div v-for="(blank, idx) in parseContentJson(question.fillBlanks)" :key="idx" class="blank-box">
+                <span class="blank-label">{{ blank.label || ('填寫項 ' + (idx + 1)) }}:</span>
+                <input type="text" class="text-input" :placeholder="blank.placeholder || '請輸入您的答案'" />
+              </div>
+            </div>
+            <!-- 如果 content 已經渲染了空格（部分需求可能把空格放在 content 裡），這裡可依據情況保留預設輸入，但一般建議 fallback -->
+            <input v-else-if="!parseContentJson(question.content)" type="text" class="text-input" placeholder="請輸入您的答案" />
           </div>
 
           <!-- 附件上传 -->
           <div class="question-upload" v-else-if="question.questionType === '4'">
             <button class="upload-button">📤 上傳附件</button>
           </div>
+          </div> <!-- 結束 normal-question-wrapper -->
         </div>
 
         <!-- 提交按钮 -->
@@ -129,23 +172,35 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
-import { User, Clock, ArrowLeft } from '@element-plus/icons-vue'
+import { User, Clock, ArrowLeft, Document } from '@element-plus/icons-vue'
+import FormQuestionNode from '@/components/FormQuestionNode.vue'
 
 export default {
   name: 'NoticeDetail',
   components: {
     User,
     Clock,
-    ArrowLeft
+    ArrowLeft,
+    Document,
+    FormQuestionNode
   },
   data() {
     return {
       notice: null,
       questions: [],
-      loading: false
+      loading: false,
+      logicFormDataCache: {} // 緩存解析結果
     }
   },
   computed: {
+    formattedContent() {
+      if (!this.notice || !this.notice.content) return ''
+      // 若內容帶有 \n 或 \\n，將其轉為 HTML 的 <br> 以確保前端正常換行顯示
+      // 防止後端傳來的是字面量 "\\n" 或是未被解析的換行符
+      return String(this.notice.content)
+        .replace(/\\n/g, '\n')
+        .replace(/\n/g, '<br/>')
+    },
     hasAttachments() {
       return this.notice && this.notice.attachmentUrls && this.attachmentList.length > 0
     },
@@ -223,6 +278,81 @@ export default {
       } catch (e) {
         return []
       }
+    },
+
+    // 解析 content 或 fillBlanks 等 JSON 字符串
+    parseContentJson(str) {
+      if (!str) return null
+      try {
+        const data = JSON.parse(str)
+        return Array.isArray(data) ? data : [data]
+      } catch (e) {
+        return null
+      }
+    },
+
+    // 取得並解析邏輯表單資料
+    getLogicFormData(question) {
+      if (question.questionType !== '5') return null;
+      if (!question.content) return null;
+      if (this.logicFormDataCache[question.questionId]) {
+        return this.logicFormDataCache[question.questionId];
+      }
+      try {
+        const parsed = JSON.parse(question.content);
+        if (parsed && parsed.questions) {
+          let allNodes = parsed.questions.map(q => ({ node: q, parentId: null, parentOptIdx: null, displayNum: '', isRoot: true }));
+          let nodeById = {};
+          allNodes.forEach(n => nodeById[n.node.id] = n);
+          
+          // 找出 parent 分支 (只要有被明確 jumpTarget 指向的就不是 root)
+          parsed.questions.forEach(q => {
+            (q.logicRuleList || []).forEach(rule => {
+              const target = rule.jumpTarget;
+              if (typeof target === 'number' || (typeof target === 'string' && target !== 'next' && target !== 'end')) {
+                let targetId = Number(target);
+                if (nodeById[targetId]) {
+                  nodeById[targetId].isRoot = false;
+                  nodeById[targetId].parentId = q.id;
+                  nodeById[targetId].parentOptIdx = rule.optionIndex;
+                }
+              }
+            });
+          });
+
+          // 分配階層編號
+          let rootCounter = 1;
+          const assignDisplayNum = (nodeInfo, currentNum) => {
+            nodeInfo.displayNum = currentNum;
+            let childCounter = 1;
+            (nodeInfo.node.logicRuleList || []).forEach(rule => {
+              const target = rule.jumpTarget;
+              if (typeof target === 'number' || (typeof target === 'string' && target !== 'next' && target !== 'end')) {
+                let targetId = Number(target);
+                if (nodeById[targetId]) {
+                  assignDisplayNum(nodeById[targetId], `${currentNum}.${childCounter++}`);
+                }
+              }
+            });
+          };
+
+          allNodes.filter(n => n.isRoot).forEach(root => {
+            assignDisplayNum(root, `${rootCounter++}`);
+          });
+
+          const result = {
+            title: parsed.questionnaire ? parsed.questionnaire.title : '表單',
+            description: parsed.questionnaire ? parsed.questionnaire.description : '',
+            allNodes: allNodes,
+            roots: allNodes.filter(n => n.isRoot)
+          };
+          this.logicFormDataCache[question.questionId] = result;
+          return result;
+        }
+      } catch(e) { 
+        console.error('Logic Form Parse Error', e);
+      }
+      return null;
     },
 
     // 判断是否为图片
@@ -569,6 +699,126 @@ export default {
 
 .text-input:focus {
   border-color: #67c23a;
+}
+
+/* 填空题列表 */
+.fill-blanks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blank-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.blank-label {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+/* JSON 內容渲染樣式 */
+.question-content {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #fdfdfd;
+  border-radius: 6px;
+  border-left: 3px solid #7dd3fc;
+}
+
+.content-json-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  line-height: 2;
+}
+
+.json-text {
+  font-size: 15px;
+  color: #333;
+}
+
+.json-input {
+  border: 1px solid #dcdfe6;
+  border-bottom: 1px solid #909399; /* 讓填空看起來更像輸入線 */
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  outline: none;
+  min-width: 120px;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.json-input:focus {
+  border-color: #67c23a;
+  box-shadow: 0 0 0 2px rgba(103, 194, 58, 0.1);
+  background: white;
+}
+
+.json-textarea {
+  width: 100%;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.json-textarea:focus {
+  border-color: #67c23a;
+}
+
+.json-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 6px;
+  margin: 5px 0;
+  display: block;
+}
+
+.content-html {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* 邏輯表單特有樣式 - 優化協調性 */
+.logic-form-header {
+  margin-bottom: 25px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #409EFF;
+}
+
+.logic-form-header .form-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #303133;
+  margin: 0 0 10px 0;
+}
+
+.logic-form-header .form-desc {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.logic-nodes-list {
+  padding: 0;
 }
 
 /* 上传按钮 */
