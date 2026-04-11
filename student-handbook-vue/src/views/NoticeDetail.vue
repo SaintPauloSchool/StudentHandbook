@@ -3,9 +3,9 @@
     <!-- 顶部导航栏 -->
     <div class="header">
       <button class="back-button" @click="goBack">
-        <span class="back-icon">←</span>
+        <el-icon class="back-icon"><ArrowLeft /></el-icon>
+        返回
       </button>
-      <h1 class="header-title">通知詳情</h1>
     </div>
 
     <!-- 加载状态 -->
@@ -20,8 +20,14 @@
       <div class="notice-header-section">
         <h2 class="detail-title">{{ notice.title }}</h2>
         <div class="meta-info">
-          <span class="sender">發送人：{{ notice.senderName }}</span>
-          <span class="date">{{ formatDate(notice.createTime) }}</span>
+          <div class="meta-item">
+            <el-icon class="meta-icon"><User /></el-icon>
+            <span>發送人：{{ notice.senderName }}</span>
+          </div>
+          <div class="meta-item">
+            <el-icon class="meta-icon"><Clock /></el-icon>
+            <span>發佈時間：{{ formatDate(notice.createTime) }}</span>
+          </div>
         </div>
       </div>
 
@@ -123,9 +129,15 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
+import { User, Clock, ArrowLeft } from '@element-plus/icons-vue'
 
 export default {
   name: 'NoticeDetail',
+  components: {
+    User,
+    Clock,
+    ArrowLeft
+  },
   data() {
     return {
       notice: null,
@@ -240,35 +252,40 @@ export default {
   display: flex;
   align-items: center;
   padding: 15px 20px;
-  background: linear-gradient(135deg, #67c23a 0%, #4caf50 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
+  box-shadow: 0 4px 6px rgba(125, 211, 252, 0.2);
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
 }
 
 .back-button {
-  background: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  color: #92400e;
   border: none;
-  color: white;
-  font-size: 24px;
+  box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
-  padding: 5px 10px;
-  margin-right: 10px;
-  transition: transform 0.2s;
+  white-space: nowrap;
 }
 
 .back-button:hover {
-  transform: translateX(-3px);
+  background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(245, 158, 11, 0.3);
 }
 
-.header-title {
-  flex: 1;
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0;
-  text-align: center;
+.back-icon {
+  width: 16px;
+  height: 16px;
 }
 
 /* 加载状态 */
@@ -303,47 +320,90 @@ export default {
 
 /* 详情内容 */
 .detail-content {
-  padding: 20px;
+  padding: 20px 25px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .notice-header-section {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: visible;
+}
+
+.notice-header-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7dd3fc, #bae6fd, #bae6fd);
+  z-index: 1;
 }
 
 .detail-title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #303133;
-  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0284c7;
+  margin: 0 0 16px 0;
   line-height: 1.5;
+  text-align: left;
+  letter-spacing: 0.3px;
 }
 
 .meta-info {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
   font-size: 13px;
-  color: #909399;
+  color: #94a3b8;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 /* 通知正文 */
 .notice-body {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: visible;
+}
+
+.notice-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7dd3fc, #bae6fd, #bae6fd);
+  z-index: 1;
 }
 
 .content-text {
   font-size: 15px;
-  color: #606266;
+  color: #475569;
   line-height: 1.8;
   white-space: pre-wrap;
+  text-align: left;
 }
 
 /* 附件 */

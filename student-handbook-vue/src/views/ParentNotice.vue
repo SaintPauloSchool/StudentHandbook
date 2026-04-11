@@ -3,9 +3,7 @@
     <!-- 顶部导航栏 -->
     <div class="header">
       <button class="back-button" @click="goBack">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5V14h3v1.5a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146ZM11.5 14v-6h-3v6h3Z"/>
-        </svg>
+        <el-icon class="back-icon"><HomeFilled /></el-icon>
         返回首頁
       </button>
     </div>
@@ -20,11 +18,19 @@
       >
         <div class="notice-header">
           <h3 class="notice-title">{{ notice.title }}</h3>
-          <span class="notice-date">{{ formatDate(notice.createTime) }}</span>
+        </div>
+        <div class="notice-meta">
+          <div class="meta-item">
+            <el-icon class="meta-icon"><User /></el-icon>
+            <span>發送人：{{ notice.senderName }}</span>
+          </div>
+          <div class="meta-item">
+            <el-icon class="meta-icon"><Clock /></el-icon>
+            <span>發佈時間：{{ formatDate(notice.createTime) }}</span>
+          </div>
         </div>
         <p class="notice-content">{{ truncateContent(notice.content, 100) }}</p>
         <div class="notice-footer">
-          <span class="sender-name">發送人：{{ notice.senderName }}</span>
           <span class="view-detail">查看詳情 →</span>
         </div>
       </div>
@@ -48,9 +54,15 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
+import { User, Clock, HomeFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'ParentNotice',
+  components: {
+    User,
+    Clock,
+    HomeFilled
+  },
   data() {
     return {
       noticeList: [],
@@ -156,6 +168,11 @@ export default {
   height: 16px;
 }
 
+.back-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* 通知列表 */
 .notice-list {
   padding: 20px 25px;
@@ -166,9 +183,9 @@ export default {
 .notice-item {
   background: white;
   border-radius: 12px;
-  padding: 20px;
+  padding: 24px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
@@ -198,7 +215,7 @@ export default {
 
 .notice-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
   margin-bottom: 12px;
   gap: 15px;
@@ -211,49 +228,60 @@ export default {
   color: #0284c7;
   margin: 0;
   line-height: 1.5;
+  text-align: left;
+  letter-spacing: 0.3px;
 }
 
-.notice-date {
+.notice-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
   font-size: 13px;
-  color: #64748b;
-  white-space: nowrap;
-  font-weight: 500;
+  color: #94a3b8;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .notice-content {
   font-size: 15px;
   color: #475569;
   line-height: 1.8;
-  margin: 0 0 15px 0;
-  padding: 12px;
+  margin: 0 0 16px 0;
+  padding: 14px 16px;
   background: #f8fafc;
   border-radius: 8px;
-  border-left: 3px solid #e0f2fe;
+  border-left: 3px solid #bae6fd;
+  text-align: left;
 }
 
 .notice-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  padding-top: 12px;
+  padding-top: 14px;
   border-top: 1px solid #e0f2fe;
-}
-
-.sender-name {
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 500;
 }
 
 .view-detail {
   font-size: 14px;
-  color: #67c23a;
+  color: #0284c7;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .notice-item:hover .view-detail {
-  color: #4caf50;
+  color: #0369a1;
   transform: translateX(3px);
 }
 
