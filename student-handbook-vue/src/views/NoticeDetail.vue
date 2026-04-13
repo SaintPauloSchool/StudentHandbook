@@ -28,6 +28,10 @@
             <el-icon class="meta-icon"><Clock /></el-icon>
             <span>發佈時間：{{ formatDate(notice.createTime) }}</span>
           </div>
+          <div class="meta-item deadline-item" v-if="notice.replyDeadline">
+            <el-icon class="meta-icon"><Clock /></el-icon>
+            <span>回覆截止時間：{{ formatDateTime(notice.replyDeadline) }}</span>
+          </div>
         </div>
       </div>
 
@@ -56,30 +60,76 @@
 
       <!-- 问题列表（如果有） -->
       <div class="questions-section" v-if="questions && questions.length > 0">
-        <h3 class="section-title">問卷</h3>
-        <div 
-          class="question-item" 
-          v-for="question in questions" 
-          :key="question.questionId"
-        >
-          <!-- 若為邏輯表單 (題型 5) -->
-          <div class="logic-form-wrapper" v-if="question.questionType === '5' && getLogicFormData(question)">
-             <div class="logic-form-header">
-               <h4 class="form-title">{{ getLogicFormData(question).title }}</h4>
-               <p class="form-desc" v-if="getLogicFormData(question).description">{{ getLogicFormData(question).description }}</p>
-             </div>
-             
-             <div class="logic-nodes-list">
-               <FormQuestionNode 
-                 v-for="rootNode in getLogicFormData(question).roots"
-                 :key="rootNode.node.id"
-                 :question="rootNode.node"
-                 :all-nodes="getLogicFormData(question).allNodes"
-                 :level="0"
-                 :display-num="rootNode.displayNum"
-               />
-             </div>
+        <div class="questions-toggle-header" :class="{ 'is-expanded': isQuestionnaireExpanded }" @click="isQuestionnaireExpanded = !isQuestionnaireExpanded">
+          <h3 class="section-title">
+            <el-icon class="icon"><Document /></el-icon>
+            問卷調查
+          </h3>
+          <div class="toggle-icon-wrapper">
+             <span class="toggle-text">{{ isQuestionnaireExpanded ? '收合' : '點擊展開' }}</span>
+             <el-icon class="toggle-icon"><ArrowDown v-if="isQuestionnaireExpanded"/><ArrowRight v-else/></el-icon>
           </div>
+        </div>
+
+        <!-- 展開內容 -->
+        <div class="questions-content-wrapper" v-show="isQuestionnaireExpanded">
+          <div 
+            class="question-item" 
+            v-for="question in questions" 
+            :key="question.questionId"
+          >
+            <!-- 若為邏輯表單 (題型 5) -->
+            <div class="logic-form-wrapper logic-stepper-view" v-if="question.questionType === '5' && getLogicFormData(question)">
+              <div class="logic-form-header">
+                <h4 class="form-title">{{ getLogicFormData(question).title }}</h4>
+                <p class="form-desc" v-if="getLogicFormData(question).description">{{ getLogicFormData(question).description }}</p>
+              </div>
+              
+              <!-- 動態渲染當前啟動的題目 -->
+              <div class="stepper-body" v-if="getLogicFormState(question) && getLogicFormState(question).activeNodeId">
+                <div class="stepper-controls" v-if="getLogicFormState(question).historyStack.length > 0 || getLogicFormState(question).isComplete">
+                   <button class="stepper-btn back-btn" @click="handleLogicBack(question.questionId)">
+                     <el-icon><ArrowLeft /></el-icon> 返回上一題
+                   </button>
+                </div>
+                
+                <div class="active-node-container transition-wrapper fade-in" v-if="!getLogicFormState(question).isComplete">
+                   <div class="question-header logic-question-header">
+                     <span class="question-number">Q.</span>
+                     <span class="question-title">{{ getActiveNode(question).node.title }}</span>
+                     <span class="required-mark" v-if="getActiveNode(question).node.required">*</span>
+                   </div>
+                   
+                   <!-- 單選/多選 -->
+                   <div class="logic-options" v-if="['1', '2'].includes(String(getActiveNode(question).node.type))">
+                     <div 
+                       class="logic-option-item"
+                       :class="{ 'is-selected': isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx) }"
+                       v-for="(opt, optIdx) in getActiveNode(question).node.options"
+                       :key="optIdx"
+                       @click="handleLogicOptionClick(question, getActiveNode(question).node, optIdx)"
+                     >
+                       <span class="opt-label">{{ String.fromCharCode(65 + optIdx) }}</span>
+                       <span class="opt-text">{{ opt }}</span>
+                       <el-icon class="check-icon" v-if="isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx)"><Select /></el-icon>
+                     </div>
+                   </div>
+                   
+                   <!-- 多選時顯示下一題按鈕（單選則自動跳轉） -->
+                   <div class="logic-action-bar" v-if="String(getActiveNode(question).node.type) === '2'">
+                     <button class="next-step-btn" @click="handleLogicNext(question)">
+                       下一題 <el-icon><ArrowRight /></el-icon>
+                     </button>
+                   </div>
+                </div>
+
+                <!-- 完成狀態提示 -->
+                <div class="logic-complete-state fade-in" v-else>
+                   <div class="complete-icon">🎉</div>
+                   <p class="complete-text">邏輯表單作答完成</p>
+                </div>
+              </div>
+            </div>
 
           <!-- 一般題型 -->
           <div class="normal-question-wrapper" v-else>
@@ -145,18 +195,14 @@
           </div>
           </div> <!-- 結束 normal-question-wrapper -->
         </div>
-
+          
         <!-- 提交按钮 -->
         <div class="submit-section">
           <button class="submit-button" @click="submitAnswers">提交回答</button>
         </div>
-      </div>
+      </div> <!-- 結束 questions-content-wrapper -->
+    </div>
 
-      <!-- 回复截止时间提示 -->
-      <div class="deadline-tip" v-if="notice.replyDeadline">
-        <span class="tip-icon">⏰</span>
-        <span class="tip-text">回覆截止時間：{{ formatDateTime(notice.replyDeadline) }}</span>
-      </div>
     </div>
 
     <!-- 错误状态 -->
@@ -172,8 +218,7 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS, baseURL } from '@/config/api.js'
-import { User, Clock, ArrowLeft, Document } from '@element-plus/icons-vue'
-import FormQuestionNode from '@/components/FormQuestionNode.vue'
+import { User, Clock, ArrowLeft, ArrowRight, ArrowDown, Document, Select } from '@element-plus/icons-vue'
 
 export default {
   name: 'NoticeDetail',
@@ -181,15 +226,19 @@ export default {
     User,
     Clock,
     ArrowLeft,
+    ArrowRight,
+    ArrowDown,
     Document,
-    FormQuestionNode
+    Select
   },
   data() {
     return {
       notice: null,
       questions: [],
       loading: false,
-      logicFormDataCache: {} // 緩存解析結果
+      logicFormDataCache: {}, // 緩存解析結果
+      isQuestionnaireExpanded: false, // 收縮控制
+      logicFormStates: {} // 邏輯表單狀態緩存
     }
   },
   computed: {
@@ -364,6 +413,134 @@ export default {
         console.error('Logic Form Parse Error', e);
       }
       return null;
+    },
+
+    // 獲取邏輯表單狀態
+    getLogicFormState(question) {
+      const questionId = question.questionId;
+      if (!this.logicFormStates[questionId]) {
+        // 初始化狀態
+        const logicData = this.getLogicFormData(question);
+        let rootId = null;
+        if (logicData && logicData.roots && logicData.roots.length > 0) {
+          rootId = logicData.roots[0].node.id;
+        }
+        this.logicFormStates[questionId] = {
+           activeNodeId: rootId,
+           historyStack: [],
+           answers: {},
+           isComplete: false
+        };
+      }
+      return this.logicFormStates[questionId];
+    },
+
+    // 獲取當前活動題目
+    getActiveNode(question) {
+      const state = this.getLogicFormState(question);
+      if (!state.activeNodeId) return null;
+      const logicData = this.getLogicFormData(question);
+      return logicData.allNodes.find(n => n.node.id === state.activeNodeId);
+    },
+
+    // 判斷選項是否選中
+    isLogicOptionSelected(questionId, nodeId, optIdx) {
+      const state = this.logicFormStates[questionId];
+      if (!state) return false;
+      const ans = state.answers[nodeId] || [];
+      return ans.includes(optIdx);
+    },
+
+    // 處理選項點擊
+    handleLogicOptionClick(question, node, optIdx) {
+      const state = this.getLogicFormState(question);
+      let ans = state.answers[node.id] || [];
+      if (String(node.type) === '1') {
+         // 單選
+         ans = [optIdx];
+         state.answers[node.id] = ans;
+         // 單選可自動進入下一題，提供極致流暢體驗
+         setTimeout(() => {
+           this.handleLogicNext(question);
+         }, 300);
+      } else if (String(node.type) === '2') {
+         // 多選
+         if (ans.includes(optIdx)) {
+           ans = ans.filter(i => i !== optIdx);
+         } else {
+           ans.push(optIdx);
+         }
+         state.answers[node.id] = ans;
+      }
+    },
+
+    // 下一題
+    handleLogicNext(question) {
+      const state = this.getLogicFormState(question);
+      if (state.isComplete) return;
+      const currentNode = this.getActiveNode(question);
+      if (!currentNode) return;
+      const nodeData = currentNode.node;
+      
+      const answerIndices = state.answers[nodeData.id] || [];
+      if (nodeData.required && answerIndices.length === 0) {
+        ElMessage.warning('請先作答此題');
+        return;
+      }
+      
+      let nextId = null;
+      // 評估邏輯路徑
+      if (nodeData.logicRuleList && nodeData.logicRuleList.length > 0) {
+        for (let rule of nodeData.logicRuleList) {
+           if (answerIndices.includes(rule.optionIndex)) {
+              if (rule.jumpTarget === 'end') {
+                 nextId = 'end';
+                 break;
+              } else if (rule.jumpTarget === 'next') {
+                 nextId = 'next';
+                 break;
+              } else if (rule.jumpTarget) {
+                 nextId = rule.jumpTarget;
+                 break;
+              }
+           }
+        }
+      }
+      
+      // 無邏輯路徑時的回退順序（按照原本 allNodes 中的實體排列順序）
+      if (!nextId || nextId === 'next') {
+         const allNodes = this.getLogicFormData(question).allNodes;
+         const currentIdx = allNodes.findIndex(n => n.node.id === nodeData.id);
+         let found = false;
+         for (let i = currentIdx + 1; i < allNodes.length; i++) {
+           nextId = allNodes[i].node.id;
+           found = true;
+           break;
+         }
+         if (!found) nextId = 'end';
+      }
+      
+      if (nextId === 'end') {
+         state.isComplete = true;
+         return;
+      }
+      
+      state.historyStack.push(nodeData.id);
+      state.activeNodeId = nextId;
+    },
+
+    // 返回上一題
+    handleLogicBack(questionId) {
+      const state = this.logicFormStates[questionId];
+      if (!state) return;
+      if (state.isComplete) {
+         state.isComplete = false; // 取消完成狀態，直接顯示上一題
+      } else {
+         if (state.historyStack.length > 0) {
+            const prevId = state.historyStack.pop();
+            state.activeNodeId = prevId;
+         }
+      }
     },
 
     // 获取完整的附件URL
@@ -583,6 +760,11 @@ export default {
   gap: 6px;
 }
 
+.deadline-item {
+  color: #f56c6c;
+  font-weight: 600;
+}
+
 .meta-icon {
   width: 16px;
   height: 16px;
@@ -674,21 +856,216 @@ export default {
   font-size: 14px;
 }
 
-/* 问题部分 */
+/* 问题部分重构 */
 .questions-section {
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.questions-toggle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.questions-toggle-header.is-expanded {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.questions-toggle-header .section-title {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+}
+
+.questions-toggle-header .icon {
+  color: #3b82f6;
+  font-size: 20px;
+}
+
+.toggle-icon-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.questions-content-wrapper {
   padding: 20px;
+}
+
+.logic-stepper-view {
+  background: #ffffff;
+}
+
+.stepper-controls {
   margin-bottom: 15px;
 }
 
-.section-title {
-  font-size: 17px;
+.stepper-btn.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+
+.active-node-container {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.logic-question-header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 15px;
+}
+
+.question-number {
+  color: #3b82f6;
+  font-size: 20px;
+  font-weight: 800;
+  margin-right: 8px;
+}
+
+.logic-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.logic-option-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.logic-option-item:hover, .logic-option-item:active {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.logic-option-item.is-selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.15);
+}
+
+.opt-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  margin-right: 12px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.logic-option-item.is-selected .opt-label {
+  background: #3b82f6;
+  color: white;
+}
+
+.opt-text {
+  flex: 1;
+  font-size: 15px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.check-icon {
+  margin-left: auto;
+  color: #3b82f6;
+  font-size: 20px;
   font-weight: bold;
-  color: #303133;
-  margin: 0 0 15px 0;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #67c23a;
+}
+
+.logic-action-bar {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.next-step-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+}
+
+.next-step-btn:active {
+  transform: scale(0.98);
+}
+
+.logic-complete-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 12px;
+}
+
+.complete-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.complete-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .question-item {
@@ -949,27 +1326,7 @@ export default {
   transform: translateY(0);
 }
 
-/* 截止时间提示 */
-.deadline-tip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  background: #fff3e0;
-  border-radius: 6px;
-  margin-top: 15px;
-}
 
-.tip-icon {
-  font-size: 18px;
-  margin-right: 8px;
-}
-
-.tip-text {
-  font-size: 13px;
-  color: #e6a23c;
-  font-weight: 500;
-}
 
 /* 错误状态 */
 .error-state {
