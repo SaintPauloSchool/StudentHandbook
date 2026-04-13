@@ -226,7 +226,11 @@ export default {
   methods: {
     // 返回上一页
     goBack() {
-      this.$router.push('/notice')
+      if (window.history.length > 1) {
+        this.$router.back()
+      } else {
+        this.$router.push('/notice')
+      }
     },
 
     // 加载通知详情

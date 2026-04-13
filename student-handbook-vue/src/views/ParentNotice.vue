@@ -9,7 +9,7 @@
     </div>
 
     <!-- 通知列表 -->
-    <div class="notice-list" v-if="!loading && noticeList.length > 0">
+    <div class="notice-list" v-if="noticeList.length > 0">
       <div 
         class="notice-item" 
         v-for="notice in noticeList" 
@@ -42,8 +42,8 @@
       <p class="empty-text">暫無通知</p>
     </div>
 
-    <!-- 加载状态 -->
-    <div class="loading-state" v-if="loading">
+    <!-- 加载状态 : 当没有数据且正在加载时才显示 -->
+    <div class="loading-state" v-if="loading && noticeList.length === 0">
       <div class="loading-spinner"></div>
       <p class="loading-text">加載中...</p>
     </div>
@@ -72,6 +72,12 @@ export default {
   mounted() {
     this.loadNoticeList()
   },
+  activated() {
+    // 當從其他組件(如詳情頁)返回時，靜默獲取最新通知
+    if (this.noticeList.length > 0) {
+      this.loadNoticeList()
+    }
+  },
   methods: {
     // 返回上一页
     goBack() {
@@ -80,7 +86,10 @@ export default {
 
     // 加载通知列表
     async loadNoticeList() {
-      this.loading = true
+      // 只有當沒有數據時，才顯示全屏加載狀態以避免重新加載時閃爍和滾動位置丟失
+      if (this.noticeList.length === 0) {
+        this.loading = true
+      }
       try {
         const response = await service.get(API_ENDPOINTS.NOTICE_LIST)
         if (response.data.code === 200) {
@@ -90,7 +99,9 @@ export default {
         }
       } catch (error) {
         console.error('獲取通知列表失敗:', error)
-        ElMessage.error('網絡錯誤，請稍後重試')
+        if (this.noticeList.length === 0) {
+          ElMessage.error('網絡錯誤，請稍後重試')
+        }
       } finally {
         this.loading = false
       }
