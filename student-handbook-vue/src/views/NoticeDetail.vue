@@ -60,19 +60,15 @@
 
       <!-- 问题列表（如果有） -->
       <div class="questions-section" v-if="questions && questions.length > 0">
-        <div class="questions-toggle-header" :class="{ 'is-expanded': isQuestionnaireExpanded }" @click="isQuestionnaireExpanded = !isQuestionnaireExpanded">
+        <div class="questions-header">
           <h3 class="section-title">
             <el-icon class="icon"><Document /></el-icon>
-            問卷調查
+            問題表單
           </h3>
-          <div class="toggle-icon-wrapper">
-             <span class="toggle-text">{{ isQuestionnaireExpanded ? '收合' : '點擊展開' }}</span>
-             <el-icon class="toggle-icon"><ArrowDown v-if="isQuestionnaireExpanded"/><ArrowRight v-else/></el-icon>
-          </div>
         </div>
 
-        <!-- 展開內容 -->
-        <div class="questions-content-wrapper" v-show="isQuestionnaireExpanded">
+        <!-- 直接顯示內容 -->
+        <div class="questions-content-wrapper">
           <div 
             class="question-item" 
             v-for="question in questions" 
@@ -87,7 +83,7 @@
               
               <!-- 動態渲染當前啟動的題目 -->
               <div class="stepper-body" v-if="getLogicFormState(question) && getLogicFormState(question).activeNodeId">
-                <div class="stepper-controls" v-if="getLogicFormState(question).historyStack.length > 0 || getLogicFormState(question).isComplete">
+                <div class="stepper-controls" v-if="getLogicFormState(question).historyStack.length > 0 && !getLogicFormState(question).isComplete">
                    <button class="stepper-btn back-btn" @click="handleLogicBack(question.questionId)">
                      <el-icon><ArrowLeft /></el-icon> 返回上一題
                    </button>
@@ -95,7 +91,7 @@
                 
                 <div class="active-node-container transition-wrapper fade-in" v-if="!getLogicFormState(question).isComplete">
                    <div class="question-header logic-question-header">
-                     <span class="question-number">Q.</span>
+                     <span class="question-number">{{ getActiveNode(question).displayNum }}.</span>
                      <span class="question-title">{{ getActiveNode(question).node.title }}</span>
                      <span class="required-mark" v-if="getActiveNode(question).node.required">*</span>
                    </div>
@@ -114,9 +110,73 @@
                        <el-icon class="check-icon" v-if="isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx)"><Select /></el-icon>
                      </div>
                    </div>
+
+                   <!-- 填空題 -->
+                   <div class="logic-inputs" v-if="String(getActiveNode(question).node.type) === '3'">
+                      <div class="logic-content-html" v-if="getActiveNode(question).node.content" v-html="formatFillBlankContent(getActiveNode(question).node.content)"></div>
+                      
+                      <!-- 根據需填空的數量渲染對應的輸入框 -->
+                      <div class="logic-fill-blanks" v-if="getFillBlanksCount(getActiveNode(question).node.content) > 0">
+                        <div 
+                           class="fill-blank-item" 
+                           v-for="n in getFillBlanksCount(getActiveNode(question).node.content)" 
+                           :key="n"
+                        >
+                           <label class="blank-label">填寫空格 {{ n }}</label>
+                           <input 
+                              type="text" 
+                              class="logic-input-text" 
+                              :value="getLogicFillBlankAnswer(question.questionId, getActiveNode(question).node.id, n - 1)"
+                              @input="updateLogicFillBlankAnswer(question.questionId, getActiveNode(question).node.id, n - 1, $event.target.value)"
+                              placeholder="請輸入對應的內容..."
+                           />
+                        </div>
+                      </div>
+                      
+                      <!-- 如果找不到占位符格式，降级為單一輸入框 -->
+                      <textarea 
+                         v-else
+                         class="logic-textarea" 
+                         v-model="getLogicFormState(question).answers[getActiveNode(question).node.id]"
+                         placeholder="請輸入您的答案..."
+                         rows="3"
+                      ></textarea>
+                   </div>
                    
-                   <!-- 多選時顯示下一題按鈕（單選則自動跳轉） -->
-                   <div class="logic-action-bar" v-if="String(getActiveNode(question).node.type) === '2'">
+                   <!-- 附件上傳 -->
+                   <div class="logic-upload" v-if="String(getActiveNode(question).node.type) === '4'">
+                      <div class="logic-content-html" v-if="getActiveNode(question).node.content" v-html="getActiveNode(question).node.content"></div>
+                      
+                      <div class="custom-upload-area" @click="triggerUpload(question.questionId, getActiveNode(question).node.id)">
+                         <input 
+                            type="file" 
+                            :ref="'fileInput_' + getActiveNode(question).node.id" 
+                            style="display: none" 
+                            @change="handleFileUpload($event, question.questionId, getActiveNode(question).node.id)"
+                         />
+                         
+                         <!-- 未上傳時的佔位符 -->
+                         <div class="upload-placeholder" v-if="!getLogicFormState(question).answers[getActiveNode(question).node.id]">
+                            <div class="upload-icon-wrapper">
+                              <el-icon class="upload-icon"><UploadFilled /></el-icon>
+                            </div>
+                            <span class="upload-hint">點擊上傳圖片或文件</span>
+                            <span class="upload-sub-hint">支援 JPG, PNG, PDF 格式</span>
+                         </div>
+                         
+                         <!-- 已上傳預覽 -->
+                         <div class="upload-file-preview" v-else>
+                            <div class="file-info">
+                               <el-icon class="file-icon"><Document /></el-icon>
+                               <span class="file-name">{{ getLogicFormState(question).answers[getActiveNode(question).node.id].name }}</span>
+                            </div>
+                            <span class="file-success"><el-icon><Check /></el-icon> 已準備就緒</span>
+                         </div>
+                      </div>
+                   </div>
+                   
+                   <!-- 多選/填空/附件顯示下一題按鈕（單選則自動跳轉） -->
+                   <div class="logic-action-bar" v-if="['2', '3', '4'].includes(String(getActiveNode(question).node.type))">
                      <button class="next-step-btn" @click="handleLogicNext(question)">
                        下一題 <el-icon><ArrowRight /></el-icon>
                      </button>
@@ -126,7 +186,7 @@
                 <!-- 完成狀態提示 -->
                 <div class="logic-complete-state fade-in" v-else>
                    <div class="complete-icon">🎉</div>
-                   <p class="complete-text">邏輯表單作答完成</p>
+                   <p class="complete-text">問題表單作答完成</p>
                 </div>
               </div>
             </div>
@@ -218,7 +278,7 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS, baseURL } from '@/config/api.js'
-import { User, Clock, ArrowLeft, ArrowRight, ArrowDown, Document, Select } from '@element-plus/icons-vue'
+import { User, Clock, ArrowLeft, ArrowRight, ArrowDown, Document, Select, UploadFilled, Check } from '@element-plus/icons-vue'
 
 export default {
   name: 'NoticeDetail',
@@ -229,7 +289,9 @@ export default {
     ArrowRight,
     ArrowDown,
     Document,
-    Select
+    Select,
+    UploadFilled,
+    Check
   },
   data() {
     return {
@@ -237,7 +299,6 @@ export default {
       questions: [],
       loading: false,
       logicFormDataCache: {}, // 緩存解析結果
-      isQuestionnaireExpanded: false, // 收縮控制
       logicFormStates: {} // 邏輯表單狀態緩存
     }
   },
@@ -361,7 +422,7 @@ export default {
       try {
         const parsed = JSON.parse(question.content);
         if (parsed && parsed.questions) {
-          let allNodes = parsed.questions.map(q => ({ node: q, parentId: null, parentOptIdx: null, displayNum: '', isRoot: true }));
+          let allNodes = parsed.questions.map(q => ({ node: q, parents: [], displayNum: '', isRoot: true }));
           let nodeById = {};
           allNodes.forEach(n => nodeById[n.node.id] = n);
           
@@ -373,8 +434,7 @@ export default {
                 let targetId = Number(target);
                 if (nodeById[targetId]) {
                   nodeById[targetId].isRoot = false;
-                  nodeById[targetId].parentId = q.id;
-                  nodeById[targetId].parentOptIdx = rule.optionIndex;
+                  nodeById[targetId].parents.push({ id: q.id, optIdx: rule.optionIndex });
                 }
               }
             });
@@ -435,6 +495,64 @@ export default {
       return this.logicFormStates[questionId];
     },
 
+    // 格式化填空題內容
+    formatFillBlankContent(content) {
+      if (!content) return '';
+      // 將 {{fillblank-n}} 替換為有編號的底線，方便用戶對應作答
+      let index = 1;
+      return content.replace(/\{\{fillblank-\d+\}\}/g, () => {
+         return `<span style="border-bottom: 1px solid #333; display: inline-block; width: 40px; margin: 0 5px; text-align: center; font-size: 12px; color: #64748b;">(${index++})</span>`;
+      });
+    },
+
+    // 獲取填空題空格數量
+    getFillBlanksCount(content) {
+      if (!content) return 0;
+      const matches = content.match(/\{\{fillblank-\d+\}\}/g);
+      return matches ? matches.length : 0;
+    },
+
+    // 獲取特定的填空題答案
+    getLogicFillBlankAnswer(questionId, nodeId, index) {
+      const state = this.logicFormStates[questionId];
+      if (!state || !state.answers[nodeId]) return '';
+      const ansArr = state.answers[nodeId];
+      return (Array.isArray(ansArr) ? ansArr[index] : '') || '';
+    },
+
+    // 更新特定的填空題答案
+    updateLogicFillBlankAnswer(questionId, nodeId, index, value) {
+      const state = this.logicFormStates[questionId];
+      if (!state) return;
+      if (!Array.isArray(state.answers[nodeId])) {
+         state.answers[nodeId] = [];
+      }
+      state.answers[nodeId][index] = value;
+    },
+
+    // DFS 可見性判斷
+    isNodeVisible(nodeId, question) {
+      const logicData = this.getLogicFormData(question);
+      const state = this.getLogicFormState(question);
+      return this.checkNodeVisibilityRecursively(nodeId, logicData.allNodes, state.answers);
+    },
+
+    checkNodeVisibilityRecursively(nodeId, allNodes, answers) {
+      const nodeWrapper = allNodes.find(n => n.node.id === nodeId);
+      if (!nodeWrapper) return false;
+      if (nodeWrapper.isRoot) return true;
+      
+      for (let p of nodeWrapper.parents) {
+         if (this.checkNodeVisibilityRecursively(p.id, allNodes, answers)) {
+            const parentAns = answers[p.id];
+            if (Array.isArray(parentAns) && parentAns.includes(p.optIdx)) {
+               return true;
+            }
+         }
+      }
+      return false;
+    },
+
     // 獲取當前活動題目
     getActiveNode(question) {
       const state = this.getLogicFormState(question);
@@ -474,6 +592,28 @@ export default {
       }
     },
 
+    // 觸發文件上傳框
+    triggerUpload(questionId, nodeId) {
+      const refName = 'fileInput_' + nodeId;
+      const inputs = this.$refs[refName];
+      if (inputs) {
+        if (Array.isArray(inputs)) inputs[0].click();
+        else inputs.click();
+      }
+    },
+
+    // 處理附件選擇
+    handleFileUpload(event, questionId, nodeId) {
+      const file = event.target.files[0];
+      if (file) {
+        const state = this.logicFormStates[questionId];
+        if (state) {
+          state.answers[nodeId] = file;
+        }
+      }
+      event.target.value = '';
+    },
+
     // 下一題
     handleLogicNext(question) {
       const state = this.getLogicFormState(question);
@@ -482,45 +622,63 @@ export default {
       if (!currentNode) return;
       const nodeData = currentNode.node;
       
-      const answerIndices = state.answers[nodeData.id] || [];
-      if (nodeData.required && answerIndices.length === 0) {
-        ElMessage.warning('請先作答此題');
+      const answerData = state.answers[nodeData.id];
+      let hasAnswer = false;
+      
+      if (String(nodeData.type) === '3') {
+         const blanksCount = this.getFillBlanksCount(nodeData.content);
+         if (blanksCount > 0) {
+            if (Array.isArray(answerData)) {
+               let filledCount = 0;
+               for (let i = 0; i < blanksCount; i++) {
+                  if (answerData[i] && String(answerData[i]).trim() !== '') {
+                     filledCount++;
+                  }
+               }
+               hasAnswer = filledCount === blanksCount;
+            }
+         } else {
+            hasAnswer = !!(answerData && String(answerData).trim() !== '');
+         }
+      } else if (String(nodeData.type) === '4') {
+         hasAnswer = !!answerData; // File 對象存在即代表已填答
+      } else {
+         const answerIndices = answerData || [];
+         hasAnswer = answerIndices.length > 0;
+      }
+      
+      if (nodeData.required && !hasAnswer) {
+        ElMessage.warning('請先作答此題所有項目');
         return;
       }
       
-      let nextId = null;
-      // 評估邏輯路徑
-      if (nodeData.logicRuleList && nodeData.logicRuleList.length > 0) {
+      const logicData = this.getLogicFormData(question);
+      const allNodes = logicData.allNodes;
+      
+      // 檢查是否明確要求中止跳轉 (JumpTarget = 'end')
+      if (nodeData.logicRuleList && nodeData.logicRuleList.length > 0 && Array.isArray(answerData) && !['3'].includes(String(nodeData.type))) {
         for (let rule of nodeData.logicRuleList) {
-           if (answerIndices.includes(rule.optionIndex)) {
-              if (rule.jumpTarget === 'end') {
-                 nextId = 'end';
-                 break;
-              } else if (rule.jumpTarget === 'next') {
-                 nextId = 'next';
-                 break;
-              } else if (rule.jumpTarget) {
-                 nextId = rule.jumpTarget;
-                 break;
-              }
+           if (answerData.includes(rule.optionIndex) && rule.jumpTarget === 'end') {
+              state.isComplete = true;
+              return;
            }
         }
       }
       
-      // 無邏輯路徑時的回退順序（按照原本 allNodes 中的實體排列順序）
-      if (!nextId || nextId === 'next') {
-         const allNodes = this.getLogicFormData(question).allNodes;
-         const currentIdx = allNodes.findIndex(n => n.node.id === nodeData.id);
-         let found = false;
-         for (let i = currentIdx + 1; i < allNodes.length; i++) {
-           nextId = allNodes[i].node.id;
-           found = true;
-           break;
+      // DFS 順序遍歷：找出物理陣列中「出現在此節點之後」，且「當前可見的」第一個節點
+      let nextId = null;
+      const currentIdx = allNodes.findIndex(n => n.node.id === nodeData.id);
+      
+      for (let i = currentIdx + 1; i < allNodes.length; i++) {
+         const candidateId = allNodes[i].node.id;
+         if (this.isNodeVisible(candidateId, question)) {
+            nextId = candidateId;
+            break;
          }
-         if (!found) nextId = 'end';
       }
       
-      if (nextId === 'end') {
+      // 如果後面已經沒有可見節點了，就視為作答完畢
+      if (!nextId) {
          state.isComplete = true;
          return;
       }
@@ -866,21 +1024,16 @@ export default {
   overflow: hidden;
 }
 
-.questions-toggle-header {
+.questions-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 18px 20px;
   background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.questions-toggle-header.is-expanded {
   border-bottom: 1px solid #e2e8f0;
 }
 
-.questions-toggle-header .section-title {
+.questions-header .section-title {
   margin: 0;
   padding: 0;
   border: none;
@@ -890,17 +1043,9 @@ export default {
   color: #0f172a;
 }
 
-.questions-toggle-header .icon {
+.questions-header .icon {
   color: #3b82f6;
   font-size: 20px;
-}
-
-.toggle-icon-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #64748b;
-  font-size: 14px;
 }
 
 .questions-content-wrapper {
@@ -1009,6 +1154,173 @@ export default {
   color: #3b82f6;
   font-size: 20px;
   font-weight: bold;
+}
+
+.logic-inputs, .logic-upload {
+  margin-top: 10px;
+}
+
+.logic-content-html {
+  font-size: 15px;
+  color: #334155;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.logic-fill-blanks {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.fill-blank-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blank-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.logic-input-text {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #334155;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.logic-input-text:focus {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.logic-textarea {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #334155;
+  resize: vertical;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.logic-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.custom-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+
+.custom-upload-area:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-icon-wrapper {
+  background: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  margin-bottom: 8px;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: #3b82f6;
+}
+
+.upload-hint {
+  font-size: 15px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.upload-sub-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.upload-file-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  border: 1px solid #e2e8f0;
+}
+
+.file-icon {
+  font-size: 20px;
+  color: #64748b;
+}
+
+.file-name {
+  font-size: 14px;
+  color: #334155;
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-success {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #10b981;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .logic-action-bar {
