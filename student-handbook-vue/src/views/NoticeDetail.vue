@@ -1,4 +1,4 @@
-<template>
+ <template>
   <div class="notice-detail-container">
     <!-- 顶部导航栏 -->
     <div class="header">
@@ -41,13 +41,13 @@
           <div class="attachment-list">
             <div 
               class="attachment-item" 
-              v-for="(url, index) in attachmentList" 
+              v-for="(attachment, index) in attachmentList" 
               :key="index"
             >
-              <img v-if="isImage(url)" :src="url" :alt="'附件' + (index + 1)" class="attachment-image" />
-              <a v-else :href="url" target="_blank" class="attachment-link">
+              <img v-if="isImage(attachment)" :src="getFullAttachmentUrl(attachment)" :alt="getAttachmentName(attachment)" class="attachment-image" @error="handleImageError" />
+              <a v-else :href="getFullAttachmentUrl(attachment)" target="_blank" class="attachment-link" @click="handleAttachmentClick(attachment)">
                 <span class="link-icon">📎</span>
-                <span class="link-text">查看附件 {{ index + 1 }}</span>
+                <span class="link-text">{{ getAttachmentName(attachment) }}</span>
               </a>
             </div>
           </div>
@@ -171,7 +171,7 @@
 <script>
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
-import { API_ENDPOINTS } from '@/config/api.js'
+import { API_ENDPOINTS, baseURL } from '@/config/api.js'
 import { User, Clock, ArrowLeft, Document } from '@element-plus/icons-vue'
 import FormQuestionNode from '@/components/FormQuestionNode.vue'
 
@@ -205,10 +205,17 @@ export default {
       return this.notice && this.notice.attachmentUrls && this.attachmentList.length > 0
     },
     attachmentList() {
-      if (!this.notice || !this.notice.attachmentUrls) return []
+      if (!this.notice || !this.notice.attachmentUrls) {
+        return []
+      }
       try {
-        return JSON.parse(this.notice.attachmentUrls)
+        const parsed = JSON.parse(this.notice.attachmentUrls)
+        return parsed
       } catch (e) {
+        // 如果不是JSON，可能是单个URL字符串
+        if (typeof this.notice.attachmentUrls === 'string' && this.notice.attachmentUrls.trim()) {
+          return [this.notice.attachmentUrls]
+        }
         return []
       }
     }
@@ -355,8 +362,74 @@ export default {
       return null;
     },
 
+    // 获取完整的附件URL
+    getFullAttachmentUrl(attachment) {
+      if (!attachment) return ''
+      
+      // 如果是对象，提取url属性
+      let url = typeof attachment === 'object' ? attachment.url : attachment
+      
+      if (!url || typeof url !== 'string') return ''
+      
+      // 如果已经是完整URL（以http或https开头），直接返回
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url
+      }
+      
+      // 清理URL中的双斜杠
+      url = url.replace(/\/+/g, '/')
+      
+      // 开发环境：需要拼接后端服务器地址和context-path
+      // 生产环境：使用当前域名
+      if (import.meta.env.MODE === 'development' || import.meta.env.MODE === 'test') {
+        // 开发环境使用后端服务器地址 + context-path
+        return 'http://localhost:8003/sp-api' + url
+      } else {
+        // 生产环境使用当前域名
+        const origin = window.location.origin
+        if (url.startsWith('/')) {
+          return origin + url
+        }
+        return origin + '/' + url
+      }
+    },
+
+    // 获取附件名称
+    getAttachmentName(attachment) {
+      if (!attachment) return '未知文件'
+      
+      // 如果是对象，提取name属性
+      if (typeof attachment === 'object') {
+        return attachment.name || this.getFileNameFromUrl(attachment.url)
+      }
+      
+      // 如果是字符串，从URL提取文件名
+      return this.getFileNameFromUrl(attachment)
+    },
+
+    // 从URL中提取文件名
+    getFileNameFromUrl(url) {
+      if (!url || typeof url !== 'string') return '未知文件'
+      try {
+        // 移除查询参数
+        const urlWithoutParams = url.split('?')[0]
+        // 获取最后一个/后面的部分
+        const fileName = urlWithoutParams.split('/').pop()
+        // 解码URL编码的字符
+        return decodeURIComponent(fileName) || '未知文件'
+      } catch (e) {
+        return '未知文件'
+      }
+    },
+
     // 判断是否为图片
-    isImage(url) {
+    isImage(attachment) {
+      if (!attachment) return false
+      
+      // 如果是对象，提取url属性
+      let url = typeof attachment === 'object' ? attachment.url : attachment
+      
+      if (!url || typeof url !== 'string') return false
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
       return imageExtensions.some(ext => url.toLowerCase().endsWith(ext))
     },
@@ -365,6 +438,16 @@ export default {
     submitAnswers() {
       ElMessage.info('回答提交功能開發中')
       // TODO: 实现回答提交逻辑
+    },
+
+    // 图片加载错误处理
+    handleImageError(event) {
+      event.target.style.display = 'none'
+    },
+
+    // 附件点击处理
+    handleAttachmentClick(attachment) {
+      // 用于附件点击事件
     }
   }
 }
@@ -383,7 +466,6 @@ export default {
   align-items: center;
   padding: 15px 20px;
   background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
-  box-shadow: 0 4px 6px rgba(125, 211, 252, 0.2);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -399,7 +481,6 @@ export default {
   background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
   color: #92400e;
   border: none;
-  box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
   transition: all 0.3s ease;
   font-weight: 600;
   font-size: 15px;
@@ -410,7 +491,6 @@ export default {
 .back-button:hover {
   background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(245, 158, 11, 0.3);
 }
 
 .back-icon {
@@ -460,7 +540,6 @@ export default {
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: visible;
 }
@@ -512,7 +591,6 @@ export default {
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: visible;
 }
@@ -598,7 +676,6 @@ export default {
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .section-title {
@@ -758,7 +835,6 @@ export default {
 
 .json-input:focus {
   border-color: #67c23a;
-  box-shadow: 0 0 0 2px rgba(103, 194, 58, 0.1);
   background: white;
 }
 
@@ -859,12 +935,10 @@ export default {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(103, 194, 58, 0.3);
 }
 
 .submit-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(103, 194, 58, 0.4);
 }
 
 .submit-button:active {

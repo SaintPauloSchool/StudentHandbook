@@ -9,7 +9,7 @@ sp:
   # 实例演示开关
   demoEnabled: true
   # 文件路径 示例（ Windows配置D:/uploadPath，Linux配置 /home/uploadPath）
-  profile: D:/uploadPath
+  profile: C:/uploadPath
   # 获取ip地址开关
   addressEnabled: false
   # Token配置
