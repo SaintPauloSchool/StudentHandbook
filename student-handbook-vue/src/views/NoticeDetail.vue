@@ -1038,6 +1038,15 @@ export default {
   line-height: 1.8;
   white-space: pre-wrap;
   text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 确保内容文本中的链接不会溢出 */
+.content-text >>> a,
+.content-text >>> :deep(a) {
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 /* 居中提示弹窗 */
