@@ -6,10 +6,9 @@
         <el-icon class="back-icon"><HomeFilled /></el-icon>
         返回首頁
       </button>
-      <button class="refresh-button" @click="refreshList" :disabled="refreshing">
-        <el-icon class="refresh-icon" :class="{ 'rotating': refreshing }"><Refresh /></el-icon>
-        <span v-if="refreshing">刷新中...</span>
-        <span v-else>刷新列表</span>
+      <button class="refresh-button" @click="refreshList" :disabled="loading">
+        <el-icon class="refresh-icon" :class="{ 'rotating': loading }"><Refresh /></el-icon>
+        刷新
       </button>
     </div>
 
@@ -93,8 +92,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
-      hasMore: true,
-      refreshing: false
+      hasMore: true
     }
   },
   mounted() {
@@ -114,16 +112,6 @@ export default {
     // 返回上一页
     goBack() {
       this.$router.push('/')
-    },
-
-    // 刷新列表
-    refreshList() {
-      if (this.refreshing) return
-      this.refreshing = true
-      this.loadNoticeList(true).finally(() => {
-        this.refreshing = false
-        ElMessage.success('刷新成功')
-      })
     },
 
     // 加载通知列表
@@ -227,6 +215,19 @@ export default {
       if (!content) return ''
       if (content.length <= maxLength) return content
       return content.substring(0, maxLength) + '...'
+    },
+
+    // 刷新列表
+    async refreshList() {
+      if (this.loading) return
+      
+      try {
+        await this.loadNoticeList(true)
+        ElMessage.success('刷新成功')
+      } catch (error) {
+        console.error('刷新失败:', error)
+        ElMessage.error('刷新失敗，請稍後重試')
+      }
     }
   }
 }
@@ -285,28 +286,27 @@ export default {
   height: 16px;
 }
 
-/* 刷新按钮 */
 .refresh-button {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
-  color: #1e3a8a;
+  background: linear-gradient(135deg, #3073f1 0%, #60a5fa 100%);
+  color: white;
   border: none;
-  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  box-shadow: 0 4px 6px rgba(48, 115, 241, 0.2);
   transition: all 0.3s ease;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .refresh-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  background: linear-gradient(135deg, #1e5fd9 0%, #3b82f6 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  box-shadow: 0 6px 10px rgba(48, 115, 241, 0.3);
 }
 
 .refresh-button:disabled {
@@ -320,7 +320,16 @@ export default {
 }
 
 .refresh-icon.rotating {
-  animation: spin 1s linear infinite;
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 通知列表 */
@@ -540,6 +549,11 @@ export default {
   }
 
   .back-button {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .refresh-button {
     padding: 10px 14px;
     font-size: 14px;
   }
