@@ -1830,7 +1830,7 @@ export default {
 .submit-button {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #67c23a 0%, #4caf50 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
   border-radius: 8px;
