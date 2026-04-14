@@ -1258,7 +1258,7 @@ export default {
 .option-content {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .opt-label {
@@ -1267,6 +1267,7 @@ export default {
   justify-content: center;
   min-width: 24px;
   height: 24px;
+  line-height: 1;
   border-radius: 50%;
   background: #f1f5f9;
   color: #475569;
@@ -1784,9 +1785,8 @@ export default {
 
 /* 提交按钮 */
 .submit-section {
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 2px solid #ebeef5;
+  margin-top: 15px;
+  padding-top: 1px;
 }
 
 .submit-button {
