@@ -87,10 +87,10 @@
                 <div class="progress-wrapper stepper-progress" v-if="question.questionType === '5'">
                   <div class="progress-info">
                     <span class="progress-text">作答進度</span>
-                    <span class="progress-percent">{{ totalProgress }}%</span>
+                    <span class="progress-percent">{{ getQuestionProgress(question.questionId) }}%</span>
                   </div>
                   <div class="progress-bar-container">
-                    <div class="progress-bar" :style="{ width: totalProgress + '%' }"></div>
+                    <div class="progress-bar" :style="{ width: getQuestionProgress(question.questionId) + '%' }"></div>
                   </div>
                 </div>
 
@@ -346,44 +346,7 @@ export default {
         return []
       }
     },
-    // 计算逻辑表单的总进度
-    totalProgress() {
-      const logicQuestions = this.questions.filter(q => q.questionType === '5');
-      if (logicQuestions.length === 0) return 0;
-      
-      let totalAnswered = 0;
-      let totalNodes = 0;
-      
-      logicQuestions.forEach(q => {
-        const state = this.logicFormStates[q.questionId];
-        if (state) {
-          // 统计已回答的节点数
-          Object.keys(state.answers).forEach(nodeId => {
-            const answer = state.answers[nodeId];
-            if (answer !== null && answer !== undefined) {
-              if (Array.isArray(answer)) {
-                if (answer.length > 0) {
-                  totalAnswered++;
-                }
-              } else if (typeof answer === 'object' && answer.name) {
-                // 文件上传
-                totalAnswered++;
-              } else if (String(answer).trim() !== '') {
-                totalAnswered++;
-              }
-            }
-          });
-          
-          // 获取该问题的所有节点数
-          const logicData = this.logicFormDataCache[q.questionId];
-          if (logicData && logicData.allNodes) {
-            totalNodes += logicData.allNodes.length;
-          }
-        }
-      });
-      
-      return totalNodes === 0 ? 0 : Math.round((totalAnswered / totalNodes) * 100);
-    }
+
   },
   mounted() {
     this.loadNoticeDetail()
@@ -832,6 +795,39 @@ export default {
     submitAnswers() {
       ElMessage.info('回答提交功能開發中')
       // TODO: 实现回答提交逻辑
+    },
+
+    // 计算单个逻辑表单的进度
+    getQuestionProgress(questionId) {
+      const state = this.logicFormStates[questionId];
+      if (!state) return 0;
+      
+      // 如果已经完成，直接返回100%
+      if (state.isComplete) return 100;
+      
+      const logicData = this.logicFormDataCache[questionId];
+      if (!logicData || !logicData.allNodes) return 0;
+      
+      // 统计已回答的节点数
+      let answeredCount = 0;
+      Object.keys(state.answers).forEach(nodeId => {
+        const answer = state.answers[nodeId];
+        if (answer !== null && answer !== undefined) {
+          if (Array.isArray(answer)) {
+            if (answer.length > 0) {
+              answeredCount++;
+            }
+          } else if (typeof answer === 'object' && answer.name) {
+            // 文件上传
+            answeredCount++;
+          } else if (String(answer).trim() !== '') {
+            answeredCount++;
+          }
+        }
+      });
+      
+      const totalNodes = logicData.allNodes.length;
+      return totalNodes === 0 ? 0 : Math.round((answeredCount / totalNodes) * 100);
     },
 
     // 图片加载错误处理
