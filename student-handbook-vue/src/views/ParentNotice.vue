@@ -110,16 +110,6 @@ export default {
       }
     })
   },
-  deactivated() {
-    // 離開組件時保存滾動位置（但 viewDetail 已經保存過了，這裡不再覆蓋）
-    // 只在非手動跳轉的情況下才保存（例如切換到其他路由）
-  },
-  beforeUnmount() {
-    // 清理事件監聽
-    if (this.scrollContainer) {
-      this.scrollContainer.removeEventListener('scroll', this.handleScroll)
-    }
-  },
   methods: {
     // 返回上一页
     goBack() {
@@ -315,11 +305,6 @@ export default {
   background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 10px rgba(245, 158, 11, 0.3);
-}
-
-.back-button svg {
-  width: 16px;
-  height: 16px;
 }
 
 .back-icon {

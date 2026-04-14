@@ -308,8 +308,8 @@
 <script>
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
-import { API_ENDPOINTS, baseURL } from '@/config/api.js'
-import { User, Clock, ArrowLeft, ArrowRight, ArrowDown, Document, Select, UploadFilled, Check } from '@element-plus/icons-vue'
+import { API_ENDPOINTS } from '@/config/api.js'
+import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check } from '@element-plus/icons-vue'
 
 export default {
   name: 'NoticeDetail',
@@ -318,7 +318,6 @@ export default {
     Clock,
     ArrowLeft,
     ArrowRight,
-    ArrowDown,
     Document,
     Select,
     UploadFilled,
@@ -857,11 +856,6 @@ export default {
       event.target.style.display = 'none'
     },
 
-    // 附件点击处理
-    handleAttachmentClick(attachment) {
-      // 用于附件点击事件
-    },
-
     // 显示居中提示
     showToast(message) {
       this.toastMessage = message;
@@ -1261,30 +1255,6 @@ export default {
   background: #ffffff;
   border: none;
   padding: 0;
-}
-
-.stepper-controls {
-  margin-bottom: 20px;
-}
-
-.stepper-btn.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.stepper-btn.back-btn:hover {
-  background: #f1f5f9;
-  color: #475569;
 }
 
 .active-node-container {
@@ -1976,10 +1946,6 @@ export default {
 @media (max-width: 768px) {
   .header {
     padding: 12px 15px;
-  }
-
-  .header-title {
-    font-size: 18px;
   }
 
   .detail-content {
