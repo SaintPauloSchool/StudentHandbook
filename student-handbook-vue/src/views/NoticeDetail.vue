@@ -1488,7 +1488,7 @@ export default {
 }
 
 .logic-action-bar {
-  margin-top: 24px;
+  margin-top: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1498,14 +1498,16 @@ export default {
 .back-step-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: transparent;
   color: #64748b;
   border: 1px solid #d1d5db;
-  padding: 10px 18px;
+  padding: 10px 10px;
   border-radius: 8px;
   font-weight: 500;
   font-size: 14px;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.25s;
 }
@@ -1519,14 +1521,16 @@ export default {
 .next-step-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
-  padding: 10px 24px;
+  padding: 10px 10px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.25s;
   margin-left: auto;
