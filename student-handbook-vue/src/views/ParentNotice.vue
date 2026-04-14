@@ -6,6 +6,11 @@
         <el-icon class="back-icon"><HomeFilled /></el-icon>
         返回首頁
       </button>
+      <button class="refresh-button" @click="refreshList" :disabled="refreshing">
+        <el-icon class="refresh-icon" :class="{ 'rotating': refreshing }"><Refresh /></el-icon>
+        <span v-if="refreshing">刷新中...</span>
+        <span v-else>刷新列表</span>
+      </button>
     </div>
 
     <!-- 通知列表 -->
@@ -70,14 +75,15 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
-import { User, Clock, HomeFilled } from '@element-plus/icons-vue'
+import { User, Clock, HomeFilled, Refresh } from '@element-plus/icons-vue'
 
 export default {
   name: 'ParentNotice',
   components: {
     User,
     Clock,
-    HomeFilled
+    HomeFilled,
+    Refresh
   },
   data() {
     return {
@@ -87,7 +93,8 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
-      hasMore: true
+      hasMore: true,
+      refreshing: false
     }
   },
   mounted() {
@@ -107,6 +114,16 @@ export default {
     // 返回上一页
     goBack() {
       this.$router.push('/')
+    },
+
+    // 刷新列表
+    refreshList() {
+      if (this.refreshing) return
+      this.refreshing = true
+      this.loadNoticeList(true).finally(() => {
+        this.refreshing = false
+        ElMessage.success('刷新成功')
+      })
     },
 
     // 加载通知列表
@@ -226,6 +243,7 @@ export default {
 .header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 15px 20px;
   background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
   box-shadow: 0 4px 6px rgba(125, 211, 252, 0.2);
@@ -265,6 +283,44 @@ export default {
 .back-icon {
   width: 16px;
   height: 16px;
+}
+
+/* 刷新按钮 */
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
+  border: none;
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refresh-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.refresh-icon.rotating {
+  animation: spin 1s linear infinite;
 }
 
 /* 通知列表 */
