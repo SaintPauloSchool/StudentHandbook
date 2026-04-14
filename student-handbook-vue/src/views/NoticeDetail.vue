@@ -1037,8 +1037,7 @@ export default {
 }
 
 /* 确保内容文本中的链接不会溢出 */
-.content-text >>> a,
-.content-text >>> :deep(a) {
+.content-text :deep(a) {
   word-break: break-all;
   overflow-wrap: break-word;
 }
