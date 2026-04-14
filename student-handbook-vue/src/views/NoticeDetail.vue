@@ -294,6 +294,14 @@
       <p class="error-text">加載失敗，請重試</p>
       <button class="retry-button" @click="loadNoticeDetail">重試</button>
     </div>
+
+    <!-- 居中提示弹窗 -->
+    <div class="center-toast" v-if="showCenterToast">
+      <div class="toast-content">
+        <div class="toast-icon">⚠️</div>
+        <p class="toast-message">{{ toastMessage }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -322,7 +330,9 @@ export default {
       questions: [],
       loading: false,
       logicFormDataCache: {}, // 緩存解析結果
-      logicFormStates: {} // 邏輯表單狀態緩存
+      logicFormStates: {}, // 邏輯表單狀態緩存
+      showCenterToast: false,
+      toastMessage: ''
     }
   },
   computed: {
@@ -672,7 +682,7 @@ export default {
       }
       
       if (nodeData.required && !hasAnswer) {
-        ElMessage.warning('此題目是必答的！！');
+        this.showToast('此題目是必答的！');
         return;
       }
       
@@ -844,6 +854,15 @@ export default {
     // 附件点击处理
     handleAttachmentClick(attachment) {
       // 用于附件点击事件
+    },
+
+    // 显示居中提示
+    showToast(message) {
+      this.toastMessage = message;
+      this.showCenterToast = true;
+      setTimeout(() => {
+        this.showCenterToast = false;
+      }, 1000);
     }
   }
 }
@@ -1013,6 +1032,55 @@ export default {
   line-height: 1.8;
   white-space: pre-wrap;
   text-align: left;
+}
+
+/* 居中提示弹窗 */
+.center-toast {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast-content {
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: toastFadeIn 0.3s ease;
+  max-width: 300px;
+}
+
+.toast-icon {
+  font-size: 36px;
+}
+
+.toast-message {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* 附件 */
