@@ -21,13 +21,20 @@
         <result property="remark" column="remark"/>
     </resultMap>
 
-    <select id="selectPublishedNotifications" resultMap="NotificationResult">
+    <select id="selectPublishedNotificationsPage" resultMap="NotificationResult">
         SELECT notification_id, title, content, sender_id, sender_name, jump_url, 
                attachment_urls, status, reply_deadline, create_by, create_time, 
                update_by, update_time, remark
         FROM notification
         WHERE status = '1'
         ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countPublishedNotifications" resultType="int">
+        SELECT COUNT(*)
+        FROM notification
+        WHERE status = '1'
     </select>
 
     <select id="selectNotificationById" resultMap="NotificationResult">

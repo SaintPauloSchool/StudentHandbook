@@ -9,7 +9,7 @@
     </div>
 
     <!-- 通知列表 -->
-    <div class="notice-list" v-if="noticeList.length > 0">
+    <div class="notice-list" v-if="noticeList.length > 0" @scroll="handleScroll" ref="scrollContainer">
       <div 
         class="notice-item" 
         v-for="notice in noticeList" 
@@ -22,17 +22,33 @@
         <div class="notice-meta">
           <div class="meta-item">
             <el-icon class="meta-icon"><User /></el-icon>
-            <span>發送人：{{ notice.senderName }}</span>
+            <span>發送人:{{ notice.senderName }}</span>
           </div>
           <div class="meta-item">
             <el-icon class="meta-icon"><Clock /></el-icon>
-            <span>發佈時間：{{ formatDate(notice.createTime) }}</span>
+            <span>發佈時間:{{ formatDate(notice.createTime) }}</span>
           </div>
         </div>
         <p class="notice-content">{{ truncateContent(notice.content, 100) }}</p>
         <div class="notice-footer">
           <span class="view-detail">查看詳情 →</span>
         </div>
+      </div>
+    
+      <!-- 加载更多状态 -->
+      <div class="load-more-status" v-if="noticeList.length < total">
+        <div v-if="loadingMore" class="loading-more">
+          <div class="loading-spinner-small"></div>
+          <span>加載中...</span>
+        </div>
+        <div v-else class="load-more-hint" @click="loadMore">
+          <span>點擊加載更多</span>
+        </div>
+      </div>
+    
+      <!-- 已加载全部 -->
+      <div class="all-loaded" v-else>
+        <span>已加載全部通知</span>
       </div>
     </div>
 
@@ -66,16 +82,25 @@ export default {
   data() {
     return {
       noticeList: [],
-      loading: false
+      loading: false,
+      loadingMore: false,
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
+      hasMore: true
     }
   },
   mounted() {
     this.loadNoticeList()
   },
   activated() {
-    // 當從其他組件(如詳情頁)返回時，靜默獲取最新通知
-    if (this.noticeList.length > 0) {
-      this.loadNoticeList()
+    // 當從其他組件(如詳情頁)返回時，保持當前狀態，不做任何操作
+    // 避免重置列表導致滾動位置丟失
+  },
+  beforeUnmount() {
+    // 清理事件監聽
+    if (this.scrollContainer) {
+      this.scrollContainer.removeEventListener('scroll', this.handleScroll)
     }
   },
   methods: {
@@ -85,15 +110,50 @@ export default {
     },
 
     // 加载通知列表
-    async loadNoticeList() {
+    async loadNoticeList(reset = false) {
+      // 重置分页
+      if (reset) {
+        this.currentPage = 1
+        this.noticeList = []
+        this.hasMore = true
+      }
+
       // 只有當沒有數據時，才顯示全屏加載狀態以避免重新加載時閃爍和滾動位置丟失
       if (this.noticeList.length === 0) {
         this.loading = true
       }
+
+      // 如果没有更多数据，直接返回
+      if (!this.hasMore && !reset) {
+        this.loading = false
+        this.loadingMore = false
+        return
+      }
+
       try {
-        const response = await service.get(API_ENDPOINTS.NOTICE_LIST)
+        this.loadingMore = true
+        const response = await service.get(API_ENDPOINTS.NOTICE_LIST, {
+          params: {
+            pageNum: this.currentPage,
+            pageSize: this.pageSize
+          }
+        })
         if (response.data.code === 200) {
-          this.noticeList = response.data.data || []
+          const data = response.data.data
+          const newList = data.list || []
+          this.total = data.total || 0
+          this.pageSize = data.pageSize || 10
+
+          // 追加数据
+          if (reset) {
+            this.noticeList = newList
+          } else {
+            this.noticeList = [...this.noticeList, ...newList]
+          }
+
+          // 判断是否还有更多数据
+          this.hasMore = this.noticeList.length < this.total
+          this.currentPage++
         } else {
           ElMessage.error(response.data.msg || '獲取通知列表失敗')
         }
@@ -104,6 +164,29 @@ export default {
         }
       } finally {
         this.loading = false
+        this.loadingMore = false
+      }
+    },
+
+    // 滚动事件处理
+    handleScroll(event) {
+      const container = event.target
+      const scrollTop = container.scrollTop
+      const scrollHeight = container.scrollHeight
+      const clientHeight = container.clientHeight
+
+      // 当滚动到距离底部 50px 时自动加载
+      if (scrollTop + clientHeight >= scrollHeight - 50) {
+        if (this.hasMore && !this.loadingMore) {
+          this.loadMore()
+        }
+      }
+    },
+
+    // 加载更多
+    loadMore() {
+      if (this.hasMore && !this.loadingMore) {
+        this.loadNoticeList()
       }
     },
 
@@ -189,6 +272,8 @@ export default {
   padding: 20px 25px;
   max-width: 1200px;
   margin: 0 auto;
+  min-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 .notice-item {
@@ -343,6 +428,53 @@ export default {
 .loading-text {
   font-size: 14px;
   color: #909399;
+}
+
+/* 加载更多状态 */
+.load-more-status {
+  padding: 20px;
+  text-align: center;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #909399;
+  font-size: 14px;
+}
+
+.loading-spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e4e7ed;
+  border-top-color: #0284c7;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.load-more-hint {
+  cursor: pointer;
+  color: #0284c7;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: #f0f9ff;
+}
+
+.load-more-hint:hover {
+  background: #e0f2fe;
+  transform: translateY(-2px);
+}
+
+/* 已加载全部 */
+.all-loaded {
+  padding: 20px;
+  text-align: center;
+  color: #909399;
+  font-size: 14px;
 }
 
 /* 移动端适配 */
