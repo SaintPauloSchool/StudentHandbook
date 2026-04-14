@@ -104,9 +104,12 @@
 
                 <div class="active-node-container transition-wrapper fade-in" v-if="!getLogicFormState(question).isComplete">
                    <div class="question-header logic-question-header">
-                     <span class="question-number">{{ getActiveNode(question).displayNum }}.</span>
+                     <span class="question-number-wrapper">
+                       <span class="question-number">{{ getActiveNode(question).displayNum }}</span>
+                       <span class="required-mark" v-if="getActiveNode(question).node.required">*</span>
+                     </span>
+                     <span class="question-number-suffix">.</span>
                      <span class="question-title">{{ getActiveNode(question).node.title }}</span>
-                     <span class="required-mark" v-if="getActiveNode(question).node.required">*</span>
                    </div>
                    
                    <!-- 單選/多選 -->
@@ -211,10 +214,13 @@
 
           <div class="normal-question-wrapper" v-else>
             <div class="question-header">
-            <span class="question-number">{{ question.sortOrder }}.</span>
-            <span class="question-title">{{ question.questionTitle }}</span>
-            <span class="required-mark" v-if="question.isRequired === '1'">*</span>
-          </div>
+              <span class="question-number-wrapper">
+                <span class="question-number">{{ question.sortOrder }}</span>
+                <span class="required-mark" v-if="question.isRequired === '1'">*</span>
+              </span>
+              <span class="question-number-suffix">.</span>
+              <span class="question-title">{{ question.questionTitle }}</span>
+            </div>
           
           <!-- 渲染 content 裡的 JSON 或富文本 -->
           <div class="question-content" v-if="question.content">
@@ -1209,14 +1215,31 @@ export default {
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  text-align: left;
+}
+
+.question-number-wrapper {
+  display: inline-flex;
+  align-items: flex-start;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .question-number {
   display: inline;
   color: #3b82f6;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
-  margin-right: 4px;
+}
+
+.question-number-suffix {
+  color: #3b82f6;
+  font-size: 16px;
+  font-weight: 700;
+  margin-right: 0;
 }
 
 .logic-options {
@@ -1558,31 +1581,50 @@ export default {
 
 .question-header {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
+  gap: 6px;
   margin-bottom: 12px;
+  text-align: left;
+}
+
+.question-number-wrapper {
+  display: inline-flex;
+  align-items: flex-start;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .question-number {
   display: inline;
   color: #3b82f6;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
-  margin-right: 4px;
+}
+
+.question-number-suffix {
+  color: #3b82f6;
+  font-size: 16px;
+  font-weight: 700;
+  margin-right: 0;
 }
 
 .question-title {
   display: inline;
-  font-size: 15px;
-  font-weight: 500;
-  color: #111827;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
   line-height: 1.5;
+  flex: 1;
 }
 
 .required-mark {
   color: #f56c6c;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
-  margin-left: 4px;
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  line-height: 1;
 }
 
 /* 选项样式 */
