@@ -92,15 +92,27 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
-      hasMore: true
+      hasMore: true,
+      savedScrollTop: 0 // 保存滚动位置
     }
   },
   mounted() {
     this.loadNoticeList()
   },
   activated() {
-    // 當從其他組件(如詳情頁)返回時，保持當前狀態，不做任何操作
-    // 避免重置列表導致滾動位置丟失
+    // 當從其他組件(如詳情頁)返回時，恢復滾動位置
+    this.$nextTick(() => {
+      if (this.$refs.scrollContainer) {
+        // 使用 setTimeout 確保 DOM 完全渲染後再設置滾動位置
+        setTimeout(() => {
+          this.$refs.scrollContainer.scrollTop = this.savedScrollTop
+        }, 50)
+      }
+    })
+  },
+  deactivated() {
+    // 離開組件時保存滾動位置（但 viewDetail 已經保存過了，這裡不再覆蓋）
+    // 只在非手動跳轉的情況下才保存（例如切換到其他路由）
   },
   beforeUnmount() {
     // 清理事件監聽
@@ -159,6 +171,11 @@ export default {
           // 判断是否还有更多数据
           this.hasMore = this.noticeList.length < this.total
           this.currentPage++
+
+          // 检查是否需要自动加载更多（无滚动条或接近底部）
+          this.$nextTick(() => {
+            this.checkAndLoadMore()
+          })
         } else {
           ElMessage.error(response.data.msg || '獲取通知列表失敗')
         }
@@ -170,6 +187,26 @@ export default {
       } finally {
         this.loading = false
         this.loadingMore = false
+      }
+    },
+
+    // 检查并自动加载更多（处理无滚动条情况）
+    checkAndLoadMore() {
+      if (!this.hasMore || this.loadingMore) {
+        return
+      }
+
+      const container = this.$refs.scrollContainer
+      if (!container) {
+        return
+      }
+
+      const scrollHeight = container.scrollHeight
+      const clientHeight = container.clientHeight
+
+      // 如果内容高度小于等于容器高度（无滚动条），自动加载更多
+      if (scrollHeight <= clientHeight) {
+        this.loadMore()
       }
     },
 
@@ -197,6 +234,10 @@ export default {
 
     // 查看详情
     viewDetail(notificationId) {
+      // 保存当前滚动位置
+      if (this.$refs.scrollContainer) {
+        this.savedScrollTop = this.$refs.scrollContainer.scrollTop
+      }
       this.$router.push(`/notice/${notificationId}`)
     },
 
@@ -337,7 +378,7 @@ export default {
   padding: 20px 25px;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: calc(100vh - 80px);
+  height: calc(100vh - 80px);
   overflow-y: auto;
 }
 
