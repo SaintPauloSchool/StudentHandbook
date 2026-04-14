@@ -83,12 +83,25 @@
               
               <!-- 動態渲染當前啟動的題目 -->
               <div class="stepper-body" v-if="getLogicFormState(question) && getLogicFormState(question).activeNodeId">
-                <div class="stepper-controls" v-if="getLogicFormState(question).historyStack.length > 0 && !getLogicFormState(question).isComplete">
-                   <button class="stepper-btn back-btn" @click="handleLogicBack(question.questionId)">
-                     <el-icon><ArrowLeft /></el-icon> 返回上一題
-                   </button>
+                <!-- 进度条（仅逻辑表单显示） -->
+                <div class="progress-wrapper stepper-progress" v-if="question.questionType === '5'">
+                  <div class="progress-info">
+                    <span class="progress-text">作答進度</span>
+                    <span class="progress-percent">{{ totalProgress }}%</span>
+                  </div>
+                  <div class="progress-bar-container">
+                    <div class="progress-bar" :style="{ width: totalProgress + '%' }"></div>
+                  </div>
                 </div>
-                
+
+                <!-- 问题类型标签 -->
+                <div class="question-type-label">
+                  <span v-if="String(getActiveNode(question).node.type) === '1'">單選題</span>
+                  <span v-else-if="String(getActiveNode(question).node.type) === '2'">多選題</span>
+                  <span v-else-if="String(getActiveNode(question).node.type) === '3'">填空題</span>
+                  <span v-else-if="String(getActiveNode(question).node.type) === '4'">附件上傳</span>
+                </div>
+
                 <div class="active-node-container transition-wrapper fade-in" v-if="!getLogicFormState(question).isComplete">
                    <div class="question-header logic-question-header">
                      <span class="question-number">{{ getActiveNode(question).displayNum }}.</span>
@@ -105,8 +118,10 @@
                        :key="optIdx"
                        @click="handleLogicOptionClick(question, getActiveNode(question).node, optIdx)"
                      >
-                       <span class="opt-label">{{ String.fromCharCode(65 + optIdx) }}</span>
-                       <span class="opt-text">{{ opt }}</span>
+                       <span class="option-content">
+                         <span class="opt-label">{{ String.fromCharCode(65 + optIdx) }}</span>
+                         <span class="opt-text">{{ opt }}</span>
+                       </span>
                        <el-icon class="check-icon" v-if="isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx)"><Select /></el-icon>
                      </div>
                    </div>
@@ -175,8 +190,11 @@
                       </div>
                    </div>
                    
-                   <!-- 多選/填空/附件顯示下一題按鈕（單選則自動跳轉） -->
-                   <div class="logic-action-bar" v-if="['2', '3', '4'].includes(String(getActiveNode(question).node.type))">
+                   <!-- 顯示下一題按鈕 -->
+                   <div class="logic-action-bar" v-if="!getLogicFormState(question).isComplete">
+                     <button class="back-step-btn" v-if="getLogicFormState(question).historyStack.length > 0" @click="handleLogicBack(question.questionId)">
+                       <el-icon><ArrowLeft /></el-icon> 返回上一題
+                     </button>
                      <button class="next-step-btn" @click="handleLogicNext(question)">
                        下一題 <el-icon><ArrowRight /></el-icon>
                      </button>
@@ -191,7 +209,6 @@
               </div>
             </div>
 
-          <!-- 一般題型 -->
           <div class="normal-question-wrapper" v-else>
             <div class="question-header">
             <span class="question-number">{{ question.sortOrder }}.</span>
@@ -328,6 +345,44 @@ export default {
         }
         return []
       }
+    },
+    // 计算逻辑表单的总进度
+    totalProgress() {
+      const logicQuestions = this.questions.filter(q => q.questionType === '5');
+      if (logicQuestions.length === 0) return 0;
+      
+      let totalAnswered = 0;
+      let totalNodes = 0;
+      
+      logicQuestions.forEach(q => {
+        const state = this.logicFormStates[q.questionId];
+        if (state) {
+          // 统计已回答的节点数
+          Object.keys(state.answers).forEach(nodeId => {
+            const answer = state.answers[nodeId];
+            if (answer !== null && answer !== undefined) {
+              if (Array.isArray(answer)) {
+                if (answer.length > 0) {
+                  totalAnswered++;
+                }
+              } else if (typeof answer === 'object' && answer.name) {
+                // 文件上传
+                totalAnswered++;
+              } else if (String(answer).trim() !== '') {
+                totalAnswered++;
+              }
+            }
+          });
+          
+          // 获取该问题的所有节点数
+          const logicData = this.logicFormDataCache[q.questionId];
+          if (logicData && logicData.allNodes) {
+            totalNodes += logicData.allNodes.length;
+          }
+        }
+      });
+      
+      return totalNodes === 0 ? 0 : Math.round((totalAnswered / totalNodes) * 100);
     }
   },
   mounted() {
@@ -648,7 +703,7 @@ export default {
       }
       
       if (nodeData.required && !hasAnswer) {
-        ElMessage.warning('請先作答此題所有項目');
+        ElMessage.warning('此題目是必答的！！');
         return;
       }
       
@@ -1020,7 +1075,6 @@ export default {
   border-radius: 12px;
   padding: 0;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
@@ -1028,9 +1082,9 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 20px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-  border-bottom: 1px solid #e2e8f0;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-bottom: 2px solid #bae6fd;
 }
 
 .questions-header .section-title {
@@ -1039,13 +1093,79 @@ export default {
   border: none;
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #0f172a;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0284c7;
 }
 
 .questions-header .icon {
+  color: #0284c7;
+  font-size: 22px;
+}
+
+/* 进度条样式 */
+.progress-wrapper {
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.progress-wrapper.stepper-progress {
+  padding: 12px 0;
+  margin-bottom: 16px;
+  border-bottom: none;
+  background: transparent;
+}
+
+.question-type-label {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  background: #f0f9ff;
+  border-radius: 6px;
+  display: block;
+}
+
+.question-type-label span {
+  font-size: 13px;
+  color: #0284c7;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.progress-percent {
+  font-size: 14px;
+  font-weight: 700;
   color: #3b82f6;
-  font-size: 20px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  border-radius: 4px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .questions-content-wrapper {
@@ -1054,43 +1174,53 @@ export default {
 
 .logic-stepper-view {
   background: #ffffff;
+  border: none;
+  padding: 0;
 }
 
 .stepper-controls {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .stepper-btn.back-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   background: transparent;
   border: none;
   color: #64748b;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 8px 0;
-  transition: color 0.2s;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.stepper-btn.back-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .active-node-container {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 20px;
+  padding: 24px;
 }
 
 .logic-question-header {
   margin-bottom: 20px;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 15px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .question-number {
+  display: inline;
   color: #3b82f6;
-  font-size: 20px;
-  font-weight: 800;
-  margin-right: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-right: 4px;
 }
 
 .logic-options {
@@ -1102,39 +1232,47 @@ export default {
 .logic-option-item {
   display: flex;
   align-items: center;
-  padding: 14px 16px;
+  padding: 12px 16px;
   background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
-.logic-option-item:hover, .logic-option-item:active {
+.logic-option-item:hover {
   border-color: #93c5fd;
-  background: #eff6ff;
+  background: #f0f9ff;
+}
+
+.logic-option-item:active {
+  transform: scale(0.99);
 }
 
 .logic-option-item.is-selected {
   border-color: #3b82f6;
   background: #eff6ff;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.15);
+}
+
+.option-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .opt-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  min-width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #f1f5f9;
   color: #475569;
   font-weight: 600;
-  margin-right: 12px;
   font-size: 13px;
-  transition: all 0.2s;
+  transition: all 0.25s;
 }
 
 .logic-option-item.is-selected .opt-label {
@@ -1143,10 +1281,10 @@ export default {
 }
 
 .opt-text {
-  flex: 1;
   font-size: 15px;
   color: #334155;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .check-icon {
@@ -1154,6 +1292,12 @@ export default {
   color: #3b82f6;
   font-size: 20px;
   font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.logic-option-item.is-selected .check-icon {
+  opacity: 1;
 }
 
 .logic-inputs, .logic-upload {
@@ -1324,25 +1468,48 @@ export default {
 }
 
 .logic-action-bar {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-step-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #d1d5db;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.back-step-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
 }
 
 .next-step-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 10px 24px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+  transition: all 0.25s;
+  margin-left: auto;
 }
 
 .next-step-btn:active {
@@ -1399,23 +1566,26 @@ export default {
 }
 
 .question-number {
-  font-size: 15px;
-  font-weight: bold;
-  color: #67c23a;
-  margin-right: 5px;
+  display: inline;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 700;
+  margin-right: 4px;
 }
 
 .question-title {
-  flex: 1;
+  display: inline;
   font-size: 15px;
-  color: #303133;
+  font-weight: 500;
+  color: #111827;
   line-height: 1.5;
 }
 
 .required-mark {
   color: #f56c6c;
-  font-size: 16px;
-  margin-left: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 4px;
 }
 
 /* 选项样式 */
@@ -1564,26 +1734,28 @@ export default {
 
 /* 邏輯表單特有樣式 - 優化協調性 */
 .logic-form-header {
-  margin-bottom: 25px;
-  padding: 16px 20px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border-left: 4px solid #409EFF;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 10px;
+  border-left: 4px solid #0284c7;
+  text-align: center;
 }
 
 .logic-form-header .form-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #303133;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0369a1;
   margin: 0 0 10px 0;
 }
 
 .logic-form-header .form-desc {
   font-size: 14px;
-  color: #606266;
-  line-height: 1.6;
+  color: #475569;
+  line-height: 1.7;
   margin: 0;
   white-space: pre-wrap;
+  text-align: justify;
 }
 
 .logic-nodes-list {
