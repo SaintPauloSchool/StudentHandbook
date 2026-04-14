@@ -365,6 +365,8 @@ export default {
 
   },
   mounted() {
+    // 组件挂载时立即滚动到顶部
+    window.scrollTo(0, 0)
     this.loadNoticeDetail()
   },
   methods: {
@@ -392,6 +394,10 @@ export default {
         if (response.data.code === 200) {
           this.notice = response.data.data.notification
           this.questions = response.data.data.questions || []
+          // 数据加载完成后，确保滚动到页面顶部
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'auto' })
+          }, 100)
         } else {
           ElMessage.error(response.data.msg || '獲取通知詳情失敗')
         }
