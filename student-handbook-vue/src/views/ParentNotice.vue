@@ -93,22 +93,42 @@ export default {
       pageSize: 10,
       total: 0,
       hasMore: true,
-      savedScrollTop: 0 // 保存滚动位置
+      savedScrollTop: 0, // 保存滚动位置
+      isInitialMount: false // 是否初次挂载
     }
   },
   mounted() {
+    this.isInitialMount = true
     this.loadNoticeList()
   },
   activated() {
-    // 當從其他組件(如詳情頁)返回時，恢復滾動位置
-    this.$nextTick(() => {
-      if (this.$refs.scrollContainer) {
-        // 使用 setTimeout 確保 DOM 完全渲染後再設置滾動位置
-        setTimeout(() => {
-          this.$refs.scrollContainer.scrollTop = this.savedScrollTop
-        }, 50)
-      }
-    })
+    if (this.isInitialMount) {
+      this.isInitialMount = false
+      return
+    }
+    
+    const fromPath = this.$route.meta.fromPath || ''
+    
+    if (!fromPath.startsWith('/notice/')) {
+      // 從首頁或其他地方進入：刷新列表並回到頂部
+      this.savedScrollTop = 0
+      this.$nextTick(() => {
+        if (this.$refs.scrollContainer) {
+          this.$refs.scrollContainer.scrollTop = 0
+        }
+      })
+      this.loadNoticeList(true)
+    } else {
+      // 當從詳情頁返回時，恢復滾動位置
+      this.$nextTick(() => {
+        if (this.$refs.scrollContainer) {
+          // 使用 setTimeout 確保 DOM 完全渲染後再設置滾動位置
+          setTimeout(() => {
+            this.$refs.scrollContainer.scrollTop = this.savedScrollTop
+          }, 50)
+        }
+      })
+    }
   },
   methods: {
     // 返回上一页

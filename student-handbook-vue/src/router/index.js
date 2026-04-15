@@ -46,4 +46,12 @@ const router = createRouter({
     }
 })
 
+router.afterEach((to, from) => {
+    if (to.meta) {
+        to.meta.fromPath = from.path
+    } else {
+        to.meta = { fromPath: from.path }
+    }
+})
+
 export default router
