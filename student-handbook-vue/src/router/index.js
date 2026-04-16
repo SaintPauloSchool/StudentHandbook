@@ -1,9 +1,9 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import Home from '../views/Home.vue'
-import StudentHandbook from '../views/StudentHandbook.vue'
+import StudentHandbook from '../components/StudentHandbook.vue'
 import Login from '../views/Login.vue'
-import ParentNotice from '../views/ParentNotice.vue'
-import NoticeDetail from '../views/NoticeDetail.vue'
+// import ParentNotice from '../views/ParentNotice.vue'
+// import NoticeDetail from '../views/NoticeDetail.vue'
 
 const routes = [
     {
@@ -21,6 +21,7 @@ const routes = [
         name: 'Login',
         component: Login
     },
+/*
     {
         path: '/notice',
         name: 'ParentNotice',
@@ -32,6 +33,7 @@ const routes = [
         component: NoticeDetail,
         props: true
     }
+*/
 ]
 
 const router = createRouter({
