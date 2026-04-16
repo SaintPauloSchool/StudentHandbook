@@ -96,7 +96,7 @@ public class SchoolNoticeTask {
                 noticeRequest.put("agentid", 1000033);
 
                 Map<String, String> textContent = new HashMap<>();
-                textContent.put("content", "請點擊連接查看今日學生手冊：https://mo-stu-sys.org-assistant.com/sp-api/");
+                textContent.put("content", "請點擊連接查看今日學生手冊：https://mo-stu-sys.org-assistant.com/");
                 noticeRequest.put("text", textContent);
 
                 noticeRequest.put("enable_id_trans", 0);

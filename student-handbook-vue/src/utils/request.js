@@ -58,7 +58,7 @@ service.interceptors.response.use(
                 // token过期/无效，跳转到登录页面
                 localStorage.removeItem('token')
                 // 重定向到登录页面
-                window.location.href = '/sp-api/login'
+                window.location.href = '/login'
                 ElMessage.error('請先登錄')
             } else if (error.response && error.response.status === 403) {
                 // 无权限访问

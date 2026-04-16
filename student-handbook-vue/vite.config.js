@@ -3,9 +3,8 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
-  // 根据模式设置基础路径
-  // 生产环境和测试环境都需要使用/sp-api/作为基础路径
-  const base = (mode === 'production' || mode === 'test') ? '/sp-api/' : '/';
+  // 前后端分离后，前端服务在Nginx直接使用根路径作为基础路径
+  const base = '/';
 
   return {
     plugins: [vue()],

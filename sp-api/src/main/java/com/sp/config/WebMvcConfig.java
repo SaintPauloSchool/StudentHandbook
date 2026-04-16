@@ -16,32 +16,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 映射静态资源路径
-        registry.addResourceHandler("/dist/**")
-                .addResourceLocations("classpath:/dist/");
-        
         // 其他静态资源配置
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
-                
-        // 添加对sp-api路径下dist目录的支持
-        registry.addResourceHandler("/sp-api/dist/**")
-                .addResourceLocations("classpath:/dist/");
-                
-        // 添加对sp-api路径下assets目录的支持
-        registry.addResourceHandler("/sp-api/assets/**")
-                .addResourceLocations("classpath:/dist/assets/");
     }
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // 将根路径映射到index.html
-        registry.addViewController("/").setViewName("forward:/dist/index.html");
-        registry.addViewController("/index").setViewName("forward:/dist/index.html");
-        registry.addViewController("/index.html").setViewName("forward:/dist/index.html");
-        // 添加对sp-api路径下index.html的支持
-        registry.addViewController("/sp-api/").setViewName("forward:/dist/index.html");
-        registry.addViewController("/sp-api").setViewName("forward:/dist/index.html");
+        // 前端分离后，不再处理静态页面的映射
     }
     
     @Override
@@ -54,13 +36,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/captchaImage",
                         "/profile/**",
                         "/system/handbook/list",
-                        "/system/handbook/students",
-                        "/sp-api/",
-                        "/sp-api",
-                        "/sp-api/assets/**",
-                        "/sp-api/dist/**",
-                        "/dist/**",
-                        "/assets/**"
+                        "/system/handbook/students"
                 );
     }
 }

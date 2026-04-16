@@ -65,7 +65,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 if (savedState == null || !savedState.equals(state)) {
                     logger.warn("state参数验证失败，可能遭遇CSRF攻击");
                     // 返回错误页面
-                    response.sendRedirect("/sp-api/login?error=invalid_state");
+                    response.sendRedirect("/login?error=invalid_state");
                     return;
                 }
             }
@@ -106,7 +106,7 @@ public class WeChatWorkOAuthController extends BaseController {
                     if (!departmentParentBindingService.checkHasBoundStudents(parentUserId)) {
                         logger.warn("家长用户 {} 不存在有效的学生关联，授权失败", parentUserId);
                         // 重定向到错误页面
-                        response.sendRedirect("/sp-api/login?error=authorization_failed&message=" + 
+                        response.sendRedirect("/login?error=authorization_failed&message=" + 
                                 java.net.URLEncoder.encode("家长账户未关联任何学生，请联系学校管理员确认", "UTF-8"));
                         return;
                     }
@@ -119,18 +119,18 @@ public class WeChatWorkOAuthController extends BaseController {
                 logger.info("用户 {} 目前使用token: {}", numericUserId, token);
 
                 // 重定向到前端页面
-                response.sendRedirect("/sp-api/?token=" + token);
+                response.sendRedirect("/?token=" + token);
             } else {
                 logger.error("获取企业微信家校用户信息失败: {}", userInfo.getString("errmsg"));
                 // 重定向到错误页面
-                response.sendRedirect("/sp-api/login?error=user_info_failed&message=" +
+                response.sendRedirect("/login?error=user_info_failed&message=" +
                         java.net.URLEncoder.encode(userInfo.getString("errmsg"), "UTF-8"));
             }
         } catch (Exception e) {
             logger.error("处理企业微信家校授权回调时发生错误", e);
             try {
                 // 重定向到错误页面
-                response.sendRedirect("/sp-api/login?error=internal_error&message=" +
+                response.sendRedirect("/login?error=internal_error&message=" +
                         java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
             } catch (IOException ioException) {
                 logger.error("重定向失败", ioException);
