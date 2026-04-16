@@ -46,8 +46,7 @@ CREATE TABLE notification_receiver (
                                        receiver_id         BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '接收关系 ID',
                                        notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
                                        receive_type        CHAR(1)         NOT NULL                   COMMENT '接收类型（1 班级 2 学生/家长）',
-                                       receive_ids         TEXT            NOT NULL                   COMMENT '接收对象 ID 列表 (JSON 格式)',
-                                       receive_names       TEXT            NOT NULL                   COMMENT '接收对象名称列表 (JSON 格式)',
+                                       receive_data        TEXT                                       COMMENT 'receive_ids 接收对象 ID 列表 (JSON 格式)， receive_names 接收对象名称列表 (JSON 格式)， type = 1 是wecom的數據， type = 2 是自定義的數據',
                                        create_time         DATETIME                                   COMMENT '创建时间',
                                        PRIMARY KEY (receiver_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知接收对象表';
@@ -60,8 +59,7 @@ CREATE TABLE notification_cc (
                                  cc_id               BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '抄送关系 ID',
                                  notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
                                  cc_type             CHAR(1)         NOT NULL                   COMMENT '抄送类型（1 教职员工 2 学校通讯录）',
-                                 cc_ids              TEXT            NOT NULL                   COMMENT '抄送对象 ID 列表 (JSON 格式)',
-                                 cc_names            TEXT            NOT NULL                   COMMENT '抄送对象名称列表 (JSON 格式)',
+                                 cc_data             TEXT            NOT NULL                   COMMENT '抄送数据 (JSON 格式)，格式：[{"cc_ids": [1,2], "type": 1, "cc_names": ["聖保祿學校-054"]}, {"cc_ids": [1,2], "type": 2, "cc_names": ["聖保祿學校"]}]，其中 type 1代表wecom的，type 2代表自定义的',
                                  create_time         DATETIME                                   COMMENT '创建时间',
                                  PRIMARY KEY (cc_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知抄送对象表';
@@ -84,7 +82,7 @@ CREATE TABLE notification_question (
                                        logic_rules         TEXT            DEFAULT NULL               COMMENT '跳转逻辑规则 (JSON 格式)',
                                        fill_blanks         TEXT            DEFAULT NULL               COMMENT '填空题的填空列表 (JSON 格式)',
                                        correct_answers     TEXT            DEFAULT NULL               COMMENT '填空题的正确答案 (JSON 格式)',
-                                       content             TEXT            DEFAULT NULL               COMMENT '题目内容（富文本/HTML）',
+                                       content             TEXT            DEFAULT NULL               COMMENT '题目内容，根据题型存储不同格式数据：①逻辑表单(type=5)存储JSON格式{"questionnaire":{"title":"问卷标题","description":"问卷描述"},"questions":[{"id":1,"type":"1/2/3/4","title":"子问题标题","description":"子问题描述","required":true/false,"options":["选项1","选项2"],"placeholder":"占位符文本","defaultValue":"默认值","validation":[],"minLength":0,"maxLength":200,"randomOrder":false,"logicRuleList":[],"minOptions":1,"maxOptions":null,"uploadNote":"上传说明","fillBlanks":[],"correctAnswers":[]}]}；②填空题(type=3)存储带占位符的纯文本如"这是{{fillblank-1}}一个{{fillblank-2}}填空题"；③其他题型可存储富文本/HTML内容或题目描述',
                                        create_time         DATETIME                                   COMMENT '创建时间',
                                        PRIMARY KEY (question_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知问题表';
@@ -149,8 +147,8 @@ INSERT INTO notification_receiver VALUES(1, 1, '1', '[1,2,3]', '["一年级 1 �
 INSERT INTO notification_receiver VALUES(2, 1, '2', '[101,102,103]', '["张小明家长","李小红家长","王小华家长"]', NOW());
 
 -- 示例抄送对象数据
-INSERT INTO notification_cc VALUES(1, 1, '1', '[201,202]', '["李主任","王副校长"]', NOW());
-INSERT INTO notification_cc VALUES(2, 1, '2', '[301]', '["校长办公室"]', NOW());
+INSERT INTO notification_cc VALUES(1, 1, '1', '[{"cc_ids": [201,202], "type": 1, "cc_names": ["李主任","王副校长"]}]', NOW());
+INSERT INTO notification_cc VALUES(2, 1, '2', '[{"cc_ids": [301], "type": 2, "cc_names": ["校长办公室"]}]', NOW());
 
 -- 示例问题数据
 -- 单选题：第一个问题
@@ -285,3 +283,37 @@ CREATE TABLE `sys_token` (
                              UNIQUE KEY `token_value` (`token`),
                              KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=934 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Token表'
+-- ----------------------------
+-- 系統学校部门表
+-- ----------------------------
+DROP TABLE IF EXISTS sys_school_department;
+CREATE TABLE sys_school_department (
+                                       id                  BIGINT(20)      NOT NULL AUTO_INCREMENT         COMMENT '部门 id',
+                                       parent_id           INT(11)         DEFAULT NULL                    COMMENT '父部门 id',
+                                       name                VARCHAR(255)    DEFAULT NULL                    COMMENT '部门名称',
+                                       name_en             VARCHAR(255)    DEFAULT NULL                    COMMENT '部门英文名称',
+                                       order_num           INT(11)         DEFAULT NULL                    COMMENT '在父部门中的次序值',
+                                       department_leader   TEXT            DEFAULT NULL                    COMMENT '部门负责人的 UserID（JSON 数组字符串）',
+                                       type                TINYINT(1)      DEFAULT 1                       COMMENT '类型：1-学校部门通讯录，2-家校通讯录',
+                                       create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP       COMMENT '创建时间',
+                                       update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                       PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系統学校部门表';
+
+-- ----------------------------
+-- 系統学校部门成员表
+-- ----------------------------
+
+DROP TABLE IF EXISTS sys_school_department_member;
+CREATE TABLE sys_school_department_member (
+                                              id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主键 ID',
+                                              userid              VARCHAR(100)    NOT NULL                   COMMENT '成员 UserID',
+                                              name                VARCHAR(255)    DEFAULT NULL               COMMENT '成员名称',
+                                              department_id       BIGINT(20)      NOT NULL                   COMMENT '部门 ID',
+                                              open_userid         VARCHAR(100)    DEFAULT NULL               COMMENT '全局唯一 UserID',
+                                              type                TINYINT(1)      DEFAULT 1                  COMMENT '类型：1-学校部门通讯录，2-家校通讯录',
+                                              create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
+                                              update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                              PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系統学校部门成员表';
+-- ----------------------------

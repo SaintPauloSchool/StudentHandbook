@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sp.system.mapper.NotificationMapper">
+
+    <resultMap id="NotificationResult" type="com.sp.system.entity.Notification">
+        <id property="notificationId" column="notification_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="senderId" column="sender_id"/>
+        <result property="senderName" column="sender_name"/>
+        <result property="jumpUrl" column="jump_url"/>
+        <result property="attachmentUrls" column="attachment_urls"/>
+        <result property="status" column="status"/>
+        <result property="replyDeadline" column="reply_deadline"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="selectPublishedNotificationsPage" resultMap="NotificationResult">
+        SELECT notification_id, title, content, sender_id, sender_name, jump_url, 
+               attachment_urls, status, reply_deadline, create_by, create_time, 
+               update_by, update_time, remark
+        FROM notification
+        WHERE status = '1'
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countPublishedNotifications" resultType="int">
+        SELECT COUNT(*)
+        FROM notification
+        WHERE status = '1'
+    </select>
+
+    <select id="selectNotificationById" resultMap="NotificationResult">
+        SELECT notification_id, title, content, sender_id, sender_name, jump_url, 
+               attachment_urls, status, reply_deadline, create_by, create_time, 
+               update_by, update_time, remark
+        FROM notification
+        WHERE notification_id = #{notificationId}
+    </select>
+
+</mapper>

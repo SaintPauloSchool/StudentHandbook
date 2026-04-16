@@ -6,7 +6,9 @@ const apiEndpoints = {
     STUDENT_HANDBOOK_TODAY: '/system/handbook/today',
     STUDENT_HANDBOOK_NEXT_SEVEN_DAYS: '/system/handbook/nextSevenDays',
     STUDENT_HANDBOOK_STUDENTS: '/system/handbook/students',
-    SWITCH_STUDENT: '/system/handbook/switchStudent'
+    SWITCH_STUDENT: '/system/handbook/switchStudent',
+    NOTICE_LIST: '/system/notice/list',
+    NOTICE_DETAIL: '/system/notice'
 };
 
 // 获取基础URL - 从环境变量读取或者使用默认值

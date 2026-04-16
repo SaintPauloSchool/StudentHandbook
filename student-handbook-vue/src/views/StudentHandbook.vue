@@ -9,10 +9,7 @@
           <!-- 返回首頁按鈕 -->
           <el-button class="home-btn" type="primary" @click="goHome">
             <template #icon>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path
-                    d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5V14h3v1.5a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146ZM11.5 14v-6h-3v6h3Z"/>
-              </svg>
+              <el-icon><HomeFilled /></el-icon>
             </template>
             返回首頁
           </el-button>
@@ -20,10 +17,7 @@
           <!-- 用戶切換按鈕 -->
           <el-button class="user-switch-btn" type="primary" plain @click="toggleUserMenu">
             <template #icon>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path
-                    d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zM10 9.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
-              </svg>
+              <el-icon><User /></el-icon>
             </template>
             切換學生
           </el-button>
@@ -136,10 +130,14 @@ import service from '@/utils/request.js'
 import {API_ENDPOINTS} from '@/config/api.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 导入全局配置设置
+import { HomeFilled, User } from '@element-plus/icons-vue'
 
 export default {
   name: 'StudentHandbook',
-  components: {},
+  components: {
+    HomeFilled,
+    User
+  },
 
   data() {
     return {

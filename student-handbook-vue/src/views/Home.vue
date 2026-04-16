@@ -19,7 +19,7 @@
         </div>
       </button>
 
-      <!-- <button
+      <button
           class="feature-button success-button"
           @click="goToParentNotice"
       >
@@ -27,7 +27,7 @@
           <span class="button-icon">📢</span>
           <span class="button-text">家校通知</span>
         </div>
-      </button> -->
+      </button>
     </div>
   </div>
 
@@ -89,8 +89,8 @@ export default {
       this.$router.push('/handbook');
     },
     goToParentNotice() {
-      // 暫時不調整任何頁面，僅顯示提示信息
-      ElMessage.info('家校通知功能正在開發中');
+      // 跳转到家校通知页面
+      this.$router.push('/notice');
     },
   }
 }

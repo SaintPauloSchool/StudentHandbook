@@ -10,6 +10,9 @@ import 'element-plus/dist/index.css'
 // 创建Vue应用实例
 const app = createApp(App)
 
+// 使用Element Plus
+app.use(ElementPlus)
+
 // 配置路由守卫，确保访问受保护页面时已登录
 router.beforeEach((to, from, next) => {
     // 检查是否启用Token验证
