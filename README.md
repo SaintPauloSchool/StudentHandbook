@@ -88,46 +88,34 @@ StudentHandbook/
 - Node.js 14+
 - MySQL 5.7+
 
-### 部署步驟
+### 部署步驟 (前後端完全分離)
 
-1. **前端部署**
+本系統目前採用前後端完全分離部署架構。
+
+1. **前端打包與部署 (Nginx 代理)**
    ```bash
    cd student-handbook-vue
    npm install
+   
+   # 打包生產環境文件
    npm run build
-   
-   或
-   
-   npm run dev 对应 development 模式
-   npm run build 对应 production 模式
-   npm run build:test 对应 test 模式
-   
-   # 前端資源會自動複製到後端靜態資源目錄
    ```
+   **發佈說明**：將生成的 `dist` 文件夾上傳至服務器的靜態目錄（如 `/usr/share/nginx/tals-vue/dist`）。並在服務器 Nginx 中的 `location /` 塊指向該目錄，注意添加 `try_files $uri $uri/ /index.html;` 以支持 Vue History 路由。
 
-2. **後端部署**
+2. **後端打包與部署 (Tomcat / API 服務)**
    ```bash
-   # 配置數據庫連接
-   # 修改 sp-api/src/main/resources/application-*.yml
+   # 配置數據庫等信息
+   # 按需修改 sp-api/src/main/resources/application-*.yml
    
-   #回到根目錄
-   cd ..
-   
-   # 編譯打包
-   mvn clean compile
-   
+   # 編譯打包 (純 API 包，不包含前端代碼)
    mvn clean package
    ```
+   **發佈說明**：將生成的 `.war` (或 `.jar`) 部署到服務器的 Tomcat 中啟動。在服務器的 Nginx 配置中，通過 `location /sp-api/` 規則，將所有的數據請求 `proxy_pass` 反向代理至 Tomcat 的 `8003` 端口。
 
-3. **發佈服務器**
-   ```bash
-
-   ```
-
-### 配置說明
-- 默認服務器端口: 8003
-- 訪問路徑: `/sp-api`
-- 静態資源路徑: `/dist/**`
+### 配置及架構說明
+- **前端部署位置**: Nginx 根路徑 `/` (直接由 Nginx 高效處理 HTML、JS、CSS 等靜態資源)
+- **後端 API 端口**: `8003` (Java Tomcat 負責運算和數據)
+- **API 代理路徑**: `/sp-api/` (所有請求後端的接口調用、微信回調均會被 Nginx 攔截並轉發至後端)
 
 ## API 接口
 
