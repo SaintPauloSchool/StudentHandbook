@@ -19,7 +19,6 @@
         </div>
       </button>
 
-      <!-- 暂时注释家校通知按钮
       <button
           class="feature-button success-button"
           @click="goToParentNotice"
@@ -29,7 +28,6 @@
           <span class="button-text">家校通知</span>
         </div>
       </button>
-      -->
     </div>
   </div>
 

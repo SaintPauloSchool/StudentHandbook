@@ -1,6 +1,6 @@
-# 开发环境的数据库配置
+# 生产环境的数据库配置
 server:
-  port: 8002
+  port: 8003
 
 spring:
   datasource:
@@ -9,14 +9,14 @@ spring:
     druid:
       # 主库数据源
       master:
-        url: jdbc:mysql://localhost:3306/school_student_management?useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&initialTimeout=2&connectTimeout=60000&socketTimeout=60000
-        username: root
-        password: root
+        url: jdbc:mysql://10.32.96.45:3306/school_student_management?useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&initialTimeout=2&connectTimeout=60000&socketTimeout=60000
+        username: dba_user
+        password: StrongP@ssw0rd
         # 初始连接数
         initialSize: 3
         # 最小连接池数量
         minIdle: 3
-        # 最大连接池数量
+        # 最大连接池数量mvn clean package
         maxActive: 8
         # 配置获取连接等待超时的时间
         maxWait: 60000
@@ -33,17 +33,20 @@ spring:
         # 配置检测连接是否有效
         validationQuery: SELECT 1
         testWhileIdle: true
-        testOnBorrow: true
+        testOnBorrow: false
         testOnReturn: false
         # 启用异常时移除连接
         removeAbandoned: true
-        removeAbandonedTimeout: 180
+        removeAbandonedTimeout: 300
         logAbandoned: true
-        # MySQL特定配置
+        # MySQL 特定配置
         poolPreparedStatements: true
         maxPoolPreparedStatementPerConnectionSize: 20
-        # 启用ping检查
+        # 启用 ping 检查
         keepAlive: true
+        # 防止连接泄漏
+        removeAbandonedOnBorrow: true
+        removeAbandonedOnMaintenance: true
       # 从库数据源
       slave:
         # 从数据源开关/默认关闭
