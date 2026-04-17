@@ -35,7 +35,7 @@ public class WecomSchoolDepartmentTask {
     /**
      * 每天凌晨 1 点执行（北京时间）
      */
-    @Scheduled(cron = "0 0 1 * * ?", zone = "Asia/Shanghai")
+    //@Scheduled(cron = "0 0 1 * * ?", zone = "Asia/Shanghai")
     public void syncWecomSchoolDepartments() {
         if (!isExecuting.compareAndSet(false, true)) {
             logger.info("任务已在执行中，跳过本次执行");

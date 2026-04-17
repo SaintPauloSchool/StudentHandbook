@@ -41,7 +41,7 @@ public class SchoolNoticeTask {
     /**
      * 每周一到周五下午6点执行学校通知发送任务（北京时间）
      */
-    @Scheduled(cron = "0 0 18 ? * MON-FRI", zone = "Asia/Shanghai")
+    //@Scheduled(cron = "0 0 18 ? * MON-FRI", zone = "Asia/Shanghai")
     public void sendSchoolNotice() {
         // 使用AtomicBoolean确保同一时间只有一个实例在执行
         if (!isExecuting.compareAndSet(false, true)) {
