@@ -1,4 +1,7 @@
 # 测试环境的数据库配置
+server:
+  port: 8003
+
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
