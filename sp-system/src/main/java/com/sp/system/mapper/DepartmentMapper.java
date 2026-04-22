@@ -1,6 +1,8 @@
 package com.sp.system.mapper;
 
 import com.sp.system.entity.Department;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 /**
@@ -19,7 +21,7 @@ public interface DepartmentMapper {
      * 批量插入部门信息
      * @param departments 部门列表
      */
-    void batchInsertDepartments(List<Department> departments);
+    void batchInsertDepartments(@Param("list") List<Department> departments);
 
     /**
      * 查询特定结构的班级部门 ID

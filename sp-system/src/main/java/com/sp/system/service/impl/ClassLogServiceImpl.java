@@ -24,9 +24,6 @@ public class ClassLogServiceImpl implements IClassLogService {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassLogServiceImpl.class);
     
-    private static final String COURSE_TYPE_HOMEWORK = "功課";
-    private static final String COURSE_TYPE_EXAM = "測驗";
-    
     @Autowired
     private ClassLogMapper classLogMapper;
 
@@ -252,9 +249,7 @@ public class ClassLogServiceImpl implements IClassLogService {
         }
         
         try {
-            return classLogs.stream()
-                    .filter(log -> COURSE_TYPE_HOMEWORK.equals(log.getCourseType()) || COURSE_TYPE_EXAM.equals(log.getCourseType()))
-                    .collect(Collectors.toList());
+            return classLogs;
         } catch (Exception e) {
             logger.error("过滤课程日志时发生异常: {}", e.getMessage(), e);
             return java.util.Collections.emptyList();
