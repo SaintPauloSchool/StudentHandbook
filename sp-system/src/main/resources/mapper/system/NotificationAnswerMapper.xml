@@ -31,5 +31,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             )
         </foreach>
     </insert>
+    
+    <!-- 查询用户对该通知的回答 -->
+    <select id="selectUserAnswers" resultMap="NotificationAnswerResult">
+        SELECT answer_id, notification_id, question_id, answer_data, user_id, user_type, create_time
+        FROM notification_answer
+        WHERE notification_id = #{notificationId}
+        AND user_id = #{userId}
+        ORDER BY question_id, answer_id
+    </select>
 
 </mapper>

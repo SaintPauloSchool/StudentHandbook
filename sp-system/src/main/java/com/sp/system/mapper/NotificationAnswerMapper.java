@@ -16,5 +16,13 @@ public interface NotificationAnswerMapper {
      * @return 插入记录数
      */
     int batchInsertAnswers(@Param("answers") List<NotificationAnswer> answers);
+    
+    /**
+     * 查询用户对该通知的回答
+     * @param notificationId 通知ID
+     * @param userId 用户ID
+     * @return 答案列表
+     */
+    List<NotificationAnswer> selectUserAnswers(@Param("notificationId") Long notificationId, @Param("userId") String userId);
 
 }

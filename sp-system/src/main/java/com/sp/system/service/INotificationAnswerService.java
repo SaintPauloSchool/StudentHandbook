@@ -1,5 +1,6 @@
 package com.sp.system.service;
 
+import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.vo.AnswerItemVO;
 
 import java.util.List;
@@ -17,4 +18,12 @@ public interface INotificationAnswerService {
      * @return 插入记录数
      */
     int submitAnswers(List<AnswerItemVO> answersData, String userId, String userType);
+    
+    /**
+     * 查询用户对该通知的回答
+     * @param notificationId 通知ID
+     * @param userId 用户ID
+     * @return 答案列表
+     */
+    List<NotificationAnswer> getUserAnswers(Long notificationId, String userId);
 }

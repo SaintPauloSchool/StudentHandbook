@@ -94,8 +94,8 @@
                   </div>
                 </div>
 
-                <!-- 问题类型标签 -->
-                <div class="question-type-label">
+                <!-- 问题类型标签 - 只在未提交时显示 -->
+                <div class="question-type-label" v-if="!hasSubmitted">
                   <span v-if="String(getActiveNode(question).node.type) === '1'">單選題</span>
                   <span v-else-if="String(getActiveNode(question).node.type) === '2'">多選題</span>
                   <span v-else-if="String(getActiveNode(question).node.type) === '3'">填空題</span>
@@ -205,9 +205,29 @@
                 </div>
 
                 <!-- 完成狀態提示 -->
-                <div class="logic-complete-state fade-in" v-else>
+                <div class="logic-complete-state fade-in" v-if="getLogicFormState(question).isComplete && !hasSubmitted">
                    <div class="complete-icon">🎉</div>
                    <p class="complete-text">問題表單作答完成</p>
+                </div>
+                
+                <!-- 已提交后显示所有节点和答案 -->
+                <div class="submitted-answers" v-else-if="hasSubmitted">
+                  <div class="answer-review-title">我的作答</div>
+                  <div class="all-nodes-review">
+                    <div 
+                      v-for="(nodeAnswer, index) in getReviewAnswers(question)" 
+                      :key="nodeAnswer.nodeId" 
+                      class="node-answer-item"
+                    >
+                      <div class="node-answer-header">
+                        <span class="node-num">{{ index + 1 }}</span>
+                        <span class="node-title">{{ nodeAnswer.nodeTitle }}</span>
+                      </div>
+                      <div class="node-answer-content">
+                        <span class="answer-text">{{ formatAnswerContent(nodeAnswer.answerContent) }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -280,8 +300,20 @@
         </div>
           
         <!-- 提交按钮 -->
-        <div class="submit-section">
-          <button class="submit-button" @click="submitAnswers">提交回答</button>
+        <div class="submit-section" v-if="!hasSubmitted">
+          <button class="submit-button" @click="submitAnswers" :disabled="submitting">
+            <span v-if="!submitting">提交回答</span>
+            <span v-else class="submitting-text">
+              <span class="loading-spinner"></span>
+              正在提交...
+            </span>
+          </button>
+        </div>
+        
+        <!-- 已提交提示 -->
+        <div class="submitted-hint" v-else>
+          <div class="hint-icon">✓</div>
+          <p class="hint-text">您已完成作答</p>
         </div>
       </div> <!-- 結束 questions-content-wrapper -->
     </div>
@@ -328,6 +360,9 @@ export default {
       notice: null,
       questions: [],
       loading: false,
+      submitting: false, // 提交中状态
+      hasSubmitted: false, // 是否已提交
+      userAnswers: [], // 用户已提交的答案
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
       showCenterToast: false,
@@ -393,6 +428,16 @@ export default {
         if (response.data.code === 200) {
           this.notice = response.data.data.notification
           this.questions = response.data.data.questions || []
+          this.userAnswers = response.data.data.userAnswers || []
+          
+          // 检查用户是否已提交
+          this.hasSubmitted = this.userAnswers.length > 0
+          
+          // 如果已提交，初始化答案显示
+          if (this.hasSubmitted) {
+            this.initUserAnswers()
+          }
+          
           // 数据加载完成后，确保滚动到页面顶部
           setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'auto' })
@@ -405,6 +450,95 @@ export default {
         ElMessage.error('網絡錯誤，請稍後重試')
       } finally {
         this.loading = false
+      }
+    },
+    
+    // 初始化用户已提交的答案
+    initUserAnswers() {
+      // 按questionId分组答案
+      const answersByQuestion = {}
+      this.userAnswers.forEach(answer => {
+        if (!answersByQuestion[answer.questionId]) {
+          answersByQuestion[answer.questionId] = []
+        }
+        answersByQuestion[answer.questionId].push(answer)
+      })
+      
+      // 遍历所有问题，初始化逻辑表单状态
+      this.questions.forEach(question => {
+        if (question.questionType === '5' && answersByQuestion[question.questionId]) {
+          this.initLogicFormAnswers(question, answersByQuestion[question.questionId])
+        }
+      })
+    },
+    
+    // 初始化逻辑表单的答案
+    initLogicFormAnswers(question, answers) {
+      const logicData = this.getLogicFormData(question)
+      if (!logicData) return
+      
+      const state = this.getLogicFormState(question)
+      
+      // 将答案填充到state.answers中
+      answers.forEach(answer => {
+        try {
+          const answerData = JSON.parse(answer.answerData)
+          if (Array.isArray(answerData)) {
+            // answerData是数组，包含多个节点答案
+            answerData.forEach(nodeAnswer => {
+              const nodeId = String(nodeAnswer.nodeId)
+              let answerValue = null
+              
+              // 解析answerContent
+              try {
+                answerValue = JSON.parse(nodeAnswer.answerContent)
+              } catch (e) {
+                answerValue = nodeAnswer.answerContent
+              }
+              
+              state.answers[nodeId] = answerValue
+            })
+          }
+        } catch (e) {
+          console.error('解析答案数据失败:', e)
+        }
+      })
+      
+      // 标记为已完成
+      state.isComplete = true
+      
+      // 设置activeNodeId为第一个root节点
+      if (logicData.roots && logicData.roots.length > 0) {
+        state.activeNodeId = logicData.roots[0].node.id
+      }
+    },
+    
+    // 获取审查模式下的答案列表（直接从数据库答案解析）
+    getReviewAnswers(question) {
+      if (!this.userAnswers || this.userAnswers.length === 0) return []
+      const item = this.userAnswers.find(a => a.questionId === question.questionId)
+      if (!item) return []
+      
+      try {
+        const data = JSON.parse(item.answerData)
+        return Array.isArray(data) ? data : []
+      } catch (e) {
+        console.error('解析审查答案失败:', e)
+        return []
+      }
+    },
+    
+    // 格式化答案内容显示
+    formatAnswerContent(content) {
+      if (!content) return '未作答'
+      try {
+        const parsed = JSON.parse(content)
+        if (Array.isArray(parsed)) {
+          return parsed.join('、')
+        }
+        return parsed
+      } catch (e) {
+        return content
       }
     },
 
@@ -2061,6 +2195,112 @@ export default {
 
 .submit-button:active {
   transform: translateY(0);
+}
+
+/* 已提交提示 */
+.submitted-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 8px;
+  color: white;
+}
+
+.hint-icon {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.hint-text {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 已提交后查看答案 */
+.submitted-answers-wrapper {
+  margin-top: 20px;
+}
+
+.answer-review-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+  padding-left: 12px;
+  border-left: 3px solid #3b82f6;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.all-nodes-review {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.node-answer-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+}
+
+.node-answer-item:active {
+  background: #fafafa;
+}
+
+.node-answer-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.node-num {
+  background: #3b82f6;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.node-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.4;
+  flex: 1;
+  text-align: left;
+}
+
+.node-answer-content {
+  margin-left: 32px;
+  text-align: left;
+}
+
+.answer-text {
+  display: block;
+  padding: 8px 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  word-break: break-word;
+  text-align: left;
 }
 
 

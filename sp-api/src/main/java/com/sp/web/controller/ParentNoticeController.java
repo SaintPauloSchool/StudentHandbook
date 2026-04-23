@@ -5,6 +5,7 @@ import com.sp.common.core.controller.BaseController;
 import com.sp.common.core.domain.AjaxResult;
 import com.sp.common.enums.BusinessType;
 import com.sp.system.entity.Notification;
+import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.vo.SubmitAnswersVO;
 import com.sp.system.service.INotificationAnswerService;
 import com.sp.system.service.INotificationService;
@@ -73,7 +74,7 @@ public class ParentNoticeController extends BaseController {
     }
 
     /**
-     * 根据ID查询通知详情（包含问题列表）
+     * 根据ID查询通知详情（包含问题列表和用户答案）
      */
     @Log(title = "查询通知详情", businessType = BusinessType.SELECT)
     @GetMapping("/{notificationId}")
@@ -91,6 +92,10 @@ public class ParentNoticeController extends BaseController {
             if (result == null || result.get("notification") == null) {
                 return AjaxResult.error("通知不存在");
             }
+            
+            // 查询用户对该通知的回答
+            List<NotificationAnswer> userAnswers = notificationAnswerService.getUserAnswers(notificationId, parentUserId);
+            result.put("userAnswers", userAnswers);
 
             return AjaxResult.success(result);
         } catch (Exception e) {
