@@ -9,13 +9,9 @@ public class NotificationAnswer {
     private Long answerId;            // 答案 ID
     private Long notificationId;      // 通知 ID
     private Long questionId;          // 问题 ID
-    private String nodeId;            // 节点 ID（逻辑表单使用）
-    private String nodeTitle;         // 节点标题（逻辑表单使用）
-    private String nodeType;          // 节点类型（逻辑表单使用）
-    private Long userId;              // 用户 ID
+    private String answerData;        // 答案数据（JSON格式，包含nodeId、nodeTitle、nodeType、answerContent、attachmentUrls）
+    private String userId;            // 用户 ID（parentUserId）
     private String userType;          // 用户类型（1 学生 2 家长 3 教师）
-    private String answerContent;     // 答案内容
-    private String attachmentUrls;    // 附件 URL 列表 (JSON 格式)
     private Date createTime;          // 创建时间
 
     public Long getAnswerId() {
@@ -42,35 +38,19 @@ public class NotificationAnswer {
         this.questionId = questionId;
     }
 
-    public String getNodeId() {
-        return nodeId;
+    public String getAnswerData() {
+        return answerData;
     }
 
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
+    public void setAnswerData(String answerData) {
+        this.answerData = answerData;
     }
 
-    public String getNodeTitle() {
-        return nodeTitle;
-    }
-
-    public void setNodeTitle(String nodeTitle) {
-        this.nodeTitle = nodeTitle;
-    }
-
-    public String getNodeType() {
-        return nodeType;
-    }
-
-    public void setNodeType(String nodeType) {
-        this.nodeType = nodeType;
-    }
-
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -80,22 +60,6 @@ public class NotificationAnswer {
 
     public void setUserType(String userType) {
         this.userType = userType;
-    }
-
-    public String getAnswerContent() {
-        return answerContent;
-    }
-
-    public void setAnswerContent(String answerContent) {
-        this.answerContent = answerContent;
-    }
-
-    public String getAttachmentUrls() {
-        return attachmentUrls;
-    }
-
-    public void setAttachmentUrls(String attachmentUrls) {
-        this.attachmentUrls = attachmentUrls;
     }
 
     public Date getCreateTime() {

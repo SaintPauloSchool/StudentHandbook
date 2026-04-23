@@ -16,15 +16,5 @@ public interface NotificationAnswerMapper {
      * @return 插入记录数
      */
     int batchInsertAnswers(@Param("answers") List<NotificationAnswer> answers);
-    
-    /**
-     * 根据通知ID和用户ID查询答案列表
-     * @param notificationId 通知ID
-     * @param userId 用户ID
-     * @return 答案列表
-     */
-    List<NotificationAnswer> selectAnswersByNotificationAndUser(
-        @Param("notificationId") Long notificationId, 
-        @Param("userId") Long userId
-    );
+
 }

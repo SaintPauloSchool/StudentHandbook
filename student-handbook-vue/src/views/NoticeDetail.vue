@@ -877,34 +877,49 @@ export default {
 
     // 收集所有答案
     collectAllAnswers() {
-      const answers = [];
+      const answersMap = new Map(); // 使用Map按questionId分组
       const notificationId = this.$route.params.id;
 
       this.questions.forEach(question => {
         // 处理逻辑表单 (题型 5)
         if (question.questionType === '5') {
           const logicAnswers = this.collectLogicFormAnswers(question, notificationId);
-          answers.push(...logicAnswers);
+          
+          // 将同一问题的多个节点答案合并
+          if (logicAnswers.length > 0) {
+            // 如果该问题还没有答案，初始化
+            if (!answersMap.has(question.questionId)) {
+              answersMap.set(question.questionId, {
+                notificationId: notificationId,
+                questionId: question.questionId,
+                answerData: []
+              });
+            }
+            // 将所有节点答案添加到answerData数组中
+            const existingAnswer = answersMap.get(question.questionId);
+            existingAnswer.answerData.push(...logicAnswers);
+          }
         } else {
           // 处理普通问题 (题型 1-4)
           const normalAnswer = this.collectNormalQuestionAnswer(question, notificationId);
           if (normalAnswer) {
-            answers.push(normalAnswer);
+            answersMap.set(question.questionId, normalAnswer);
           }
         }
       });
 
-      return answers;
+      // 将Map转换为数组
+      return Array.from(answersMap.values());
     },
 
     // 收集逻辑表单答案
     collectLogicFormAnswers(question, notificationId) {
-      const answers = [];
+      const nodeAnswers = [];
       const state = this.logicFormStates[question.questionId];
-      if (!state || !state.answers) return answers;
+      if (!state || !state.answers) return nodeAnswers;
 
       const logicData = this.getLogicFormData(question);
-      if (!logicData) return answers;
+      if (!logicData) return nodeAnswers;
 
       // 遍历所有已回答的节点
       Object.keys(state.answers).forEach(nodeId => {
@@ -941,10 +956,9 @@ export default {
         }
 
         if (answerContent) {
-          answers.push({
-            notificationId: notificationId,
-            questionId: question.questionId,
-            nodeId: nodeId, // 记录节点ID，用于逻辑表单
+          // 只返回节点级别的答案数据，不包含questionId和notificationId
+          nodeAnswers.push({
+            nodeId: nodeId,
             nodeTitle: node.title,
             nodeType: node.type,
             answerContent: answerContent,
@@ -953,7 +967,7 @@ export default {
         }
       });
 
-      return answers;
+      return nodeAnswers;
     },
 
     // 收集普通问题答案
