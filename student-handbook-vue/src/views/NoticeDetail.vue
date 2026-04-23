@@ -69,6 +69,7 @@
 
         <!-- 直接顯示內容 -->
         <div class="questions-content-wrapper">
+          <!-- 问题表单 -->
           <div 
             class="question-item" 
             v-for="question in questions" 
@@ -83,6 +84,16 @@
               
               <!-- 動態渲染當前啟動的題目 -->
               <div class="stepper-body" v-if="getLogicFormState(question) && getLogicFormState(question).activeNodeId">
+                
+                <!-- 过期提示 - 仅在逻辑表单内显示 -->
+                <div class="expired-notice" v-if="isExpired && !hasSubmitted" style="margin: 20px 0;">
+                  <div class="expired-icon">⏰</div>
+                  <p class="expired-title">回覆時間已過</p>
+                  <p class="expired-text">當前回覆時間已過，無法作答</p>
+                </div>
+                
+                <!-- 答题区域 - 未过期时显示 -->
+                <template v-if="!isExpired">
                 <!-- 进度条（仅逻辑表单显示） -->
                 <div class="progress-wrapper stepper-progress" v-if="question.questionType === '5'">
                   <div class="progress-info">
@@ -209,9 +220,10 @@
                    <div class="complete-icon">🎉</div>
                    <p class="complete-text">問題表單作答完成</p>
                 </div>
+                </template>
                 
                 <!-- 已提交后显示所有节点和答案 -->
-                <div class="submitted-answers" v-else-if="hasSubmitted">
+                <div class="submitted-answers" v-if="hasSubmitted">
                   <div class="answer-review-title">我的作答</div>
                   <div class="all-nodes-review">
                     <div 
@@ -299,8 +311,8 @@
           </div> <!-- 結束 normal-question-wrapper -->
         </div>
           
-        <!-- 提交按钮 -->
-        <div class="submit-section" v-if="!hasSubmitted">
+        <!-- 提交按钮 - 未过期且未提交时显示 -->
+        <div class="submit-section" v-if="!hasSubmitted && !isExpired">
           <button class="submit-button" @click="submitAnswers" :disabled="submitting">
             <span v-if="!submitting">提交回答</span>
             <span v-else class="submitting-text">
@@ -310,8 +322,8 @@
           </button>
         </div>
         
-        <!-- 已提交提示 -->
-        <div class="submitted-hint" v-else>
+        <!-- 已提交提示 - 已提交时显示（无论是否过期） -->
+        <div class="submitted-hint" v-if="hasSubmitted">
           <div class="hint-icon">✓</div>
           <p class="hint-text">您已完成作答</p>
         </div>
@@ -363,6 +375,7 @@ export default {
       submitting: false, // 提交中状态
       hasSubmitted: false, // 是否已提交
       userAnswers: [], // 用户已提交的答案
+      isExpired: false, // 是否已过期
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
       showCenterToast: false,
@@ -430,6 +443,9 @@ export default {
           this.questions = response.data.data.questions || []
           this.userAnswers = response.data.data.userAnswers || []
           
+          // 检查是否已过期
+          this.checkIfExpired()
+          
           // 检查用户是否已提交
           this.hasSubmitted = this.userAnswers.length > 0
           
@@ -450,6 +466,32 @@ export default {
         ElMessage.error('網絡錯誤，請稍後重試')
       } finally {
         this.loading = false
+      }
+    },
+    
+    // 检查是否已过期
+    checkIfExpired() {
+      if (!this.notice) {
+        this.isExpired = false
+        return
+      }
+      
+      // 获取截止时间（后端返回的是驼峰命名 replyDeadline）
+      const deadlineStr = this.notice.replyDeadline
+      
+      if (!deadlineStr) {
+        // 如果没有截止时间，默认不过期
+        this.isExpired = false
+        return
+      }
+      
+      try {
+        const deadline = new Date(deadlineStr)
+        const now = new Date()
+        this.isExpired = now > deadline
+      } catch (e) {
+        console.error('解析截止时间失败:', e)
+        this.isExpired = false
       }
     },
     
@@ -2298,6 +2340,38 @@ export default {
 .hint-text {
   font-size: 14px;
   margin: 0;
+}
+
+/* 过期提示 */
+.expired-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border: 2px solid #f59e0b;
+  margin: 20px 0;
+}
+
+.expired-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.expired-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #92400e;
+  margin: 0 0 8px 0;
+}
+
+.expired-text {
+  font-size: 14px;
+  color: #a16207;
+  margin: 0;
+  text-align: center;
 }
 
 /* 已提交后查看答案 */
