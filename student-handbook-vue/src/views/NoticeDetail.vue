@@ -756,9 +756,24 @@ export default {
          }, 300);
       } else if (String(node.type) === '2') {
          // 多選
+         const minOptions = node.minOptions || 0;
+         const maxOptions = node.maxOptions || null;
+         
+         // 如果已選中，則取消選擇
          if (ans.includes(optIdx)) {
+           // 檢查是否達到最小選擇數量
+           if (minOptions > 0 && ans.length <= minOptions) {
+             this.showToast(`至少需要選擇 ${minOptions} 個選項`);
+             return;
+           }
            ans = ans.filter(i => i !== optIdx);
          } else {
+           // 如果未選中，則添加選擇
+           // 檢查是否達到最大選擇數量
+           if (maxOptions !== null && ans.length >= maxOptions) {
+             this.showToast(`最多只能選擇 ${maxOptions} 個選項`);
+             return;
+           }
            ans.push(optIdx);
          }
          state.answers[node.id] = ans;
@@ -815,6 +830,25 @@ export default {
          }
       } else if (String(nodeData.type) === '4') {
          hasAnswer = !!answerData; // File 對象存在即代表已填答
+      } else if (String(nodeData.type) === '2') {
+         // 多选题：验证选项数量限制
+         const answerIndices = answerData || [];
+         const minOptions = nodeData.minOptions || 0;
+         const maxOptions = nodeData.maxOptions || null;
+         
+         // 验证最小选项数
+         if (minOptions > 0 && answerIndices.length < minOptions) {
+           this.showToast(`「${nodeData.title}」至少需要選擇 ${minOptions} 個選項`);
+           return;
+         }
+         
+         // 验证最大选项数
+         if (maxOptions !== null && answerIndices.length > maxOptions) {
+           this.showToast(`「${nodeData.title}」最多只能選擇 ${maxOptions} 個選項`);
+           return;
+         }
+         
+         hasAnswer = answerIndices.length >= minOptions;
       } else {
          const answerIndices = answerData || [];
          hasAnswer = answerIndices.length > 0;
@@ -1004,12 +1038,55 @@ export default {
               message: `問題「${question.questionTitle}」尚未完成作答`
             };
           }
+          
+          // 验证多选题的选项数量限制
+          const validation = this.validateLogicFormOptions(question, state);
+          if (!validation.valid) {
+            return validation;
+          }
         } else {
           // 检查普通问题
           // TODO: 这里需要根据实际的表单绑定来实现验证
           // 目前先假设用户已经填写
         }
       }
+      return { valid: true };
+    },
+    
+    // 验证逻辑表单的选项数量限制
+    validateLogicFormOptions(question, state) {
+      const logicData = this.getLogicFormData(question);
+      if (!logicData) return { valid: true };
+      
+      // 遍历所有节点，验证多选题的 minOptions 和 maxOptions
+      for (const nodeInfo of logicData.allNodes) {
+        const node = nodeInfo.node;
+        if (String(node.type) !== '2') continue; // 只验证多选题
+        
+        const answerValue = state.answers[node.id];
+        if (!answerValue || !Array.isArray(answerValue)) continue;
+        
+        const selectedCount = answerValue.length;
+        const minOptions = node.minOptions || 0;
+        const maxOptions = node.maxOptions || null;
+        
+        // 验证最小选项数
+        if (minOptions > 0 && selectedCount < minOptions) {
+          return {
+            valid: false,
+            message: `「${node.title}」至少需要選擇 ${minOptions} 個選項`
+          };
+        }
+        
+        // 验证最大选项数
+        if (maxOptions !== null && selectedCount > maxOptions) {
+          return {
+            valid: false,
+            message: `「${node.title}」最多只能選擇 ${maxOptions} 個選項`
+          };
+        }
+      }
+      
       return { valid: true };
     },
 
