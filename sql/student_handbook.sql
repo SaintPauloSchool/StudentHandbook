@@ -113,12 +113,17 @@ CREATE TABLE notification_answer (
                                      answer_id           BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '答案 ID',
                                      notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
                                      question_id         BIGINT(20)      NOT NULL                   COMMENT '问题 ID',
+                                     node_id             VARCHAR(50)     DEFAULT NULL               COMMENT '节点 ID（逻辑表单使用）',
+                                     node_title          VARCHAR(500)    DEFAULT NULL               COMMENT '节点标题（逻辑表单使用）',
+                                     node_type           CHAR(1)         DEFAULT NULL               COMMENT '节点类型（逻辑表单使用）',
                                      user_id             BIGINT(20)      NOT NULL                   COMMENT '用户 ID',
                                      user_type           CHAR(1)         NOT NULL                   COMMENT '用户类型（1 学生 2 家长 3 教师）',
                                      answer_content      TEXT            DEFAULT NULL               COMMENT '答案内容',
                                      attachment_urls     TEXT            DEFAULT NULL               COMMENT '附件 URL 列表 (JSON 格式)',
                                      create_time         DATETIME                                   COMMENT '创建时间',
-                                     PRIMARY KEY (answer_id)
+                                     PRIMARY KEY (answer_id),
+                                     KEY idx_notification_user (notification_id, user_id),
+                                     KEY idx_question (question_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知回答表';
 
 -- ----------------------------

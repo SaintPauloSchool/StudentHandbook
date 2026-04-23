@@ -813,9 +813,154 @@ export default {
     },
 
     // 提交回答
-    submitAnswers() {
-      ElMessage.info('回答提交功能開發中')
-      // TODO: 实现回答提交逻辑
+    async submitAnswers() {
+      try {
+        // 验证必填题
+        const validation = this.validateRequiredQuestions();
+        if (!validation.valid) {
+          this.showToast(validation.message);
+          return;
+        }
+
+        // 收集所有答案
+        const answers = this.collectAllAnswers();
+        
+        if (answers.length === 0) {
+          this.showToast('請至少回答一個問題');
+          return;
+        }
+
+        // 调用后端API提交答案
+        const notificationId = this.$route.params.id;
+        const response = await service.post(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}/submit`, {
+          answers: answers
+        });
+
+        if (response.data.code === 200) {
+          ElMessage.success('提交成功！');
+          // 延迟后返回上一页
+          setTimeout(() => {
+            this.goBack();
+          }, 1500);
+        } else {
+          ElMessage.error(response.data.msg || '提交失敗，請重試');
+        }
+      } catch (error) {
+        console.error('提交回答失败:', error);
+        ElMessage.error('網絡錯誤，請稍後重試');
+      }
+    },
+
+    // 验证必填问题
+    validateRequiredQuestions() {
+      for (const question of this.questions) {
+        // 跳过非必答问题
+        if (question.isRequired !== '1') continue;
+
+        // 检查逻辑表单
+        if (question.questionType === '5') {
+          const state = this.logicFormStates[question.questionId];
+          if (!state || !state.isComplete) {
+            return {
+              valid: false,
+              message: `問題「${question.questionTitle}」尚未完成作答`
+            };
+          }
+        } else {
+          // 检查普通问题
+          // TODO: 这里需要根据实际的表单绑定来实现验证
+          // 目前先假设用户已经填写
+        }
+      }
+      return { valid: true };
+    },
+
+    // 收集所有答案
+    collectAllAnswers() {
+      const answers = [];
+      const notificationId = this.$route.params.id;
+
+      this.questions.forEach(question => {
+        // 处理逻辑表单 (题型 5)
+        if (question.questionType === '5') {
+          const logicAnswers = this.collectLogicFormAnswers(question, notificationId);
+          answers.push(...logicAnswers);
+        } else {
+          // 处理普通问题 (题型 1-4)
+          const normalAnswer = this.collectNormalQuestionAnswer(question, notificationId);
+          if (normalAnswer) {
+            answers.push(normalAnswer);
+          }
+        }
+      });
+
+      return answers;
+    },
+
+    // 收集逻辑表单答案
+    collectLogicFormAnswers(question, notificationId) {
+      const answers = [];
+      const state = this.logicFormStates[question.questionId];
+      if (!state || !state.answers) return answers;
+
+      const logicData = this.getLogicFormData(question);
+      if (!logicData) return answers;
+
+      // 遍历所有已回答的节点
+      Object.keys(state.answers).forEach(nodeId => {
+        const answerValue = state.answers[nodeId];
+        if (answerValue === null || answerValue === undefined) return;
+
+        // 查找对应的节点信息
+        const nodeInfo = logicData.allNodes.find(n => n.node.id === Number(nodeId));
+        if (!nodeInfo) return;
+
+        const node = nodeInfo.node;
+        let answerContent = '';
+        let attachmentUrls = null;
+
+        // 根据题目类型处理答案
+        if (String(node.type) === '1' || String(node.type) === '2') {
+          // 单选或多选：转换为实际选项文本
+          if (Array.isArray(answerValue) && node.options) {
+            const selectedOptions = answerValue.map(idx => node.options[idx]).filter(opt => opt !== undefined);
+            answerContent = JSON.stringify(selectedOptions);
+          } else {
+            answerContent = JSON.stringify(answerValue);
+          }
+        } else if (String(node.type) === '3') {
+          // 填空题：存储填空答案数组
+          answerContent = JSON.stringify(answerValue);
+        } else if (String(node.type) === '4') {
+          // 附件上传：存储文件对象
+          if (answerValue instanceof File) {
+            // TODO: 实际项目中需要先上传文件，然后存储URL
+            answerContent = answerValue.name;
+            attachmentUrls = JSON.stringify([{ name: answerValue.name, size: answerValue.size }]);
+          }
+        }
+
+        if (answerContent) {
+          answers.push({
+            notificationId: notificationId,
+            questionId: question.questionId,
+            nodeId: nodeId, // 记录节点ID，用于逻辑表单
+            nodeTitle: node.title,
+            nodeType: node.type,
+            answerContent: answerContent,
+            attachmentUrls: attachmentUrls
+          });
+        }
+      });
+
+      return answers;
+    },
+
+    // 收集普通问题答案
+    collectNormalQuestionAnswer(question, notificationId) {
+      // TODO: 这里需要根据实际的表单数据绑定来实现
+      // 目前返回null，实际需要获取用户输入的值
+      return null;
     },
 
     // 计算单个逻辑表单的进度
