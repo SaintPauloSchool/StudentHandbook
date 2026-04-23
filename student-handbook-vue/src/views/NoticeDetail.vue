@@ -1042,10 +1042,10 @@ export default {
 
         this.submitting = true;
 
-        // 调用后端API提交答案
+        // 调用后端API提交答案（只传第一个问题的答案）
         const notificationId = this.$route.params.id;
         const response = await service.post(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}/submit`, {
-          answers: answers
+          answer: answers[0]  // 只传单个问题对象
         });
 
         if (response.data.code === 200) {

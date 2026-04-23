@@ -24,5 +24,16 @@ public interface NotificationAnswerMapper {
      * @return 答案列表
      */
     List<NotificationAnswer> selectUserAnswers(@Param("notificationId") Long notificationId, @Param("userId") String userId);
+    
+    /**
+     * 检查学生是否已回答该问题
+     * @param notificationId 通知ID
+     * @param questionId 问题ID
+     * @param studentUserId 学生用户ID
+     * @return 答案数量
+     */
+    int checkStudentAnswerExists(@Param("notificationId") Long notificationId, 
+                                  @Param("questionId") Long questionId, 
+                                  @Param("studentUserId") String studentUserId);
 
 }

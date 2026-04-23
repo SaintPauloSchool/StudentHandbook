@@ -12,6 +12,7 @@ public class NotificationAnswer {
     private String answerData;        // 答案数据（JSON格式，包含nodeId、nodeTitle、nodeType、answerContent、attachmentUrls）
     private String userId;            // 用户 ID（parentUserId）
     private String userType;          // 用户类型（1 学生 2 家长 3 教师）
+    private String studentUserId;     // 学生用户ID（关联sys_parent_student_relation）
     private Date createTime;          // 创建时间
 
     public Long getAnswerId() {
@@ -60,6 +61,14 @@ public class NotificationAnswer {
 
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+
+    public String getStudentUserId() {
+        return studentUserId;
+    }
+
+    public void setStudentUserId(String studentUserId) {
+        this.studentUserId = studentUserId;
     }
 
     public Date getCreateTime() {

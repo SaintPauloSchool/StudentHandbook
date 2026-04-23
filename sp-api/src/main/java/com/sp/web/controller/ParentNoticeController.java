@@ -115,21 +115,22 @@ public class ParentNoticeController extends BaseController {
         try {
             // 验证token
             String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
             // 验证答案数据
-            if (submitAnswersVO == null || submitAnswersVO.getAnswers() == null || submitAnswersVO.getAnswers().isEmpty()) {
+            if (submitAnswersVO == null || submitAnswersVO.getAnswer() == null) {
                 return AjaxResult.error("请至少回答一个问题");
             }
 
             String userType = "2"; // 2表示家长
             
             // 调用Service层提交答案（数据转换和保存都在Service层完成）
-            int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswers(), parentUserId, userType);
+            int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), parentUserId, userType);
             
-            logger.info("用户 {} 提交通知 {} 的回答，共 {} 条", parentUserId, notificationId, count);
+            logger.info("用户 {} 提交通知 {} 的回答", parentUserId, notificationId);
             
             Map<String, Object> result = new HashMap<>();
             result.put("count", count);
