@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.ParentStudentRelation;
 import com.sp.system.entity.vo.AnswerItemVO;
+import com.sp.common.exception.DuplicateSubmissionException;
 import com.sp.system.mapper.NotificationAnswerMapper;
 import com.sp.system.mapper.ParentStudentRelationMapper;
 import com.sp.system.service.INotificationAnswerService;
@@ -61,7 +62,7 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
             if (exists) {
                 logger.warn("学生 {} 已回答过通知 {} 的问题 {}", 
                     studentUserId, answerData.getNotificationId(), answerData.getQuestionId());
-                throw new RuntimeException("家长已回答过此问题，请勿重复提交");
+                throw new DuplicateSubmissionException("家长已回答过此问题，请勿重复提交");
             }
             
             // 转换答案数据

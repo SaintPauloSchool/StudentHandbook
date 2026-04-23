@@ -4,6 +4,7 @@ import com.sp.common.annotation.Log;
 import com.sp.common.core.controller.BaseController;
 import com.sp.common.core.domain.AjaxResult;
 import com.sp.common.enums.BusinessType;
+import com.sp.common.exception.DuplicateSubmissionException;
 import com.sp.system.entity.Notification;
 import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.vo.SubmitAnswersVO;
@@ -153,6 +154,9 @@ public class ParentNoticeController extends BaseController {
             Map<String, Object> result = new HashMap<>();
             result.put("count", count);
             return AjaxResult.success("提交成功", result);
+        } catch (DuplicateSubmissionException e) {
+            // 捕获重复提交异常，返回 409 错误码
+            return AjaxResult.error(e.getCode(), e.getMessage());
         } catch (Exception e) {
             logger.error("提交通知回答失败: {}", e.getMessage(), e);
             return AjaxResult.error("提交失败: " + e.getMessage());

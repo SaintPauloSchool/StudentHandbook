@@ -184,6 +184,21 @@ AjaxResult extends HashMap<String, Object>
     }
 
     /**
+     * 返回错误消息（自定义错误码）
+     *
+     * @param code 错误码
+     * @param msg 返回内容
+     * @return 错误消息
+     */
+    public static AjaxResult error(int code, String msg)
+    {
+        AjaxResult result = new AjaxResult();
+        result.put(CODE_TAG, code);
+        result.put(MSG_TAG, msg);
+        return result;
+    }
+
+    /**
      * 是否为成功消息
      *
      * @return 结果

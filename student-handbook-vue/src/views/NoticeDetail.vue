@@ -1084,8 +1084,17 @@ export default {
           ElMessage.success('提交成功！');
           // 重新加载详情数据
           await this.loadNoticeDetail();
-          // 滚动到顶部
-          window.scrollTo(0, 0);
+          // 滚动到顶部（使用平滑滚动，移动端兼容性更好）
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (response.data.code === 409) {
+          // 409 表示重复提交，显示提示后刷新页面
+          ElMessage.warning(response.data.msg || '您已回答过此问题');
+          // 延迟 1 秒后刷新页面，让用户看到提示
+          setTimeout(async () => {
+            await this.loadNoticeDetail();
+            // 滚动到顶部（使用平滑滚动，移动端兼容性更好）
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 1000);
         } else {
           ElMessage.error(response.data.msg || '提交失敗，請重試');
         }
