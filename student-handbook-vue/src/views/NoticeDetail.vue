@@ -964,6 +964,8 @@ export default {
           return;
         }
 
+        this.submitting = true;
+
         // 调用后端API提交答案
         const notificationId = this.$route.params.id;
         const response = await service.post(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}/submit`, {
@@ -972,16 +974,18 @@ export default {
 
         if (response.data.code === 200) {
           ElMessage.success('提交成功！');
-          // 延迟后返回上一页
-          setTimeout(() => {
-            this.goBack();
-          }, 1500);
+          // 重新加载详情数据
+          await this.loadNoticeDetail();
+          // 滚动到顶部
+          window.scrollTo(0, 0);
         } else {
           ElMessage.error(response.data.msg || '提交失敗，請重試');
         }
       } catch (error) {
         console.error('提交回答失败:', error);
         ElMessage.error('網絡錯誤，請稍後重試');
+      } finally {
+        this.submitting = false;
       }
     },
 
