@@ -158,15 +158,17 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
     }
     
     /**
-     * 查询用户对该通知的回答
+     * 查询用户对该通知的回答（只有一条记录）
      * @param notificationId 通知ID
-     * @param userId 用户ID
-     * @return 答案列表
+     * @param studentUserId 学生用户ID
+     * @return 答案对象（只有一条记录）
      */
     @Override
-    public List<NotificationAnswer> getUserAnswers(Long notificationId, String userId) {
+    public NotificationAnswer getUserAnswer(Long notificationId, String studentUserId) {
         try {
-            return notificationAnswerMapper.selectUserAnswers(notificationId, userId);
+            List<NotificationAnswer> answers = notificationAnswerMapper.selectUserAnswers(notificationId, studentUserId);
+            // 只返回第一条记录
+            return (answers != null && !answers.isEmpty()) ? answers.get(0) : null;
         } catch (Exception e) {
             logger.error("查询用户答案失败: {}", e.getMessage(), e);
             throw new RuntimeException("查询用户答案失败: " + e.getMessage());

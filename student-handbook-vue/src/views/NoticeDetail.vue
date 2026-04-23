@@ -224,7 +224,10 @@
                 
                 <!-- 已提交后显示所有节点和答案 -->
                 <div class="submitted-answers" v-if="hasSubmitted">
-                  <div class="answer-review-title">我的作答</div>
+                  <div class="answer-review-title">
+                    我的作答
+                    <span class="answerer-info" v-if="answererInfo">（{{ answererInfo }}作答）</span>
+                  </div>
                   <div class="all-nodes-review">
                     <div 
                       v-for="(nodeAnswer, index) in getReviewAnswers(question)" 
@@ -374,7 +377,8 @@ export default {
       loading: false,
       submitting: false, // 提交中状态
       hasSubmitted: false, // 是否已提交
-      userAnswers: [], // 用户已提交的答案
+      userAnswer: null, // 用户已提交的答案（单个对象）
+      answererInfo: '', // 作答人信息，例如："吴煜键 - 妈妈"
       isExpired: false, // 是否已过期
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
@@ -441,17 +445,16 @@ export default {
         if (response.data.code === 200) {
           this.notice = response.data.data.notification
           this.questions = response.data.data.questions || []
-          this.userAnswers = response.data.data.userAnswers || []
+          this.userAnswer = response.data.data.userAnswer || null
+          this.answererInfo = response.data.data.answererInfo || ''
+          this.hasSubmitted = response.data.data.hasSubmitted || false
           
           // 检查是否已过期
           this.checkIfExpired()
           
-          // 检查用户是否已提交
-          this.hasSubmitted = this.userAnswers.length > 0
-          
           // 如果已提交，初始化答案显示
-          if (this.hasSubmitted) {
-            this.initUserAnswers()
+          if (this.hasSubmitted && this.userAnswer) {
+            this.initUserAnswer()
           }
           
           // 数据加载完成后，确保滚动到页面顶部
@@ -495,23 +498,54 @@ export default {
       }
     },
     
-    // 初始化用户已提交的答案
-    initUserAnswers() {
-      // 按questionId分组答案
-      const answersByQuestion = {}
-      this.userAnswers.forEach(answer => {
-        if (!answersByQuestion[answer.questionId]) {
-          answersByQuestion[answer.questionId] = []
-        }
-        answersByQuestion[answer.questionId].push(answer)
-      })
+    // 初始化用户已提交的答案（单个对象）
+    initUserAnswer() {
+      if (!this.userAnswer) return
       
       // 遍历所有问题，初始化逻辑表单状态
       this.questions.forEach(question => {
-        if (question.questionType === '5' && answersByQuestion[question.questionId]) {
-          this.initLogicFormAnswers(question, answersByQuestion[question.questionId])
+        if (question.questionType === '5' && this.userAnswer.questionId === question.questionId) {
+          this.initLogicFormAnswerFromObject(question, this.userAnswer)
         }
       })
+    },
+    
+    // 从单个答案对象初始化逻辑表单
+    initLogicFormAnswerFromObject(question, answer) {
+      const logicData = this.getLogicFormData(question)
+      if (!logicData) return
+      
+      const state = this.getLogicFormState(question)
+      
+      try {
+        const answerData = JSON.parse(answer.answerData)
+        if (Array.isArray(answerData)) {
+          // answerData是数组，包含多个节点答案
+          answerData.forEach(nodeAnswer => {
+            const nodeId = String(nodeAnswer.nodeId)
+            let answerValue = null
+            
+            // 解析answerContent
+            try {
+              answerValue = JSON.parse(nodeAnswer.answerContent)
+            } catch (e) {
+              answerValue = nodeAnswer.answerContent
+            }
+            
+            state.answers[nodeId] = answerValue
+          })
+        }
+      } catch (e) {
+        console.error('解析答案数据失败:', e)
+      }
+      
+      // 标记为已完成
+      state.isComplete = true
+      
+      // 设置activeNodeId为第一个root节点
+      if (logicData.roots && logicData.roots.length > 0) {
+        state.activeNodeId = logicData.roots[0].node.id
+      }
     },
     
     // 初始化逻辑表单的答案
@@ -555,14 +589,12 @@ export default {
       }
     },
     
-    // 获取审查模式下的答案列表（直接从数据库答案解析）
+    // 获取审查模式下的答案列表（从单个对象解析）
     getReviewAnswers(question) {
-      if (!this.userAnswers || this.userAnswers.length === 0) return []
-      const item = this.userAnswers.find(a => a.questionId === question.questionId)
-      if (!item) return []
+      if (!this.userAnswer) return []
       
       try {
-        const data = JSON.parse(item.answerData)
+        const data = JSON.parse(this.userAnswer.answerData)
         return Array.isArray(data) ? data : []
       } catch (e) {
         console.error('解析审查答案失败:', e)
@@ -2388,6 +2420,13 @@ export default {
   border-left: 3px solid #3b82f6;
   line-height: 1.5;
   text-align: left;
+}
+
+.answerer-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  margin-left: 8px;
 }
 
 .all-nodes-review {

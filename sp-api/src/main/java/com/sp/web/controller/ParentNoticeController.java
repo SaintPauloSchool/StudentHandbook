@@ -9,6 +9,7 @@ import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.vo.SubmitAnswersVO;
 import com.sp.system.service.INotificationAnswerService;
 import com.sp.system.service.INotificationService;
+import com.sp.system.service.IParentStudentRelationService;
 import com.sp.system.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,9 @@ public class ParentNoticeController extends BaseController {
 
     @Autowired
     private INotificationAnswerService notificationAnswerService;
+
+    @Autowired
+    private IParentStudentRelationService parentStudentRelationService;
 
     /**
      * 查询已发布的通知列表
@@ -93,9 +97,23 @@ public class ParentNoticeController extends BaseController {
                 return AjaxResult.error("通知不存在");
             }
             
-            // 查询用户对该通知的回答
-            List<NotificationAnswer> userAnswers = notificationAnswerService.getUserAnswers(notificationId, parentUserId);
-            result.put("userAnswers", userAnswers);
+            // 根据家长ID获取学生ID
+            String studentUserId = notificationAnswerService.getStudentUserIdByParentId(parentUserId);
+            
+            // 查询学生对该通知的回答（只有一条记录）
+            NotificationAnswer userAnswer = notificationAnswerService.getUserAnswer(notificationId, studentUserId);
+            
+            // 如果有回答，获取作答人信息（用answer里的user_id查询）
+            if (userAnswer != null) {
+                String answererInfo = parentStudentRelationService.getAnswererInfo(userAnswer.getUserId());
+                result.put("userAnswer", userAnswer);
+                result.put("answererInfo", answererInfo);
+                result.put("hasSubmitted", true);
+            } else {
+                result.put("userAnswer", null);
+                result.put("answererInfo", "");
+                result.put("hasSubmitted", false);
+            }
 
             return AjaxResult.success(result);
         } catch (Exception e) {

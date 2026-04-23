@@ -37,10 +37,10 @@ public interface INotificationAnswerService {
     boolean checkStudentAnswerExists(Long notificationId, Long questionId, String studentUserId);
     
     /**
-     * 查询用户对该通知的回答
+     * 查询用户对该通知的回答（只有一条记录）
      * @param notificationId 通知ID
-     * @param userId 用户ID
-     * @return 答案列表
+     * @param studentUserId 学生用户ID
+     * @return 答案对象（只有一条记录）
      */
-    List<NotificationAnswer> getUserAnswers(Long notificationId, String userId);
+    NotificationAnswer getUserAnswer(Long notificationId, String studentUserId);
 }

@@ -65,4 +65,38 @@ public class ParentStudentRelationServiceImpl implements IParentStudentRelationS
         logger.info("创建并保存家长学生关系记录，共處理 {} 个家长", result);
     }
 
+    /**
+     * 获取作答人信息（学生姓名 + 关系）
+     * @param parentUserId 家长用户ID
+     * @return 作答人信息，例如：“吴煜键 - 妈妈”
+     */
+    @Override
+    public String getAnswererInfo(String parentUserId) {
+        try {
+            if (parentUserId == null || parentUserId.isEmpty()) {
+                return "";
+            }
+            
+            // 根据parentUserId查询sys_parent_student_relation表
+            List<ParentStudentRelation> relations = parentStudentRelationMapper.selectByParentId(parentUserId);
+            
+            if (relations != null && !relations.isEmpty()) {
+                ParentStudentRelation relation = relations.get(0);
+                String studentName = relation.getStudentName();
+                String relationDesc = relation.getRelationDesc();
+                
+                if (studentName != null && relationDesc != null) {
+                    return studentName + " - " + relationDesc;
+                } else if (studentName != null) {
+                    return studentName;
+                }
+            }
+            
+            return "";
+        } catch (Exception e) {
+            logger.error("获取作答人信息失败: {}", e.getMessage(), e);
+            return "";
+        }
+    }
+
 }
