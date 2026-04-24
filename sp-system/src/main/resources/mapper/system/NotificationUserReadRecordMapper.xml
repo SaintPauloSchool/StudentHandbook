@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sp.system.mapper.NotificationUserReadRecordMapper">
+
+    <resultMap id="ReadRecordResult" type="com.sp.system.entity.NotificationUserReadRecord">
+        <id     property="readId"       column="read_id"/>
+        <result property="sendRecordId" column="send_record_id"/>
+        <result property="userId"       column="user_id"/>
+        <result property="userType"     column="user_type"/>
+        <result property="isRead"       column="is_read"/>
+        <result property="readTime"     column="read_time"/>
+        <result property="replyStatus"  column="reply_status"/>
+        <result property="replyTime"    column="reply_time"/>
+        <result property="createTime"   column="create_time"/>
+    </resultMap>
+
+    <!-- 按 notification_id + user_id 联查 -->
+    <select id="selectByNotificationAndUser" resultMap="ReadRecordResult">
+        SELECT r.read_id, r.send_record_id, r.user_id, r.user_type,
+               r.is_read, r.read_time, r.reply_status, r.reply_time, r.create_time
+        FROM notification_user_read_record r
+        INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
+        WHERE s.notification_id = #{notificationId}
+          AND r.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <!-- 标记为已读 -->
+    <update id="markAsRead">
+        UPDATE notification_user_read_record
+        SET is_read   = '1',
+            read_time = NOW()
+        WHERE read_id = #{readId}
+          AND is_read = '0'
+    </update>
+
+    <!-- 通知含阅读状态的 ResultMap（以 notification_user_read_record 为驱动） -->
+    <resultMap id="NotificationWithReadStatusResult"
+               type="com.sp.system.entity.vo.NotificationWithReadStatusVO">
+        <id     property="notificationId"  column="notification_id"/>
+        <result property="title"           column="title"/>
+        <result property="content"         column="content"/>
+        <result property="senderId"        column="sender_id"/>
+        <result property="senderName"      column="sender_name"/>
+        <result property="jumpUrl"         column="jump_url"/>
+        <result property="attachmentUrls"  column="attachment_urls"/>
+        <result property="status"          column="status"/>
+        <result property="replyDeadline"   column="reply_deadline"/>
+        <result property="createBy"        column="create_by"/>
+        <result property="createTime"      column="create_time"/>
+        <result property="updateBy"        column="update_by"/>
+        <result property="updateTime"      column="update_time"/>
+        <result property="remark"          column="remark"/>
+        <result property="readId"          column="read_id"/>
+        <result property="isRead"          column="is_read"/>
+        <result property="sendRecordId"    column="send_record_id"/>
+    </resultMap>
+
+    <!--
+        分页查询已发布通知（仅显示发送给当前用户的通知，附带阅读状态）
+        以 notification_user_read_record 为驱动表：
+          - INNER JOIN notification_send_record 确认发送记录存在
+          - INNER JOIN notification 过滤状态为已发布（status='1'）
+        无 GROUP BY，无聚合，完全兼容 only_full_group_by 模式。
+    -->
+    <select id="selectPublishedNotificationsForUser"
+            resultMap="NotificationWithReadStatusResult">
+        SELECT n.notification_id, n.title, n.content, n.sender_id, n.sender_name,
+               n.jump_url, n.attachment_urls, n.status, n.reply_deadline,
+               n.create_by, n.create_time, n.update_by, n.update_time, n.remark,
+               r.read_id, r.is_read, r.send_record_id
+        FROM notification_user_read_record r
+        INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
+        INNER JOIN notification n
+               ON n.notification_id = s.notification_id
+              AND n.status = '1'
+        WHERE r.user_id = #{userId}
+        ORDER BY n.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 已发布通知总数（仅统计发送给当前用户的通知） -->
+    <select id="countPublishedNotificationsForUser" resultType="int">
+        SELECT COUNT(*)
+        FROM notification_user_read_record r
+        INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
+        INNER JOIN notification n
+               ON n.notification_id = s.notification_id
+              AND n.status = '1'
+        WHERE r.user_id = #{userId}
+    </select>
+
+</mapper>

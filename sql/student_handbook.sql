@@ -16,6 +16,13 @@ CREATE TABLE `class_log` (
                              `update_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- 1. 为最常用的查询条件添加联合索引
+-- 优化按班级、日期、课程类型的组合查询
+ALTER TABLE class_log ADD INDEX idx_class_date_type (student_class, start_date, course_type);
+
+-- 2. 为 id 字段添加普通索引（加速按 id 的查询和更新）
+ALTER TABLE class_log ADD INDEX idx_id (id);
+
 -- ----------------------------
 -- 通知主表
 -- ----------------------------
@@ -88,22 +95,51 @@ CREATE TABLE notification_question (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知问题表';
 
 -- ----------------------------
+-- 发送通知记录主表
+-- ----------------------------
+DROP TABLE IF EXISTS notification_send_record;
+CREATE TABLE notification_send_record (
+      send_record_id      BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '发送记录ID',
+      notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知ID',
+      sender_id           BIGINT(20)      NOT NULL                   COMMENT '发送人ID',
+      sender_name         VARCHAR(100)    DEFAULT NULL               COMMENT '发送人姓名',
+      send_time           DATETIME        DEFAULT NULL               COMMENT '发送时间',
+      send_status         CHAR(1)         DEFAULT '0'                COMMENT '发送状态（0待发送 1发送中 2发送成功 3发送失败 4部分成功）',
+      total_count         INT(11)         DEFAULT 0                  COMMENT '应发送总人数',
+      success_count       INT(11)         DEFAULT 0                  COMMENT '发送成功人数',
+      fail_count          INT(11)         DEFAULT 0                  COMMENT '发送失败人数',
+      create_by           VARCHAR(64)     DEFAULT ''                 COMMENT '创建者',
+      create_time         DATETIME                                   COMMENT '创建时间',
+      update_by           VARCHAR(64)     DEFAULT ''                 COMMENT '更新者',
+      update_time         DATETIME                                   COMMENT '更新时间',
+      remark              VARCHAR(500)    DEFAULT NULL               COMMENT '备注',
+      PRIMARY KEY (send_record_id),
+      KEY idx_notification (notification_id),
+      KEY idx_sender (sender_id),
+      KEY idx_send_time (send_time),
+      KEY idx_send_status (send_status)
+) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '发送通知记录表';
+
+-- ----------------------------
 -- 用户通知阅读状态表
 -- ----------------------------
-DROP TABLE IF EXISTS user_notification_read;
-CREATE TABLE user_notification_read (
-                                        read_id             BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '阅读记录 ID',
-                                        notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
-                                        user_id             BIGINT(20)      NOT NULL                   COMMENT '用户 ID',
-                                        user_type           CHAR(1)         NOT NULL                   COMMENT '用户类型（1 学生 2 家长 3 教师）',
-                                        is_read             CHAR(1)         DEFAULT '0'                COMMENT '是否已读（0 未读 1 已读）',
-                                        read_time           DATETIME        DEFAULT NULL               COMMENT '阅读时间',
-                                        reply_status        CHAR(1)         DEFAULT '0'                COMMENT '回复状态（0 未回复 1 已回复）',
-                                        reply_time          DATETIME        DEFAULT NULL               COMMENT '回复时间',
-                                        create_time         DATETIME                                   COMMENT '创建时间',
-                                        PRIMARY KEY (read_id),
-                                        UNIQUE KEY uk_notification_user (notification_id, user_id)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '用户通知阅读状态表';
+DROP TABLE IF EXISTS notification_user_read_record;
+CREATE TABLE notification_user_read_record (
+       read_id             BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '阅读记录ID',
+       send_record_id      BIGINT(20)      NOT NULL                   COMMENT '发送记录ID',
+       user_id             VARCHAR(64)     NOT NULL                   COMMENT '用户ID',
+       user_type           CHAR(1)         NOT NULL                   COMMENT '用户类型（1学生 2家长 3教师）',
+       is_read             CHAR(1)         DEFAULT '0'                COMMENT '是否已读（0未读 1已读）',
+       read_time           DATETIME        DEFAULT NULL               COMMENT '阅读时间',
+       reply_status        CHAR(1)         DEFAULT '0'                COMMENT '回复状态（0未回复 1已回复）',
+       reply_time          DATETIME        DEFAULT NULL               COMMENT '回复时间',
+       create_time         DATETIME                                   COMMENT '创建时间',
+       PRIMARY KEY (read_id),
+       KEY idx_send_record (send_record_id),
+       KEY idx_user (user_id),
+       KEY idx_read_status (is_read),
+       KEY idx_reply_status (reply_status)
+) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知用户阅读记录表';
 
 -- ----------------------------
 -- 回复答案表

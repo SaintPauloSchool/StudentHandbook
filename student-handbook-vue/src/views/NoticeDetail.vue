@@ -448,15 +448,18 @@ export default {
           this.userAnswer = response.data.data.userAnswer || null
           this.answererInfo = response.data.data.answererInfo || ''
           this.hasSubmitted = response.data.data.hasSubmitted || false
-          
+
           // 检查是否已过期
           this.checkIfExpired()
-          
+
           // 如果已提交，初始化答案显示
           if (this.hasSubmitted && this.userAnswer) {
             this.initUserAnswer()
           }
-          
+
+          // 标记为已读（静默调用，内部已捕获异常，不影响主流程）
+          await this.markAsRead(notificationId)
+
           // 数据加载完成后，确保滚动到页面顶部
           setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'auto' })
@@ -469,6 +472,16 @@ export default {
         ElMessage.error('網絡錯誤，請稍後重試')
       } finally {
         this.loading = false
+      }
+    },
+
+    // 标记通知为已读（静默，不影响主流程）
+    async markAsRead(notificationId) {
+      try {
+        await service.post(`${API_ENDPOINTS.NOTICE_MARK_READ}/${notificationId}/read`)
+      } catch (e) {
+        // 静默忽略，不影响用户体验
+        console.warn('标记已读失败（已忽略）:', e)
       }
     },
     

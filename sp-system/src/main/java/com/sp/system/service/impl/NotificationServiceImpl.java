@@ -17,56 +17,32 @@ import java.util.Map;
  */
 @Service
 public class NotificationServiceImpl implements INotificationService {
-    
+
     @Autowired
     private NotificationMapper notificationMapper;
-    
+
     @Autowired
     private NotificationQuestionMapper notificationQuestionMapper;
 
     /**
-     * 分页查询已发布通知列表
-     * @param pageNum 页码
-     * @param pageSize 每页数量
-     * @return
-     */
-    @Override
-    public List<Notification> selectPublishedNotificationsPage(int pageNum, int pageSize) {
-        int offset = (pageNum - 1) * pageSize;
-        return notificationMapper.selectPublishedNotificationsPage(offset, pageSize);
-    }
-
-    /**
-     * 查询已发布通知总数
-     * @return
-     */
-    @Override
-    public int countPublishedNotifications() {
-        return notificationMapper.countPublishedNotifications();
-    }
-
-    /**
      * 根据ID查询通知详情（包含问题列表）
-     * @param notificationId
-     * @return
      */
     @Override
     public Map<String, Object> selectNotificationDetail(Long notificationId) {
         // 查询通知详情
         Notification notification = notificationMapper.selectNotificationById(notificationId);
-        
+
         if (notification == null) {
             return null;
         }
-        
-        // 查询该通知的问题列表
-        List<NotificationQuestion> questions = notificationQuestionMapper.selectQuestionsByNotificationId(notificationId);
-        
-        // 组合返回通知和问题列表
+        // 查询问题列表
+        List<NotificationQuestion> questions =
+                notificationQuestionMapper.selectQuestionsByNotificationId(notificationId);
+
         Map<String, Object> result = new HashMap<>();
         result.put("notification", notification);
         result.put("questions", questions);
-        
+
         return result;
     }
 }

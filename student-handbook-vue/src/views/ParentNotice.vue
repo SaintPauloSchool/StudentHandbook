@@ -18,10 +18,13 @@
         class="notice-item" 
         v-for="notice in noticeList" 
         :key="notice.notificationId"
-        @click="viewDetail(notice.notificationId)"
+        @click="viewDetail(notice)"
       >
+        <!-- 未读徽章 -->
+        <span class="unread-badge" v-if="isUnread(notice)">未讀</span>
+
         <div class="notice-header">
-          <h3 class="notice-title">{{ notice.title }}</h3>
+          <h3 class="notice-title" :class="{ 'unread-title': isUnread(notice) }">{{ notice.title }}</h3>
         </div>
         <div class="notice-meta">
           <div class="meta-item">
@@ -242,13 +245,25 @@ export default {
       }
     },
 
+    // 判断通知是否未读（无发送记录 或 is_read='0'）
+    isUnread(notice) {
+      // 若 sendRecordId 为 null，说明该通知没有对应的发送记录（未发给当前用户），视为无状态，不显示未读
+      if (!notice.sendRecordId) return false
+      // isRead 为 '0' 或 null（有发送记录但无阅读记录）时视为未读
+      return notice.isRead !== '1'
+    },
+
     // 查看详情
-    viewDetail(notificationId) {
+    viewDetail(notice) {
       // 保存当前滚动位置
       if (this.$refs.scrollContainer) {
         this.savedScrollTop = this.$refs.scrollContainer.scrollTop
       }
-      this.$router.push(`/notice/${notificationId}`)
+      // 乐观更新本地状态：立即将该条记录标记为已读，避免返回列表时仍显示未读
+      if (this.isUnread(notice)) {
+        notice.isRead = '1'
+      }
+      this.$router.push(`/notice/${notice.notificationId}`)
     },
 
     // 格式化日期
@@ -419,6 +434,34 @@ export default {
 .notice-item:active {
   transform: translateY(-4px);
 }
+
+/* 未读徽章 */
+.unread-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: linear-gradient(135deg, #ef4444, #f87171);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45);
+  letter-spacing: 0.5px;
+  z-index: 10;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45); }
+  50%       { box-shadow: 0 2px 12px rgba(239, 68, 68, 0.75); }
+}
+
+/* 未读通知标题加粗高亮 */
+.notice-title.unread-title {
+  color: #0c4a6e;
+}
+
 
 .notice-header {
   display: flex;
