@@ -76,22 +76,22 @@ CREATE TABLE notification_cc (
 -- ----------------------------
 DROP TABLE IF EXISTS notification_question;
 CREATE TABLE notification_question (
-                                       question_id         BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '问题 ID',
-                                       notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
-                                       parent_question_id  BIGINT(20)      DEFAULT NULL               COMMENT '父问题 ID（用于分支问题，记录上一题的选项继续后指向此题）',
-                                       question_title      VARCHAR(500)    NOT NULL                   COMMENT '问题标题',
-                                       question_type       CHAR(1)         NOT NULL                   COMMENT '问题类型（1 单选 2 多选 3 填空 4 附件上传 5 逻辑表单）',
-                                       options             TEXT            DEFAULT NULL               COMMENT '选项列表 (JSON 格式)
-                                                                                - 单选/多选：["选项 1","选项 2",...]
-                                                                                - 逻辑表单：存储在 content 字段中，包含完整的问卷结构和子问题列表',
-                                       is_required         CHAR(1)         DEFAULT '0'                COMMENT '是否必答（0 否 1 是）',
-                                       sort_order          INT(4)          DEFAULT 0                  COMMENT '排序',
-                                       logic_rules         TEXT            DEFAULT NULL               COMMENT '跳转逻辑规则 (JSON 格式)',
-                                       fill_blanks         TEXT            DEFAULT NULL               COMMENT '填空题的填空列表 (JSON 格式)',
-                                       correct_answers     TEXT            DEFAULT NULL               COMMENT '填空题的正确答案 (JSON 格式)',
-                                       content             TEXT            DEFAULT NULL               COMMENT '题目内容，根据题型存储不同格式数据：①逻辑表单(type=5)存储JSON格式{"questionnaire":{"title":"问卷标题","description":"问卷描述"},"questions":[{"id":1,"type":"1/2/3/4","title":"子问题标题","description":"子问题描述","required":true/false,"options":["选项1","选项2"],"placeholder":"占位符文本","defaultValue":"默认值","validation":[],"minLength":0,"maxLength":200,"randomOrder":false,"logicRuleList":[],"minOptions":1,"maxOptions":null,"uploadNote":"上传说明","fillBlanks":[],"correctAnswers":[]}]}；②填空题(type=3)存储带占位符的纯文本如"这是{{fillblank-1}}一个{{fillblank-2}}填空题"；③其他题型可存储富文本/HTML内容或题目描述',
-                                       create_time         DATETIME                                   COMMENT '创建时间',
-                                       PRIMARY KEY (question_id)
+       question_id         BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '问题 ID',
+       notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
+       parent_question_id  BIGINT(20)      DEFAULT NULL               COMMENT '父问题 ID（用于分支问题，记录上一题的选项继续后指向此题）',
+       question_title      VARCHAR(500)    NOT NULL                   COMMENT '问题标题',
+       question_type       CHAR(1)         NOT NULL                   COMMENT '问题类型（1 单选 2 多选 3 填空 4 附件上传 5 逻辑表单）',
+       options             TEXT            DEFAULT NULL               COMMENT '选项列表 (JSON 格式)
+                                                - 单选/多选：["选项 1","选项 2",...]
+                                                - 逻辑表单：存储在 content 字段中，包含完整的问卷结构和子问题列表',
+       is_required         CHAR(1)         DEFAULT '0'                COMMENT '是否必答（0 否 1 是）',
+       sort_order          INT(4)          DEFAULT 0                  COMMENT '排序',
+       logic_rules         TEXT            DEFAULT NULL               COMMENT '跳转逻辑规则 (JSON 格式)',
+       fill_blanks         TEXT            DEFAULT NULL               COMMENT '填空题的填空列表 (JSON 格式)',
+       correct_answers     TEXT            DEFAULT NULL               COMMENT '填空题的正确答案 (JSON 格式)',
+       content             TEXT            DEFAULT NULL               COMMENT '题目内容，根据题型存储不同格式数据：①逻辑表单(type=5)存储JSON格式{"questionnaire":{"title":"问卷标题","description":"问卷描述"},"questions":[{"id":1,"type":"1/2/3/4","title":"子问题标题","description":"子问题描述","required":true/false,"options":["选项1","选项2"],"placeholder":"占位符文本","defaultValue":"默认值","validation":[],"minLength":0,"maxLength":200,"randomOrder":false,"logicRuleList":[],"minOptions":1,"maxOptions":null,"uploadNote":"上传说明","fillBlanks":[],"correctAnswers":[]}]}；②填空题(type=3)存储带占位符的纯文本如"这是{{fillblank-1}}一个{{fillblank-2}}填空题"；③其他题型可存储富文本/HTML内容或题目描述',
+       create_time         DATETIME                                   COMMENT '创建时间',
+       PRIMARY KEY (question_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知问题表';
 
 -- ----------------------------
@@ -125,37 +125,39 @@ CREATE TABLE notification_send_record (
 -- ----------------------------
 DROP TABLE IF EXISTS notification_user_read_record;
 CREATE TABLE notification_user_read_record (
-       read_id             BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '阅读记录ID',
-       send_record_id      BIGINT(20)      NOT NULL                   COMMENT '发送记录ID',
-       user_id             VARCHAR(64)     NOT NULL                   COMMENT '用户ID',
-       user_type           CHAR(1)         NOT NULL                   COMMENT '用户类型（1学生 2家长 3教师）',
-       is_read             CHAR(1)         DEFAULT '0'                COMMENT '是否已读（0未读 1已读）',
-       read_time           DATETIME        DEFAULT NULL               COMMENT '阅读时间',
-       reply_status        CHAR(1)         DEFAULT '0'                COMMENT '回复状态（0未回复 1已回复）',
-       reply_time          DATETIME        DEFAULT NULL               COMMENT '回复时间',
-       create_time         DATETIME                                   COMMENT '创建时间',
+       read_id             BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '閱讀記錄ID',
+       send_record_id      BIGINT(20)      NOT NULL                   COMMENT '發送記錄ID',
+       user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID',
+       user_type           CHAR(1)         NOT NULL                   COMMENT '用戶類型（1學生 2家長 3教師）',
+       is_read             CHAR(1)         DEFAULT '0'                COMMENT '是否已讀（0未讀 1已讀）',
+       read_time           DATETIME        DEFAULT NULL               COMMENT '閱讀時間',
+       reply_status        CHAR(1)         DEFAULT '0'                COMMENT '回覆狀態（0未回覆 1已回覆）',
+       reply_time          DATETIME        DEFAULT NULL               COMMENT '回覆時間',
+       send_status         CHAR(1)         DEFAULT '0'                COMMENT '發送狀態（0發送失敗 1發送成功）',
+       create_time         DATETIME                                   COMMENT '創建時間',
        PRIMARY KEY (read_id),
        KEY idx_send_record (send_record_id),
        KEY idx_user (user_id),
        KEY idx_read_status (is_read),
        KEY idx_reply_status (reply_status)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知用户阅读记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知用戶閱讀記錄表';
 
 -- ----------------------------
 -- 回复答案表
 -- ----------------------------
 DROP TABLE IF EXISTS notification_answer;
 CREATE TABLE notification_answer (
-                                     answer_id           BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '答案 ID',
-                                     notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
-                                     question_id         BIGINT(20)      NOT NULL                   COMMENT '问题 ID',
-                                     user_id             VARCHAR(64)     NOT NULL                   COMMENT '用户 ID（parentUserId）',
-                                     user_type           CHAR(1)         NOT NULL                   COMMENT '用户类型（1 学生 2 家长 3 教师）',
-                                     answer_data         JSON            DEFAULT NULL               COMMENT '答案数据（JSON格式，包含nodeId、nodeTitle、nodeType、answerContent、attachmentUrls）',
-                                     create_time         DATETIME                                   COMMENT '创建时间',
-                                     PRIMARY KEY (answer_id),
-                                     KEY idx_notification_user (notification_id, user_id),
-                                     KEY idx_question (question_id)
+         answer_id           BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '答案 ID',
+         notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
+         question_id         BIGINT(20)      NOT NULL                   COMMENT '問題 ID',
+         user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶 ID（parentUserId）',
+         student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '學生用戶 ID',
+         user_type           CHAR(1)         NOT NULL                   COMMENT '用戶類型（1 學生 2 家長 3 教師）',
+         answer_data         JSON            DEFAULT NULL               COMMENT '答案數據（JSON格式，包含nodeId、nodeTitle、nodeType、answerContent、attachmentUrls）',
+         create_time         DATETIME                                   COMMENT '創建時間',
+         PRIMARY KEY (answer_id),
+         KEY idx_notification_user (notification_id, user_id),
+         KEY idx_question (question_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知回答表';
 
 -- ----------------------------
@@ -163,21 +165,21 @@ CREATE TABLE notification_answer (
 -- ----------------------------
 -- 示例通知数据
 INSERT INTO notification VALUES(
-                                   1,
-                                   '关于春季运动会的通知',
-                                   '各位家长同学，我校将于下周五举办春季运动会，请大家准时参加。',
-                                   1,
-                                   '张老师',
-                                   NULL,
-                                   NULL,
-                                   '1',
-                                   '2026-03-15 23:59:59',
-                                   'admin',
-                                   NOW(),
-                                   '',
-                                   NULL,
-                                   '重要通知'
-                               );
+       1,
+       '关于春季运动会的通知',
+       '各位家长同学，我校将于下周五举办春季运动会，请大家准时参加。',
+       1,
+       '张老师',
+       NULL,
+       NULL,
+       '1',
+       '2026-03-15 23:59:59',
+       'admin',
+       NOW(),
+       '',
+       NULL,
+       '重要通知'
+   );
 
 -- 示例接收对象数据
 INSERT INTO notification_receiver VALUES(1, 1, '1', '[1,2,3]', '["一年级 1 班","一年级 2 班","二年级 1 班"]', NOW());
@@ -202,17 +204,17 @@ INSERT INTO notification_question VALUES(3, 1, NULL, '请留下您的联系方�
 -- ----------------------------
 DROP TABLE IF EXISTS sys_department;
 CREATE TABLE sys_department (
-                                id                  BIGINT          NOT NULL                        COMMENT '部门 id',
-                                parent_id           INT             DEFAULT '0'                     COMMENT '父亲部门 id',
-                                name                VARCHAR(255)    COLLATE utf8mb4_unicode_ci      NOT NULL COMMENT '部门名称',
-                                type                INT             DEFAULT '0'                     COMMENT '部门类型：1-班级，2-年级，3-学段，4-校区，5-学校',
-                                register_year       INT             DEFAULT NULL                    COMMENT '入学年份',
-                                standard_grade      INT             DEFAULT NULL                    COMMENT '标准年级',
-                                order_num           INT             DEFAULT '0'                     COMMENT '排序值',
-                                is_graduated        TINYINT(1)      DEFAULT '0'                     COMMENT '是否毕业：1-是，0-否',
-                                open_group_chat     TINYINT(1)      DEFAULT '0'                     COMMENT '是否开启班级群：1-是，0-否',
-                                group_chat_id       VARCHAR(255)    COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '班级群 id',
-                                PRIMARY KEY (`id`)
+    id                  BIGINT          NOT NULL                        COMMENT '部门 id',
+    parent_id           INT             DEFAULT '0'                     COMMENT '父亲部门 id',
+    name                VARCHAR(255)    COLLATE utf8mb4_unicode_ci      NOT NULL COMMENT '部门名称',
+    type                INT             DEFAULT '0'                     COMMENT '部门类型：1-班级，2-年级，3-学段，4-校区，5-学校',
+    register_year       INT             DEFAULT NULL                    COMMENT '入学年份',
+    standard_grade      INT             DEFAULT NULL                    COMMENT '标准年级',
+    order_num           INT             DEFAULT '0'                     COMMENT '排序值',
+    is_graduated        TINYINT(1)      DEFAULT '0'                     COMMENT '是否毕业：1-是，0-否',
+    open_group_chat     TINYINT(1)      DEFAULT '0'                     COMMENT '是否开启班级群：1-是，0-否',
+    group_chat_id       VARCHAR(255)    COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '班级群 id',
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='部门表';
 
 -- ----------------------------
@@ -220,17 +222,17 @@ CREATE TABLE sys_department (
 -- ----------------------------
 DROP TABLE IF EXISTS sys_parent_student_relation;
 CREATE TABLE sys_parent_student_relation (
-                                             id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主键 ID',
-                                             parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家长用户 ID',
-                                             student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '学生用户 ID',
-                                             student_name        VARCHAR(100)    DEFAULT NULL               COMMENT '学生姓名',
-                                             relation_desc       VARCHAR(50)     DEFAULT '家长'             COMMENT '关系描述',
-                                             mobile              VARCHAR(20)     DEFAULT NULL               COMMENT '家长手机号',
-                                             external_userid     VARCHAR(64)     DEFAULT NULL               COMMENT '家长外部用户 ID',
-                                             create_time         DATETIME        DEFAULT NULL               COMMENT '创建时间',
-                                             update_time         DATETIME        DEFAULT NULL               COMMENT '更新时间',
-                                             PRIMARY KEY (id),
-                                             UNIQUE KEY uk_parent_student (parent_user_id, student_user_id)
+     id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主键 ID',
+     parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家长用户 ID',
+     student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '学生用户 ID',
+     student_name        VARCHAR(100)    DEFAULT NULL               COMMENT '学生姓名',
+     relation_desc       VARCHAR(50)     DEFAULT '家长'             COMMENT '关系描述',
+     mobile              VARCHAR(20)     DEFAULT NULL               COMMENT '家长手机号',
+     external_userid     VARCHAR(64)     DEFAULT NULL               COMMENT '家长外部用户 ID',
+     create_time         DATETIME        DEFAULT NULL               COMMENT '创建时间',
+     update_time         DATETIME        DEFAULT NULL               COMMENT '更新时间',
+     PRIMARY KEY (id),
+     UNIQUE KEY uk_parent_student (parent_user_id, student_user_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT='家长学生关系表';
 
 -- ----------------------------
@@ -238,13 +240,13 @@ CREATE TABLE sys_parent_student_relation (
 -- ----------------------------
 DROP TABLE IF EXISTS sys_department_parent_binding;
 CREATE TABLE sys_department_parent_binding (
-                                               id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主键 ID',
-                                               department_id       BIGINT          NOT NULL                   COMMENT '部门 ID',
-                                               parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家长用户 ID',
-                                               student_user_id     VARCHAR(64)     DEFAULT NULL               COMMENT '学生用户 ID',
-                                               create_time         DATETIME        DEFAULT NULL               COMMENT '创建时间',
-                                               update_time         DATETIME        DEFAULT NULL               COMMENT '更新时间',
-                                               PRIMARY KEY (id)
+       id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主键 ID',
+       department_id       BIGINT          NOT NULL                   COMMENT '部门 ID',
+       parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家长用户 ID',
+       student_user_id     VARCHAR(64)     DEFAULT NULL               COMMENT '学生用户 ID',
+       create_time         DATETIME        DEFAULT NULL               COMMENT '创建时间',
+       update_time         DATETIME        DEFAULT NULL               COMMENT '更新时间',
+       PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT='部门家长绑定表';
 
 -- ----------------------------
@@ -252,10 +254,10 @@ CREATE TABLE sys_department_parent_binding (
 -- ----------------------------
 DROP TABLE IF EXISTS class_section;
 CREATE TABLE class_section (
-                               id                  BIGINT          NOT NULL AUTO_INCREMENT,
-                               class_section_dsedj VARCHAR(8)      NOT NULL,
-                               class_section_sp    VARCHAR(8)      NOT NULL,
-                               PRIMARY KEY (id)
+       id                  BIGINT          NOT NULL AUTO_INCREMENT,
+       class_section_dsedj VARCHAR(8)      NOT NULL,
+       class_section_sp    VARCHAR(8)      NOT NULL,
+       PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='課程班級';
 
 INSERT INTO class_section VALUES

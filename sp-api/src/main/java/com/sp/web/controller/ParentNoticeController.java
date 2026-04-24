@@ -131,7 +131,7 @@ public class ParentNoticeController extends BaseController {
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
-
+            // 标记已读
             notificationUserReadRecordService.markAsRead(notificationId, parentUserId);
             return AjaxResult.success("已标记为已读");
         } catch (Exception e) {

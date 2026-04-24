@@ -16,6 +16,9 @@ public class NotificationWithReadStatusVO extends Notification {
     /** 发送记录ID */
     private Long sendRecordId;
 
+    /** 企業微信發送狀態（0發送失敗 1發送成功） */
+    private String sendStatus;
+
     public Long getReadId() {
         return readId;
     }
@@ -38,5 +41,13 @@ public class NotificationWithReadStatusVO extends Notification {
 
     public void setSendRecordId(Long sendRecordId) {
         this.sendRecordId = sendRecordId;
+    }
+
+    public String getSendStatus() {
+        return sendStatus;
+    }
+
+    public void setSendStatus(String sendStatus) {
+        this.sendStatus = sendStatus;
     }
 }

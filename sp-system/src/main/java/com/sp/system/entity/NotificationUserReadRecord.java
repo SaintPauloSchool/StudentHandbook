@@ -31,6 +31,9 @@ public class NotificationUserReadRecord {
     /** 回复时间 */
     private Date replyTime;
 
+    /** 企業微信發送狀態（0發送失敗 1發送成功） */
+    private String sendStatus;
+
     /** 创建时间 */
     private Date createTime;
 
@@ -96,6 +99,14 @@ public class NotificationUserReadRecord {
 
     public void setReplyTime(Date replyTime) {
         this.replyTime = replyTime;
+    }
+
+    public String getSendStatus() {
+        return sendStatus;
+    }
+
+    public void setSendStatus(String sendStatus) {
+        this.sendStatus = sendStatus;
     }
 
     public Date getCreateTime() {

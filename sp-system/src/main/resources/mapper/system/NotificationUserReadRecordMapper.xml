@@ -13,17 +13,19 @@
         <result property="readTime"     column="read_time"/>
         <result property="replyStatus"  column="reply_status"/>
         <result property="replyTime"    column="reply_time"/>
+        <result property="sendStatus"   column="send_status"/>
         <result property="createTime"   column="create_time"/>
     </resultMap>
 
     <!-- 按 notification_id + user_id 联查 -->
     <select id="selectByNotificationAndUser" resultMap="ReadRecordResult">
         SELECT r.read_id, r.send_record_id, r.user_id, r.user_type,
-               r.is_read, r.read_time, r.reply_status, r.reply_time, r.create_time
+               r.is_read, r.read_time, r.reply_status, r.reply_time, r.send_status, r.create_time
         FROM notification_user_read_record r
         INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
         WHERE s.notification_id = #{notificationId}
           AND r.user_id = #{userId}
+          AND r.send_status = '1'
         LIMIT 1
     </select>
 
@@ -56,6 +58,7 @@
         <result property="readId"          column="read_id"/>
         <result property="isRead"          column="is_read"/>
         <result property="sendRecordId"    column="send_record_id"/>
+        <result property="sendStatus"      column="send_status"/>
     </resultMap>
 
     <!--
@@ -70,13 +73,14 @@
         SELECT n.notification_id, n.title, n.content, n.sender_id, n.sender_name,
                n.jump_url, n.attachment_urls, n.status, n.reply_deadline,
                n.create_by, n.create_time, n.update_by, n.update_time, n.remark,
-               r.read_id, r.is_read, r.send_record_id
+               r.read_id, r.is_read, r.send_record_id, r.send_status
         FROM notification_user_read_record r
         INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
         INNER JOIN notification n
                ON n.notification_id = s.notification_id
               AND n.status = '1'
         WHERE r.user_id = #{userId}
+          AND r.send_status = '1'
         ORDER BY n.create_time DESC
         LIMIT #{offset}, #{limit}
     </select>
@@ -90,6 +94,7 @@
                ON n.notification_id = s.notification_id
               AND n.status = '1'
         WHERE r.user_id = #{userId}
+          AND r.send_status = '1'
     </select>
 
 </mapper>

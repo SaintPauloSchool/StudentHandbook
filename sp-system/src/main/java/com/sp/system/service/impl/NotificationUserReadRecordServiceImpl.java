@@ -43,8 +43,10 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
      */
     @Override
     public void markAsRead(Long notificationId, String userId) {
+        // 查询对应的阅读记录
         NotificationUserReadRecord record =
                 notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId);
+        // 若存在且为未读则更新
         if (record != null && "0".equals(record.getIsRead())) {
             notificationUserReadRecordMapper.markAsRead(record.getReadId());
         }
