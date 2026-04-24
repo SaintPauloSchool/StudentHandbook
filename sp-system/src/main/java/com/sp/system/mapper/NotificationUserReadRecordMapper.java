@@ -30,6 +30,14 @@ public interface NotificationUserReadRecordMapper {
     int markAsRead(@Param("readId") Long readId);
 
     /**
+     * 将指定记录标记为已回复
+     *
+     * @param readId 阅读记录ID
+     * @return 影响行数
+     */
+    int markAsReplied(@Param("readId") Long readId);
+
+    /**
      * 分页查询已发布通知列表（仅返回发送给当前用户的通知，附带阅读状态）
      *
      * @param offset 偏移量

@@ -43,4 +43,15 @@ public interface INotificationUserReadRecordService {
      * @param userId         当前家长用户ID
      */
     void markAsRead(Long notificationId, String userId);
+
+    /**
+     * 将指定通知对当前用户标记为已回复
+     * <p>
+     * 若该用户的阅读记录存在且为未回复（reply_status='0'），则更新为已回复并记录回复时间；
+     * 若记录不存在或已回复，则忽略。
+     *
+     * @param notificationId 通知ID
+     * @param userId         当前家长用户ID
+     */
+    void markAsReplied(Long notificationId, String userId);
 }

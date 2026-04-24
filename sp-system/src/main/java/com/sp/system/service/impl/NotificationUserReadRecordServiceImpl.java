@@ -51,4 +51,20 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
             notificationUserReadRecordMapper.markAsRead(record.getReadId());
         }
     }
+
+    /**
+     * 将指定通知对当前用户标记为已回复
+     * <p>
+     * 查询对应的阅读记录，若存在且为未回复则更新 reply_status='1' 与 reply_time；否则忽略。
+     */
+    @Override
+    public void markAsReplied(Long notificationId, String userId) {
+        // 查询对应的阅读记录
+        NotificationUserReadRecord record =
+                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId);
+        // 若存在且为未回复则更新
+        if (record != null && "0".equals(record.getReplyStatus())) {
+            notificationUserReadRecordMapper.markAsReplied(record.getReadId());
+        }
+    }
 }

@@ -161,6 +161,9 @@ public class ParentNoticeController extends BaseController {
             String userType = "2"; // 2表示家长
             int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), parentUserId, userType);
 
+            // 提交成功后，更新阅读记录的回复状态与回复时间
+            notificationUserReadRecordService.markAsReplied(notificationId, parentUserId);
+
             logger.info("用户 {} 提交通知 {} 的回答", parentUserId, notificationId);
 
             Map<String, Object> result = new HashMap<>();
