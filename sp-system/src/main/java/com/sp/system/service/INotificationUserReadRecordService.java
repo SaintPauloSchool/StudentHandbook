@@ -34,6 +34,14 @@ public interface INotificationUserReadRecordService {
     int countPublishedNotificationsForUser(String userId);
 
     /**
+     * 查询发送给当前用户的未读通知数量
+     *
+     * @param userId 当前家长用户ID
+     * @return 未读数量
+     */
+    int countUnreadNotificationsForUser(String userId);
+
+    /**
      * 将指定通知对当前用户标记为已读
      * <p>
      * 若该用户的阅读记录存在且为未读（is_read='0'），则更新为已读并记录阅读时间；

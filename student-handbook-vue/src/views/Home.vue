@@ -2,46 +2,46 @@
   <div class="home-container">
     <div class="welcome-section">
       <div class="logo-badge">
-        <!-- 在这里放置学校Logo -->
         <img src="../logo/sp.jpg" alt="School Logo" class="school-logo-img">
       </div>
       <h1 class="welcome-title">歡迎使用學生系統</h1>
     </div>
 
     <div class="buttons-container">
-      <button
-          class="feature-button primary-button"
-          @click="goToStudentHandbook"
-      >
-        <div class="button-content">
-          <span class="button-icon">📘</span>
-          <span class="button-text">學生手冊</span>
-        </div>
-      </button>
+      <div class="button-wrapper">
+        <button class="feature-button primary-button" @click="goToStudentHandbook">
+          <div class="button-content">
+            <span class="button-icon">📘</span>
+            <span class="button-text">學生手冊</span>
+          </div>
+        </button>
+      </div>
 
-      <button
-          class="feature-button success-button"
-          @click="goToParentNotice"
-      >
-        <div class="button-content">
-          <span class="button-icon">📢</span>
-          <span class="button-text">家校通知</span>
-        </div>
-      </button>
+      <div class="button-wrapper">
+        <button class="feature-button success-button" @click="goToParentNotice">
+          <div class="button-content">
+            <span class="button-icon">📢</span>
+            <span class="button-text">家校通知</span>
+          </div>
+        </button>
+        <span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+      </div>
     </div>
   </div>
-
 </template>
 
 <script>
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 导入全局配置设置
+import { API_ENDPOINTS } from '@/config/api.js' // 导入API端点配置
 
 export default {
   name: 'Home',
   data() {
-    return {}
+    return {
+      unreadCount: 0 // 未读通知数量
+    }
   },
   mounted() {
     // 检查URL参数中是否有token（来自微信授权回调）
@@ -53,6 +53,8 @@ export default {
       this.checkToken();
     }
 
+    // 获取未读通知数量
+    this.fetchUnreadCount();
   },
 
   methods: {
@@ -84,6 +86,23 @@ export default {
         this.$router.push('/login');
       }
     },
+    
+    // 获取未读通知数量
+    async fetchUnreadCount() {
+      try {
+        const response = await service.get(API_ENDPOINTS.NOTICE_UNREAD_COUNT);
+        console.log('未读通知API响应:', response); // 调试信息
+        const res = response.data; // 获取实际的响应数据
+        console.log('解析后的响应数据:', res); // 调试信息
+        if (res.code === 200 && res.data) {
+          this.unreadCount = res.data.unreadCount || 0;
+          console.log('设置未读数量为:', this.unreadCount); // 调试信息
+        }
+      } catch (error) {
+        console.error('获取未读通知数量失败:', error);
+      }
+    },
+    
     goToStudentHandbook() {
       // 跳轉到學生手冊頁面
       this.$router.push('/handbook');
@@ -103,43 +122,34 @@ export default {
   justify-content: flex-start;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f9ff;
-  padding: 20px;
+  width: 100%;
+  background: #f8fafc; /* Very light, clean background for full screen */
+  padding: 40px 24px;
   box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
-}
-
-.home-container::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(64, 158, 255, 0.05) 0, transparent 70%);
-  z-index: 0;
-  animation: rotate 20s linear infinite;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .welcome-section {
   text-align: center;
-  margin: 20px 0 15px 0;
-  animation: fadeInDown 1s ease;
-  position: relative;
-  z-index: 1;
+  margin-top: 15px;
+  margin-bottom: 25px;
+  width: 100%;
+  max-width: 500px;
+  animation: fadeInDown 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .logo-badge {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%; /* Revert back to circular logo as user might prefer it */
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 15px;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
-  animation: pulse 2s infinite;
+  margin: 0 auto 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  padding: 10px;
+  box-sizing: border-box;
   overflow: hidden;
 }
 
@@ -150,46 +160,89 @@ export default {
 }
 
 .welcome-title {
-  font-size: 32px;
-  font-weight: bold;
-  color: #303133;
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
   margin-bottom: 10px;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+}
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
 }
 
 /* 按鈕容器樣式 */
 .buttons-container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 24px;
   width: 100%;
-  max-width: 320px;
-  animation: fadeInUp 1s ease;
+  max-width: 280px; /* Reduced width */
+  animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.button-wrapper {
   position: relative;
-  z-index: 1;
+  width: 100%;
 }
 
 .button-content {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 16px;
 }
 
 .button-icon {
-  font-size: 24px;
+  font-size: 28px;
+  line-height: 1;
 }
 
 .button-text {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* 未读通知徽章样式 - 放回右上角 */
+.unread-badge {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #ff4d4f;
+  color: white;
+  border-radius: 20px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.4);
+  border: 3px solid #f8fafc; /* Match background to create a cutout effect */
+  animation: badgeBounce 2s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 10;
+}
+
+/* 徽章脉冲动画 */
+@keyframes badgeBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 .feature-button {
-  height: 80px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  height: 85px; /* Restored height */
+  border-radius: 20px;
+  transition: all 0.2s ease;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -198,115 +251,28 @@ export default {
   border: none;
   cursor: pointer;
   outline: none;
-  transform: translateY(0);
-  position: relative;
-  overflow: hidden;
+}
+
+.feature-button:active {
+  transform: scale(0.98);
 }
 
 .feature-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.feature-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
-}
-
-.feature-button:hover:not(:disabled)::before {
-  transform: translateX(100%);
-}
-
-.feature-button:hover:not(:disabled) {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.15);
-}
-
-.feature-button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: none !important;
 }
 
 .primary-button {
   background: linear-gradient(135deg, #409eff 0%, #1a73e8 100%);
   color: white;
+  box-shadow: 0 8px 24px rgba(26, 115, 232, 0.25);
 }
 
 .success-button {
   background: linear-gradient(135deg, #67c23a 0%, #4caf50 100%);
   color: white;
-}
-
-.warning-button {
-  background: linear-gradient(135deg, #e6a23c 0%, #e67c12 100%);
-  color: white;
-}
-
-.info-button {
-  background: linear-gradient(135deg, #909399 0%, #606266 100%);
-  color: white;
-}
-
-.danger-button {
-  background: linear-gradient(135deg, #f56c6c 0%, #e74c3c 100%);
-  color: white;
-}
-
-
-/* 手機屏幕適配 - 調整間距 */
-@media (max-width: 768px) {
-  .buttons-container {
-    gap: 12px;
-    max-width: 280px;
-  }
-
-  .welcome-section {
-    margin: 20px 0 10px 0;
-  }
-
-  .welcome-title {
-    font-size: 28px;
-  }
-
-  .button-text {
-    font-size: 22px;
-  }
-
-  .logo-badge {
-    width: 120px;
-    height: 120px;
-  }
-}
-
-/* 平板和桌面屏幕適配 */
-@media (min-width: 769px) {
-  .buttons-container {
-    gap: 15px;
-    max-width: 350px;
-  }
-
-  .welcome-section {
-    margin: 20px 0 15px 0;
-  }
-
-  .welcome-title {
-    font-size: 32px;
-  }
-
-  .button-text {
-    font-size: 24px;
-  }
-
-  .logo-badge {
-    width: 150px;
-    height: 150px;
-  }
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.25);
 }
 
 /* 動畫效果 */
@@ -329,39 +295,6 @@ export default {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(64, 158, 255, 0.4);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
-  }
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
   }
 }
 </style>

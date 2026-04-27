@@ -57,4 +57,12 @@ public interface NotificationUserReadRecordMapper {
      * @return 总数
      */
     int countPublishedNotificationsForUser(@Param("userId") String userId);
+
+    /**
+     * 查询发送给当前用户的未读通知数量
+     *
+     * @param userId 当前家长用户ID
+     * @return 未读数量
+     */
+    int countUnreadNotificationsForUser(@Param("userId") String userId);
 }

@@ -36,6 +36,14 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
     }
 
     /**
+     * 查询发送给当前用户的未读通知数量
+     */
+    @Override
+    public int countUnreadNotificationsForUser(String userId) {
+        return notificationUserReadRecordMapper.countUnreadNotificationsForUser(userId);
+    }
+
+    /**
      * 将指定通知对当前用户标记为已读
      * <p>
      * 查询对应的阅读记录，若存在且为未读则更新；否则忽略

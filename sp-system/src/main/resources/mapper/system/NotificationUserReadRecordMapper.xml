@@ -106,4 +106,13 @@
           AND r.send_status = '1'
     </select>
 
+    <!-- 未读通知数量（仅统计发送给当前用户的未读通知） -->
+    <select id="countUnreadNotificationsForUser" resultType="int">
+        SELECT COUNT(*)
+        FROM notification_user_read_record
+        WHERE user_id = #{userId}
+          AND send_status = '1'
+          AND (is_read = '0' OR is_read IS NULL)
+    </select>
+
 </mapper>

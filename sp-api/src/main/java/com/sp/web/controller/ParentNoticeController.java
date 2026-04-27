@@ -81,6 +81,30 @@ public class ParentNoticeController extends BaseController {
     }
 
     /**
+     * 获取当前用户的未读通知数量
+     */
+    @Log(title = "获取未读通知数量", businessType = BusinessType.SELECT)
+    @GetMapping("/unreadCount")
+    public AjaxResult getUnreadCount() {
+        try {
+            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            if (parentUserId == null) {
+                return AjaxResult.error("无效的访问令牌或用户未登录");
+            }
+
+            int unreadCount = notificationUserReadRecordService.countUnreadNotificationsForUser(parentUserId);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("unreadCount", unreadCount);
+
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            logger.error("获取未读通知数量失败: {}", e.getMessage());
+            return AjaxResult.error("获取未读通知数量失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 根据ID查询通知详情（包含问题列表和用户答案）
      */
     @Log(title = "查询通知详情", businessType = BusinessType.SELECT)

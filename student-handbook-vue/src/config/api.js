@@ -9,7 +9,8 @@ const apiEndpoints = {
     SWITCH_STUDENT: '/system/handbook/switchStudent',
     NOTICE_LIST: '/system/notice/list',
     NOTICE_DETAIL: '/system/notice',
-    NOTICE_MARK_READ: '/system/notice'  // POST /{id}/read
+    NOTICE_MARK_READ: '/system/notice',  // POST /{id}/read
+    NOTICE_UNREAD_COUNT: '/system/notice/unreadCount'  // GET 获取未读通知数量
 };
 
 // 获取基础URL - 从环境变量读取或者使用默认值
