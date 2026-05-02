@@ -239,6 +239,9 @@
                         <span class="node-title">{{ nodeAnswer.nodeTitle }}</span>
                       </div>
                       <div class="node-answer-content">
+                        <!-- 填空题：显示题目内容 -->
+                        <div v-if="String(nodeAnswer.nodeType) === '3' && nodeAnswer.nodeContent" class="node-question-content" v-html="formatFillBlankContentForDisplay(nodeAnswer.nodeContent)">
+                        </div>
                         <span class="answer-text">{{ formatAnswerContent(nodeAnswer.answerContent) }}</span>
                       </div>
                     </div>
@@ -541,6 +544,11 @@ export default {
             // 解析answerContent
             try {
               answerValue = JSON.parse(nodeAnswer.answerContent)
+              // 如果是填空题的新格式（包含blankId和value的对象数组），转换为简单数组
+              if (Array.isArray(answerValue) && answerValue.length > 0 && 
+                  typeof answerValue[0] === 'object' && answerValue[0].hasOwnProperty('blankId')) {
+                answerValue = answerValue.map(item => item.value)
+              }
             } catch (e) {
               answerValue = nodeAnswer.answerContent
             }
@@ -581,6 +589,11 @@ export default {
               // 解析answerContent
               try {
                 answerValue = JSON.parse(nodeAnswer.answerContent)
+                // 如果是填空题的新格式（包含blankId和value的对象数组），转换为简单数组
+                if (Array.isArray(answerValue) && answerValue.length > 0 && 
+                    typeof answerValue[0] === 'object' && answerValue[0].hasOwnProperty('blankId')) {
+                  answerValue = answerValue.map(item => item.value)
+                }
               } catch (e) {
                 answerValue = nodeAnswer.answerContent
               }
@@ -619,12 +632,39 @@ export default {
     formatAnswerContent(content) {
       if (!content) return '未作答'
       try {
-        const parsed = JSON.parse(content)
+        // 如果content已经是对象或数组，直接使用
+        let parsed = content
+        // 如果是字符串，尝试解析
+        if (typeof content === 'string') {
+          parsed = JSON.parse(content)
+        }
+        
         if (Array.isArray(parsed)) {
-          return parsed.join('、')
+          // 检查是否是新的填空题格式（包含blankId和value的对象数组）
+          const firstNonNullItem = parsed.find(item => item !== null && item !== undefined)
+          if (firstNonNullItem && typeof firstNonNullItem === 'object' && firstNonNullItem.hasOwnProperty('blankId')) {
+            // 新格式填空题：按填空项序号显示
+            return parsed.map((item, index) => {
+              if (item && typeof item === 'object' && item.hasOwnProperty('value')) {
+                const value = item.value
+                const displayValue = (value === '' || value === null || value === undefined) ? '(未填写)' : value
+                return `（${index + 1}）${displayValue}`
+              }
+              return `（${index + 1}）(未填写)`
+            }).join('\n')
+          }
+          // 原有的数组格式处理
+          return parsed.map(item => {
+            if (item === null || item === undefined) return ''
+            if (typeof item === 'object') {
+              return JSON.stringify(item)
+            }
+            return String(item)
+          }).filter(val => val !== '').join('、') || '未作答'
         }
         return parsed
       } catch (e) {
+        console.error('formatAnswerContent 解析失败:', e)
         return content
       }
     },
@@ -762,6 +802,15 @@ export default {
       let index = 1;
       return content.replace(/\{\{fillblank-\d+\}\}/g, () => {
          return `<span style="border-bottom: 1px solid #333; display: inline-block; width: 40px; margin: 0 5px; text-align: center; font-size: 12px; color: #64748b;">(${index++})</span>`;
+      });
+    },
+
+    // 格式化填空題內容用於顯示（已提交的答案）
+    formatFillBlankContentForDisplay(content) {
+      if (!content) return '';
+      // 將 {{fillblank-n}} 或 fillblank-n 替換為帶有下划线的格式
+      return content.replace(/\{?\{?fillblank-(\d+)\}?\}?/g, (match, num) => {
+         return `<span style="display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px;"><span>( ${num} )</span><span style="border-bottom: 2px solid #94a3b8; width: 50px; margin-top: 2px;"></span></span>`;
       });
     },
 
@@ -1234,7 +1283,7 @@ export default {
 
       // 遍历所有已回答的节点
       Object.keys(state.answers).forEach(nodeId => {
-        const answerValue = state.answers[nodeId];
+        let answerValue = state.answers[nodeId];
         if (answerValue === null || answerValue === undefined) return;
 
         // 查找对应的节点信息
@@ -1255,8 +1304,28 @@ export default {
             answerContent = JSON.stringify(answerValue);
           }
         } else if (String(node.type) === '3') {
-          // 填空题：存储填空答案数组
-          answerContent = JSON.stringify(answerValue);
+          // 填空题：存储填空答案数组，包含每个填空项的ID信息
+          // 获取fillBlanks配置
+          const fillBlanks = node.fillBlanks || [];
+          const blanksCount = fillBlanks.length > 0 ? fillBlanks.length : this.getFillBlanksCount(node.content);
+          
+          // 确保答案数组存在
+          if (!Array.isArray(answerValue)) {
+            answerValue = [];
+          }
+          
+          // 将答案转换为包含blankId和value的对象数组
+          const fillBlankAnswers = [];
+          for (let i = 0; i < blanksCount; i++) {
+            const blankId = fillBlanks[i] ? fillBlanks[i].id : `fillblank-${i + 1}`;
+            // 使用答案数组中的值，如果不存在则为空字符串
+            const value = (answerValue[i] !== undefined && answerValue[i] !== null) ? String(answerValue[i]) : '';
+            fillBlankAnswers.push({
+              blankId: blankId,
+              value: value
+            });
+          }
+          answerContent = JSON.stringify(fillBlankAnswers);
         } else if (String(node.type) === '4') {
           // 附件上传：存储文件对象
           if (answerValue instanceof File) {
@@ -1272,6 +1341,7 @@ export default {
             nodeId: nodeId,
             nodeTitle: node.title,
             nodeType: node.type,
+            nodeContent: node.content || '',  // 添加题目内容
             answerContent: answerContent,
             attachmentUrls: attachmentUrls
           });
@@ -2506,6 +2576,19 @@ export default {
   text-align: left;
 }
 
+/* 题目内容显示样式 */
+.node-question-content {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #f0f9ff;
+  border-left: 3px solid #0ea5e9;
+  border-radius: 4px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
 .answer-text {
   display: block;
   padding: 8px 10px;
@@ -2517,6 +2600,7 @@ export default {
   word-wrap: break-word;
   word-break: break-word;
   text-align: left;
+  white-space: pre-line; /* 支持换行符显示 */
 }
 
 

@@ -29,19 +29,20 @@ ALTER TABLE class_log ADD INDEX idx_id (id);
 DROP TABLE IF EXISTS notification;
 CREATE TABLE notification (
                               notification_id     BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '通知 ID',
-                              title               VARCHAR(255)    NOT NULL                   COMMENT '通知标题',
+                              title               VARCHAR(255)    NOT NULL                   COMMENT '通知標題',
                               content             TEXT            DEFAULT NULL               COMMENT '通知正文',
-                              sender_id           BIGINT(20)      NOT NULL                   COMMENT '发送人 ID',
-                              sender_name         VARCHAR(100)    NOT NULL                   COMMENT '发送人姓名',
-                              jump_url            VARCHAR(500)    DEFAULT NULL               COMMENT '跳转链接',
-                              attachment_urls     TEXT            DEFAULT NULL               COMMENT '附件/图片 URL 列表 (JSON 格式)',
-                              status              CHAR(1)         DEFAULT '0'                COMMENT '状态（0 草稿 1 已发布 2 已撤回）',
-                              reply_deadline      DATETIME        DEFAULT NULL               COMMENT '回复截止时间',
-                              create_by           VARCHAR(64)     DEFAULT ''                 COMMENT '创建者',
-                              create_time         DATETIME                                   COMMENT '创建时间',
+                              sender_id           BIGINT(20)      NOT NULL                   COMMENT '發送人 ID',
+                              sender_name         VARCHAR(100)    NOT NULL                   COMMENT '發送人姓名',
+                              jump_url            VARCHAR(500)    DEFAULT NULL               COMMENT '跳轉鏈接',
+                              attachment_urls     TEXT            DEFAULT NULL               COMMENT '附件/圖片 URL 列表 (JSON 格式)',
+                              status              CHAR(1)         DEFAULT '0'                COMMENT '狀態（0 草稿 1 已發布 2 已撤回）',
+                              reply_deadline      DATETIME        DEFAULT NULL               COMMENT '回覆截止時間',
+                              reminder_time       DATETIME        DEFAULT NULL               COMMENT '提示回覆時間（只到日期）',
+                              create_by           VARCHAR(64)     DEFAULT ''                 COMMENT '創建者',
+                              create_time         DATETIME                                   COMMENT '創建時間',
                               update_by           VARCHAR(64)     DEFAULT ''                 COMMENT '更新者',
-                              update_time         DATETIME                                   COMMENT '更新时间',
-                              remark              VARCHAR(500)    DEFAULT NULL               COMMENT '备注',
+                              update_time         DATETIME                                   COMMENT '更新時間',
+                              remark              VARCHAR(500)    DEFAULT NULL               COMMENT '備註',
                               PRIMARY KEY (notification_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知主表';
 
@@ -165,21 +166,22 @@ CREATE TABLE notification_answer (
 -- ----------------------------
 -- 示例通知数据
 INSERT INTO notification VALUES(
-       1,
-       '关于春季运动会的通知',
-       '各位家长同学，我校将于下周五举办春季运动会，请大家准时参加。',
-       1,
-       '张老师',
-       NULL,
-       NULL,
-       '1',
-       '2026-03-15 23:59:59',
-       'admin',
-       NOW(),
-       '',
-       NULL,
-       '重要通知'
-   );
+                                   1,
+                                   '關於春季運動會的通知',
+                                   '各位家長同學，我校將於下週五舉辦春季運動會，請大家準時參加。',
+                                   1,
+                                   '張老師',
+                                   NULL,
+                                   NULL,
+                                   '1',
+                                   '2026-03-15 23:59:59',
+                                   NULL,
+                                   'admin',
+                                   NOW(),
+                                   '',
+                                   NULL,
+                                   '重要通知'
+                               );
 
 -- 示例接收对象数据
 INSERT INTO notification_receiver VALUES(1, 1, '1', '[1,2,3]', '["一年级 1 班","一年级 2 班","二年级 1 班"]', NOW());
@@ -345,14 +347,36 @@ CREATE TABLE sys_school_department (
 
 DROP TABLE IF EXISTS sys_school_department_member;
 CREATE TABLE sys_school_department_member (
-                                              id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主键 ID',
-                                              userid              VARCHAR(100)    NOT NULL                   COMMENT '成员 UserID',
-                                              name                VARCHAR(255)    DEFAULT NULL               COMMENT '成员名称',
-                                              department_id       BIGINT(20)      NOT NULL                   COMMENT '部门 ID',
-                                              open_userid         VARCHAR(100)    DEFAULT NULL               COMMENT '全局唯一 UserID',
-                                              type                TINYINT(1)      DEFAULT 1                  COMMENT '类型：1-学校部门通讯录，2-家校通讯录',
-                                              create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
-                                              update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                                              PRIMARY KEY (id)
+      id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主键 ID',
+      userid              VARCHAR(100)    NOT NULL                   COMMENT '成员 UserID',
+      name                VARCHAR(255)    DEFAULT NULL               COMMENT '成员名称',
+      department_id       BIGINT(20)      NOT NULL                   COMMENT '部门 ID',
+      open_userid         VARCHAR(100)    DEFAULT NULL               COMMENT '全局唯一 UserID',
+      type                TINYINT(1)      DEFAULT 1                  COMMENT '类型：1-学校部门通讯录，2-家校通讯录',
+      create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
+      update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+      PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系統学校部门成员表';
 -- ----------------------------
+-- 通知重发失败记录表
+-- 用于追踪每个用户的重发失败情况，失败次数达到 3 次则放弃重发
+DROP TABLE IF EXISTS notification_resend_fail_record;
+CREATE TABLE `notification_resend_fail_record` (
+       `id`              bigint       NOT NULL AUTO_INCREMENT          COMMENT '主键ID',
+       `notification_id` bigint       NOT NULL                         COMMENT '通知ID',
+       `send_record_id`  bigint       NOT NULL                         COMMENT '发送记录ID',
+       `user_id`         varchar(64)  NOT NULL                         COMMENT '接收用户ID（家长或学生）',
+       `user_type`       char(1)      NOT NULL DEFAULT '2'             COMMENT '用户类型（1学生 2家长）',
+       `student_user_id` varchar(64)           DEFAULT NULL            COMMENT '关联学生ID',
+       `fail_reason_1`   varchar(255)          DEFAULT NULL            COMMENT '第1次失败原因',
+       `fail_message_1`  varchar(1000)         DEFAULT NULL            COMMENT '第1次失败详细信息',
+       `fail_reason_2`   varchar(255)          DEFAULT NULL            COMMENT '第2次失败原因',
+       `fail_message_2`  varchar(1000)         DEFAULT NULL            COMMENT '第2次失败详细信息',
+       `fail_reason_3`   varchar(255)          DEFAULT NULL            COMMENT '第3次失败原因',
+       `fail_message_3`  varchar(1000)         DEFAULT NULL            COMMENT '第3次失败详细信息',
+       `fail_count`      int          NOT NULL DEFAULT 1               COMMENT '累计失败次数（最大3次，达到后放弃重发）',
+       `status`          char(1)      NOT NULL DEFAULT '0'             COMMENT '状态：0-待重发 1-已放弃',
+       `create_time`     datetime              DEFAULT NULL            COMMENT '首次失败时间',
+       `update_time`     datetime              DEFAULT NULL            COMMENT '最近更新时间',
+       PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知重发失败记录表';
