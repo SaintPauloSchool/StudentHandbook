@@ -41,12 +41,4 @@ public interface TokenService {
      * @return 家长用户ID
      */
     String getParentUserIdByToken(String tokenValue);
-
-    /**
-     * 从HTTP请求中验证token并获取家长用户ID
-     *
-     * @param request HTTP请求
-     * @return 家长用户ID，验证失败返回null
-     */
-    String getParentUserIdFromRequest(HttpServletRequest request);
 }

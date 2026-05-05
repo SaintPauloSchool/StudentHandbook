@@ -6,11 +6,11 @@ import com.sp.common.core.domain.AjaxResult;
 import com.sp.common.core.page.TableDataInfo;
 import com.sp.common.enums.BusinessType;
 import com.sp.common.utils.ResponseUtils;
+import com.sp.framework.interceptor.TokenInterceptor;
 import com.sp.system.entity.ClassLog;
 import com.sp.system.entity.ParentStudentRelation;
 import com.sp.system.service.IClassLogService;
 import com.sp.system.service.IParentStudentRelationService;
-import com.sp.system.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ import java.util.Map;
 
 /**
  * 学生手册Controller
- *
+ * parentUserId 由 TokenInterceptor 解析後注入 request attribute，Controller 直接取用
  */
 @RestController
 @RequestMapping("/system/handbook")
@@ -35,22 +35,20 @@ public class StudentHandbookController extends BaseController {
     @Autowired
     private IParentStudentRelationService parentStudentRelationService;
 
-    @Autowired
-    private TokenService tokenService;
+    /** 從 request attribute 取得已驗證的 parentUserId */
+    private String getParentUserId() {
+        return (String) getRequest().getAttribute(TokenInterceptor.PARENT_USER_ID_ATTR);
+    }
 
     @Log(title = "查询过去一个月课程日志列表", businessType = BusinessType.SELECT)
     @GetMapping("/pastMonth")
     public TableDataInfo listPastMonth(@RequestParam(required = false) String studentUserId) {
         try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return ResponseUtils.createUnauthorizedResponse();
             }
-
-            // 通过Service获取过去一个月的课程日志列表
             List<ClassLog> classLogs = classLogService.getPastMonthClassLogListByParentUserId(parentUserId, studentUserId);
-
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
             logger.error("获取过去一个月课程日志列表失败: {}", e.getMessage());
@@ -62,15 +60,11 @@ public class StudentHandbookController extends BaseController {
     @GetMapping("/today")
     public TableDataInfo listToday(@RequestParam(required = false) String studentUserId) {
         try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return ResponseUtils.createUnauthorizedResponse();
             }
-
-            // 通过Service获取当天的课程日志列表
             List<ClassLog> classLogs = classLogService.getTodayClassLogListByParentUserId(parentUserId, studentUserId);
-
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
             logger.error("获取当天课程日志列表失败: {}", e.getMessage());
@@ -82,15 +76,11 @@ public class StudentHandbookController extends BaseController {
     @GetMapping("/nextSevenDays")
     public TableDataInfo listNextSevenDays(@RequestParam(required = false) String studentUserId) {
         try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return ResponseUtils.createUnauthorizedResponse();
             }
-
-            // 通过Service获取未来七天的课程日志列表
             List<ClassLog> classLogs = classLogService.getNextSevenDaysClassLogListByParentUserId(parentUserId, studentUserId);
-
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
             logger.error("获取未来七天课程日志列表失败: {}", e.getMessage());
@@ -102,16 +92,11 @@ public class StudentHandbookController extends BaseController {
     @GetMapping("/students")
     public AjaxResult getRelatedStudents() {
         try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
-
-            // 根据家长用户ID查询关联的学生
             List<ParentStudentRelation> relations = parentStudentRelationService.selectByParentId(parentUserId);
-
-            // 返回完整的relations数据，前端可以从里面获取studentName
             return AjaxResult.success(relations);
         } catch (Exception e) {
             logger.error("获取关联学生列表失败: {}", e.getMessage());
@@ -123,8 +108,7 @@ public class StudentHandbookController extends BaseController {
     @PostMapping("/switchStudent")
     public AjaxResult switchStudent(@RequestBody Map<String, String> requestBody) {
         try {
-            // 验证token
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
@@ -138,7 +122,6 @@ public class StudentHandbookController extends BaseController {
                 return AjaxResult.error("学生用户ID不能为空");
             }
 
-            // 验证家长是否确实关联了该学生
             List<ParentStudentRelation> relations = parentStudentRelationService.selectByParentId(parentUserId);
             boolean studentExists = relations.stream()
                     .anyMatch(relation -> studentName.equals(relation.getStudentName()) &&

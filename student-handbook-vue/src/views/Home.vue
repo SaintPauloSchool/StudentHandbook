@@ -1,5 +1,5 @@
 <template>
-  <div class="home-container">
+  <div class="home-container" v-loading.fullscreen.lock="isNavigatingToCampus" element-loading-text="正在驗證並跳轉至校園系統...">
     <div class="welcome-section">
       <div class="logo-badge">
         <img src="../logo/sp.jpg" alt="School Logo" class="school-logo-img">
@@ -43,13 +43,14 @@
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 导入全局配置设置
-import { API_ENDPOINTS } from '@/config/api.js' // 导入API端点配置
+import { API_ENDPOINTS, baseURL } from '@/config/api.js' // 导入API端点配置
 
 export default {
   name: 'Home',
   data() {
     return {
-      unreadCount: 0 // 未读通知数量
+      unreadCount: 0, // 未读通知数量
+      isNavigatingToCampus: false // 是否正在跳轉至校園系統
     }
   },
   mounted() {
@@ -73,8 +74,9 @@ export default {
       const token = urlParams.get('token');
 
       if (token) {
-        // 保存token到本地存储
+        // 保存token到本地存储，同时记录过期时间 (7天)
         localStorage.setItem('token', token);
+        localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
 
         // 清除URL中的token参数，避免在地址栏显示敏感信息
         urlParams.delete('token');
@@ -83,7 +85,15 @@ export default {
             window.location.hash;
         window.history.replaceState({}, document.title, newUrl);
 
-        ElMessage.success('登錄成功');
+        // 若之前是因為 token 過期後重新授權，授權完成後自動打開校園系統
+        if (sessionStorage.getItem('pendingCampusRedirect') === 'true') {
+          sessionStorage.removeItem('pendingCampusRedirect');
+          const campusUrl = `${settings.campusSystemUrl}?token=${encodeURIComponent(token)}`;
+          console.log('重新授權完成，自動跳轉到校園系統:', campusUrl);
+          window.open(campusUrl, '_blank');
+        } else {
+          ElMessage.success('登錄成功');
+        }
       }
     },
 
@@ -120,15 +130,53 @@ export default {
       // 跳转到家校通知页面
       this.$router.push('/notice');
     },
-    goToCampusSystem() {
+    async goToCampusSystem() {
       // 跳轉到校園系統（在新分頁開啟），並帶上 token
       const token = localStorage.getItem('token');
-      const url = token
-        ? `${settings.campusSystemUrl}?token=${encodeURIComponent(token)}`
-        : settings.campusSystemUrl;
-        
-      console.log('即將跳轉到校園系統，URL:', url);
-      window.open(url, '_blank');
+      
+      if (!token) {
+        // 本地沒有 token，直接走微信重新授權
+        this.reAuthAndOpenCampus();
+        return;
+      }
+      
+      this.isNavigatingToCampus = true;
+      try {
+        // 呼叫後端驗證 token 是否在資料庫中真的有效（防止被手動改過期或被撤銷）
+        const response = await service.get(API_ENDPOINTS.VALIDATE_TOKEN);
+        if (response.data.code === 200) {
+          // Token 確實有效，直接開新分頁跳轉
+          const url = `${settings.campusSystemUrl}?token=${encodeURIComponent(token)}`;
+          window.open(url, '_blank');
+        } else {
+          // Token 無效，重新授權
+          this.reAuthAndOpenCampus();
+        }
+      } catch (error) {
+        console.error('驗證 Token 發生錯誤:', error);
+        // 如果 API 報錯（例如網絡問題），為了安全起見，重新授權
+        this.reAuthAndOpenCampus();
+      } finally {
+        this.isNavigatingToCampus = false;
+      }
+    },
+    reAuthAndOpenCampus() {
+      // 清除本地舊 token
+      localStorage.removeItem('token');
+      // 把目標存在 sessionStorage，授權完成後前端可以根據這個判斷是否需要打開校園系統
+      sessionStorage.setItem('pendingCampusRedirect', 'true');
+
+      if (import.meta.env.MODE === 'development') {
+        // 開發環境：直接走 dev callback，不走真實微信授權
+        window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=dev';
+        return;
+      }
+
+      // 生產環境：觸發微信重新授權
+      const redirectUri = encodeURIComponent(settings.wechat.redirectUri);
+      const corpId = settings.wechat.corpId;
+      const agentId = settings.wechat.agentId;
+      window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
     },
   }
 }

@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
             proxy: {
                 '/sp-api': {
                     target: 'http://localhost:8002',
-                    changeOrigin: true
+                    changeOrigin: false
                 }
             }
         },

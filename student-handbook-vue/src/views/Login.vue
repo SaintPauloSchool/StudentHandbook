@@ -67,8 +67,9 @@ export default {
       const token = urlParams.get('token');
 
       if (token) {
-        // 保存token到本地存储
+        // 保存token到本地存储，同时记录过期时间 (7天)
         localStorage.setItem('token', token);
+        localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
 
         // 清除URL中的token参数，避免在地址栏显示敏感信息
         urlParams.delete('token');
@@ -182,11 +183,9 @@ export default {
         const agentId = settings.wechat.agentId;
 
         // 构造适合手机端的企业微信OAuth2授权链接，使用默认状态
-        const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
-
-        console.log('跳转到微信授权页面: ' + authUrl);
+        console.log('跳转到微信授权页面: https://open.weixin.qq.com/connect/oauth2/authorize');
         // 重定向到授权页面
-        window.location.href = authUrl;
+        window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
       } catch (error) {
         console.error('发起微信授权失败: ' + error.message);
       }

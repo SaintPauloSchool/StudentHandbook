@@ -5,6 +5,7 @@ import com.sp.common.core.controller.BaseController;
 import com.sp.common.core.domain.AjaxResult;
 import com.sp.common.enums.BusinessType;
 import com.sp.common.exception.DuplicateSubmissionException;
+import com.sp.framework.interceptor.TokenInterceptor;
 import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.vo.NotificationWithReadStatusVO;
 import com.sp.system.entity.vo.SubmitAnswersVO;
@@ -12,7 +13,6 @@ import com.sp.system.service.INotificationAnswerService;
 import com.sp.system.service.INotificationService;
 import com.sp.system.service.INotificationUserReadRecordService;
 import com.sp.system.service.IParentStudentRelationService;
-import com.sp.system.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  * 家校通知Controller
+ * parentUserId 由 TokenInterceptor 解析後注入 request attribute，Controller 直接取用
  */
 @RestController
 @RequestMapping("/system/notice")
@@ -38,13 +39,15 @@ public class ParentNoticeController extends BaseController {
     private INotificationUserReadRecordService notificationUserReadRecordService;
 
     @Autowired
-    private TokenService tokenService;
-
-    @Autowired
     private INotificationAnswerService notificationAnswerService;
 
     @Autowired
     private IParentStudentRelationService parentStudentRelationService;
+
+    /** 從 request attribute 取得已驗證的 parentUserId */
+    private String getParentUserId() {
+        return (String) getRequest().getAttribute(TokenInterceptor.PARENT_USER_ID_ATTR);
+    }
 
     /**
      * 查询发送给当前家长的已发布通知列表（附带阅读状态）
@@ -55,15 +58,13 @@ public class ParentNoticeController extends BaseController {
             @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
         try {
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
-            // 仅返回发送给当前用户的通知，附带阅读状态
             List<NotificationWithReadStatusVO> notifications =
                     notificationUserReadRecordService.getPublishedNotificationsForUser(pageNum, pageSize, parentUserId);
-            // 查询总数
             int total = notificationUserReadRecordService.countPublishedNotificationsForUser(parentUserId);
 
             Map<String, Object> result = new HashMap<>();
@@ -87,16 +88,14 @@ public class ParentNoticeController extends BaseController {
     @GetMapping("/unreadCount")
     public AjaxResult getUnreadCount() {
         try {
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
             int unreadCount = notificationUserReadRecordService.countUnreadNotificationsForUser(parentUserId);
-            
             Map<String, Object> result = new HashMap<>();
             result.put("unreadCount", unreadCount);
-
             return AjaxResult.success(result);
         } catch (Exception e) {
             logger.error("获取未读通知数量失败: {}", e.getMessage());
@@ -111,7 +110,7 @@ public class ParentNoticeController extends BaseController {
     @GetMapping("/{notificationId}")
     public AjaxResult getInfo(@PathVariable("notificationId") Long notificationId) {
         try {
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
@@ -122,7 +121,6 @@ public class ParentNoticeController extends BaseController {
                 return AjaxResult.error("通知不存在");
             }
 
-            // 根据家长ID获取学生ID，查询该学生对当前通知的回答
             String studentUserId = notificationAnswerService.getStudentUserIdByParentId(parentUserId);
             NotificationAnswer userAnswer = notificationAnswerService.getUserAnswer(notificationId, studentUserId);
 
@@ -151,11 +149,10 @@ public class ParentNoticeController extends BaseController {
     @PostMapping("/{notificationId}/read")
     public AjaxResult markAsRead(@PathVariable("notificationId") Long notificationId) {
         try {
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
-            // 标记已读
             notificationUserReadRecordService.markAsRead(notificationId, parentUserId);
             return AjaxResult.success("已标记为已读");
         } catch (Exception e) {
@@ -173,7 +170,7 @@ public class ParentNoticeController extends BaseController {
             @PathVariable("notificationId") Long notificationId,
             @RequestBody SubmitAnswersVO submitAnswersVO) {
         try {
-            String parentUserId = tokenService.getParentUserIdFromRequest(getRequest());
+            String parentUserId = getParentUserId();
             if (parentUserId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
@@ -185,9 +182,7 @@ public class ParentNoticeController extends BaseController {
             String userType = "2"; // 2表示家长
             int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), parentUserId, userType);
 
-            // 提交成功后，更新阅读记录的回复状态与回复时间
             notificationUserReadRecordService.markAsReplied(notificationId, parentUserId);
-
             logger.info("用户 {} 提交通知 {} 的回答", parentUserId, notificationId);
 
             Map<String, Object> result = new HashMap<>();

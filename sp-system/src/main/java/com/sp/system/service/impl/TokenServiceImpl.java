@@ -28,12 +28,6 @@ public class TokenServiceImpl implements TokenService {
     
     @Value("${sp.token.expireTime}")
     private int expireTimeInDays;
-    
-    @Value("${sp.token.enabled}")
-    private boolean tokenEnabled;
-
-    @Value("${sp.token.parentUserId}")
-    private String parentUserId;
 
     @Override
     @Transactional
@@ -140,45 +134,5 @@ public class TokenServiceImpl implements TokenService {
         }
         
         return token.getParentUserId();
-    }
-
-    @Override
-    @Transactional
-    public String getParentUserIdFromRequest(HttpServletRequest request) {
-        // 根据配置判断是否启用token验证
-        if (!tokenEnabled) {
-            // 如果token验证被禁用，返回null或默认值
-            logger.info("Token验证已禁用，跳过token验证，使用測試parentUserId：{}", parentUserId);
-            // 返回一个默认的parentUserId
-            return parentUserId;
-        }
-        
-        try {
-            // 从请求头中获取token
-            String token = request.getHeader("Authorization");
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            } else {
-                // 尝试从参数中获取
-                token = request.getParameter("token");
-            }
-
-            if (token == null || token.isEmpty()) {
-                logger.error("验证token失败: 缺少访问令牌");
-                return null;
-            }
-
-            // 验证token是否有效并获取家长ID
-            String parentUserId = getParentUserIdByToken(token);
-            if (parentUserId == null) {
-                logger.error("验证token失败: 无效的访问令牌或用户未登录");
-                return null;
-            }
-            
-            return parentUserId;
-        } catch (Exception e) {
-            logger.error("验证token时发生异常: {}", e.getMessage());
-            return null;
-        }
     }
 }

@@ -6,7 +6,6 @@ import com.sp.system.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -16,44 +15,40 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 /**
- * Token验证拦截器
- *
+ * Token 驗證全局攔截器
+ * - 對所有非 @Anonymous 接口強制驗證 Token（直查資料庫，確保即時準確）
+ * - 驗證通過後將 parentUserId 注入 request attribute，供 Controller 直接取用
  */
 @Component
 public class TokenInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenInterceptor.class);
 
+    /** Controller 取 parentUserId 用的 attribute key */
+    public static final String PARENT_USER_ID_ATTR = "currentParentUserId";
+
     @Autowired
     private TokenService tokenService;
-
-    @Value("${sp.token.enabled}")
-    private boolean tokenEnabled;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestURI = request.getRequestURI();
-        
-        // 明确放行静态资源路径
-        if (requestURI.startsWith("/sp-api/assets/") || 
+
+        // 放行靜態資源
+        if (requestURI.startsWith("/sp-api/assets/") ||
             requestURI.startsWith("/sp-api/dist/") ||
             requestURI.startsWith("/assets/") ||
             requestURI.startsWith("/dist/")) {
             return true;
         }
 
-        // 如果是OPTIONS请求，直接通过
+        // 放行 OPTIONS 預檢請求
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
-        
-        // 如果token验证未启用，直接通过
-        if (!tokenEnabled) {
-            return true;
-        }
 
-        // 如果不是映射到方法直接通过
+        // 不是映射到方法的請求直接放行
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
@@ -61,30 +56,35 @@ public class TokenInterceptor implements HandlerInterceptor {
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         Method method = handlerMethod.getMethod();
 
-        // 检查是否有Anonymous注解，有则跳过token验证
-        Anonymous anonymousAnno = method.getAnnotation(Anonymous.class);
-        if (anonymousAnno != null) {
+        // 有 @Anonymous 注解的接口跳過驗證
+        if (method.getAnnotation(Anonymous.class) != null ||
+            handlerMethod.getBeanType().getAnnotation(Anonymous.class) != null) {
             return true;
         }
 
-        // 获取请求头中的token
+        // 從請求頭取 token（支援 Bearer 格式）
         String token = request.getHeader("Authorization");
-        
-        // 处理Bearer token格式
         if (StringUtils.isNotEmpty(token) && token.startsWith("Bearer ")) {
-            token = token.substring(7); // 去掉"Bearer "前缀
+            token = token.substring(7);
         }
 
-        // 验证token
-        if (StringUtils.isEmpty(token) || !tokenService.validateToken(token)) {
+        // 驗證 token 是否存在且未過期（直查資料庫，只查一次）
+        String parentUserId = null;
+        if (StringUtils.isNotEmpty(token)) {
+            parentUserId = tokenService.getParentUserIdByToken(token);
+        }
+
+        if (StringUtils.isEmpty(parentUserId)) {
+            logger.warn("Token 驗證失敗，請求路徑: {}", requestURI);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"code\":401,\"msg\":\"无效的token\"}");
+            response.getWriter().write("{\"code\":401,\"msg\":\"Token 無效或已過期，請重新登錄\"}");
             return false;
         }
-        
-        // 验证成功，记录日志
-        logger.info("Token验证成功，token: {}，请求路径: {}", token, requestURI);
+
+        // 驗證通過，解析 parentUserId 並注入 request attribute，Controller 直接用 request.getAttribute 取得
+        request.setAttribute(PARENT_USER_ID_ATTR, parentUserId);
+        logger.debug("Token 驗證成功，parentUserId: {}，路徑: {}", parentUserId, requestURI);
 
         return true;
     }
