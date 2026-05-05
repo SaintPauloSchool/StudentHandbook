@@ -71,7 +71,8 @@ public class WeChatWorkOAuthController extends BaseController {
                 if (numericUserId == 0) {
                     numericUserId = System.currentTimeMillis();
                 }
-                String token = tokenService.createTokenWithParentUserId(numericUserId, devParentUserId);
+                // 預設模擬登錄的身份為家長，因此 userType 傳入 1
+                String token = tokenService.createTokenWithParentUserId(numericUserId, devParentUserId, 1);
                 logger.info("开发环境模拟登录，生成token: {}", token);
                 response.sendRedirect("/?token=" + token);
                 return;
@@ -121,9 +122,12 @@ public class WeChatWorkOAuthController extends BaseController {
                 }
 
                 String token;
+                // 判断当前用户类型: 1 为家长, 0 为学生
+                int userType = userInfo.containsKey("parent_userid") ? 1 : 0;
+                
                 // 如果是家长用户（在userInfo中直接检查），使用带有parentUserId的方法创建token
-                if (userInfo.containsKey("parent_userid")) {
-                    // 家长用户id
+                if (userType == 1) {
+                    //家长用户id
                     String parentUserId = userInfo.getString("parent_userid");
                     // 验证家长是否绑定了学生（检查是否在sys_department_parent_binding表中有绑定学生）
                     if (!departmentParentBindingService.checkHasBoundStudents(parentUserId)) {
@@ -134,12 +138,12 @@ public class WeChatWorkOAuthController extends BaseController {
                         return;
                     }
 
-                    token = tokenService.createTokenWithParentUserId(numericUserId, parentUserId);
+                    token = tokenService.createTokenWithParentUserId(numericUserId, parentUserId, userType);
                 } else {
-                    token = tokenService.createToken(numericUserId);
+                    token = tokenService.createToken(numericUserId, userType);
                 }
 
-                logger.info("用户 {} 目前使用token: {}", numericUserId, token);
+                logger.info("用户 {} (类型: {}) 目前使用token: {}", numericUserId, userType == 1 ? "家长" : "学生", token);
 
                 // 重定向到前端页面
                 response.sendRedirect("/?token=" + token);

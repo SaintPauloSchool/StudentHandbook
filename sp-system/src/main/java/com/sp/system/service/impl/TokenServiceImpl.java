@@ -59,7 +59,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     @Transactional
-    public String createToken(Long userId) {
+    public String createToken(Long userId, Integer userType) {
         // 先删除该用户之前的token
         this.tokenMapper.deleteByUserId(userId);
 
@@ -68,6 +68,7 @@ public class TokenServiceImpl implements TokenService {
 
         Token token = new Token();
         token.setUserId(userId);
+        token.setUserType(userType);
         token.setToken(tokenValue);
         token.setCreateTime(LocalDateTime.now());
         token.setUpdateTime(LocalDateTime.now());
@@ -84,15 +85,16 @@ public class TokenServiceImpl implements TokenService {
      *
      * @param userId 用户ID
      * @param parentUserId 家长用户ID
+     * @param userType 用户类型 (1: parent, 0: student)
      * @return token值
      */
     @Transactional
-    public String createTokenWithParentUserId(Long userId, String parentUserId) {
+    public String createTokenWithParentUserId(Long userId, String parentUserId, Integer userType) {
         // 先检查该parentUserId是否存在未过期的token
         Token existingToken = this.tokenMapper.selectValidTokenByParentUserId(parentUserId);
         // 如果存在未过期的token，返回现有的token
         if (existingToken != null) {
-            logger.info("用户parentUserId： {} ， 返回token: {}", parentUserId, existingToken);
+            logger.info("用户parentUserId： {} ， 返回token: {}", parentUserId, existingToken.getToken());
             return existingToken.getToken();
         }
         
@@ -105,6 +107,7 @@ public class TokenServiceImpl implements TokenService {
         Token token = new Token();
         token.setUserId(userId);
         token.setParentUserId(parentUserId);
+        token.setUserType(userType);
         token.setToken(tokenValue);
         token.setCreateTime(LocalDateTime.now());
         token.setUpdateTime(LocalDateTime.now());

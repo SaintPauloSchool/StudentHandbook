@@ -20,6 +20,9 @@ public class Token extends BaseEntity {
     /** 家长用户ID */
     private String parentUserId;
 
+    /** 用户类型 (1: parent, 0: student) */
+    private Integer userType;
+
     /** Token值 */
     private String token;
 
@@ -48,6 +51,14 @@ public class Token extends BaseEntity {
 
     public void setParentUserId(String parentUserId) {
         this.parentUserId = parentUserId;
+    }
+
+    public Integer getUserType() {
+        return userType;
+    }
+
+    public void setUserType(Integer userType) {
+        this.userType = userType;
     }
 
     public String getToken() {

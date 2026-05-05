@@ -19,18 +19,20 @@ public interface TokenService {
      * 创建新的token
      *
      * @param userId 用户ID
+     * @param userType 用户类型 (1: parent, 0: student)
      * @return token值
      */
-    String createToken(Long userId);
+    String createToken(Long userId, Integer userType);
 
     /**
      * 为家长用户创建token
      *
      * @param userId 用户ID
      * @param parentUserId 家长用户ID
+     * @param userType 用户类型 (1: parent, 0: student)
      * @return token值
      */
-    String createTokenWithParentUserId(Long userId, String parentUserId);
+    String createTokenWithParentUserId(Long userId, String parentUserId, Integer userType);
     
     /**
      * 根据token值获取家长用户ID
