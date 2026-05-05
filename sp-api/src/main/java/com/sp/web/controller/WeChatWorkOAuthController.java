@@ -10,6 +10,7 @@ import com.sp.system.service.DepartmentParentBindingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +35,12 @@ public class WeChatWorkOAuthController extends BaseController {
     @Autowired
     private DepartmentParentBindingService departmentParentBindingService;
 
+    @Value("${sp.token.parentUserId}")
+    private String devParentUserId;
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     /**
      * 企业微信授权回调处理
      * 此接口专门用于处理企业微信应用的网页授权回调
@@ -54,6 +61,22 @@ public class WeChatWorkOAuthController extends BaseController {
         logger.info("接收到企业微信授权回调，code: {}, state: {}", code, state);
 
         try {
+            // 如果是在开发环境中，直接返回预设的parentUserId生成的Token
+            if ("dev".equals(activeProfile)) {
+                logger.info("開發環境模擬登錄，使用配置的 parentUserId: {}", devParentUserId);
+                long numericUserId = devParentUserId.hashCode();
+                if (numericUserId < 0) {
+                    numericUserId = Math.abs(numericUserId);
+                }
+                if (numericUserId == 0) {
+                    numericUserId = System.currentTimeMillis();
+                }
+                String token = tokenService.createTokenWithParentUserId(numericUserId, devParentUserId);
+                logger.info("开发环境模拟登录，生成token: {}", token);
+                response.sendRedirect("/?token=" + token);
+                return;
+            }
+
             // 对于微信用户测试功能，我们允许特定的state值
             boolean isWechatTest = "wechat_test".equals(state);
             boolean isDefault = "default".equals(state);
@@ -78,8 +101,8 @@ public class WeChatWorkOAuthController extends BaseController {
             // 检查是否包含家长(parent_userid)或学生(student_userid)信息
             if (userInfo.containsKey("parent_userid") || userInfo.containsKey("student_userid")) {
                 // 获取用户信息成功
-                String userId = userInfo.containsKey("parent_userid") ?
-                        userInfo.getString("parent_userid") : userInfo.getString("student_userid");
+                String userId = userInfo.containsKey("parent_userid") ? userInfo.getString("parent_userid")
+                        : userInfo.getString("student_userid");
                 logger.info("處理授權用戶，用戶ID: {}", userId);
 
                 // 清除临时session数据（如果不是测试情况和默认情况）
@@ -100,7 +123,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 String token;
                 // 如果是家长用户（在userInfo中直接检查），使用带有parentUserId的方法创建token
                 if (userInfo.containsKey("parent_userid")) {
-                    //家长用户id
+                    // 家长用户id
                     String parentUserId = userInfo.getString("parent_userid");
                     // 验证家长是否绑定了学生（检查是否在sys_department_parent_binding表中有绑定学生）
                     if (!departmentParentBindingService.checkHasBoundStudents(parentUserId)) {

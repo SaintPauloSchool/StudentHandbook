@@ -26,6 +26,7 @@
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 导入全局配置设置
+import { baseURL } from '@/config/api.js' // 导入 API 基础路径
 
 export default {
   name: 'Login',
@@ -101,7 +102,7 @@ export default {
         this.loginLoading = true;
 
         try {
-          const response = await service.get(`/wechat/oauth/callback?code=${code}&state=${state || 'default'}`);
+          const response = await service.get(`${baseURL}/wechat/oauth/callback?code=${code}&state=${state || 'default'}`);
 
           if (response.data.code === 200) {
             // 由于request.js中的响应拦截器已经处理了token的保存
@@ -149,6 +150,14 @@ export default {
 
     // 自动微信登录
     async autoWechatLogin() {
+      // 如果是開發環境，直接調用模擬的 callback，透過 code=dev 讓後端返回配置的 token
+      if (import.meta.env.MODE === 'development') {
+        console.log('在開發環境中，直接跳轉到模擬登錄');
+        this.loginLoading = true;
+        window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=dev';
+        return;
+      }
+
       // 检查是否在微信环境中
       const isWeChat = navigator.userAgent.includes('MicroMessenger');
 
@@ -167,11 +176,10 @@ export default {
     async getWeChatUserInfoByOAuth() {
       try {
         console.log('构建微信授权链接');
-        // 使用当前页面的URL作为回调地址，这样可以捕获授权后的code
-        const redirectUri = encodeURIComponent('https://mo-stu-sys.org-assistant.com/sp-api/wechat/oauth/callback');
-        // 使用配置的corpid和agentId
-        const corpId = 'ww04fad852e91fd490'; // 企业微信应用ID
-        const agentId = '1000033'; // 企业微信应用agentId
+        // 从配置文件中读取企业微信相关参数
+        const redirectUri = encodeURIComponent(settings.wechat.redirectUri);
+        const corpId = settings.wechat.corpId;
+        const agentId = settings.wechat.agentId;
 
         // 构造适合手机端的企业微信OAuth2授权链接，使用默认状态
         const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;

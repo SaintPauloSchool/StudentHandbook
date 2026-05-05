@@ -20,7 +20,10 @@ sp:
     expireTime: 7
     # 如果是dev開發時，請加上parentUserId數據測試，以便於調試家長學生關係相關功能
     parentUserId: e4634d7bc64afa3e3462c6d6e4f6fd74
-
+  # app交互秘钥
+  appSecret: HVc1D4MU69UDMr1g
+  # app交互时间误差范围(毫秒)
+  apiTimeRange: 300000
 # 开发环境配置
 server:
   # 服务器的HTTP端口，默认为8003
@@ -58,13 +61,6 @@ logging:
   level:
     com.sp: debug
     org.springframework: warn
-
-# 用户配置
-user:
-  password:
-  # 密码错误{maxRetryCount}次锁定10分钟
-  indexUrl: /index
-
 
 # Spring配置
 spring:

@@ -30,10 +30,9 @@ export default defineConfig(({ mode }) => {
         server: {
             port: 3000,
             proxy: {
-                '/api': {
+                '/sp-api': {
                     target: 'http://localhost:8002',
-                    changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/api/, '/sp-api')
+                    changeOrigin: true
                 }
             }
         },

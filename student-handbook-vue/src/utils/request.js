@@ -2,14 +2,23 @@
 import axios from 'axios'
 import {ElMessage} from 'element-plus' // 导入Element Plus的消息组件
 import settings from '@/config/settings' // 导入全局配置设置
+import MD5 from 'crypto-js/md5' // 导入 MD5 用于计算签名
+
+// 生成唯一标识符(UUID的简易实现)
+const generateNonce = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID().replace(/-/g, '');
+    }
+    return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
 
 // 创建axios实例
 const getBaseURL = () => {
-    // 在测试环境中，API请求的baseURL应该是空的，因为API_ENDPOINTS已经包含了完整的路径
-    if (import.meta.env.MODE === 'test') {
-        return '';
-    }
-    return import.meta.env.VITE_API_BASE_URL || '';
+    // API_ENDPOINTS已经包含了完整的路径，所以这里只需要返回空字串
+    return '';
 };
 
 const service = axios.create({
@@ -28,6 +37,17 @@ service.interceptors.request.use(
                 config.headers['Authorization'] = 'Bearer ' + token
             }
         }
+        
+        // API 安全校驗拦截器
+        const timestamp = Date.now().toString();
+        const nonce = generateNonce();
+        const appSecret = settings.appSecret;
+        const signature = MD5(appSecret + timestamp + nonce).toString();
+
+        config.headers['x-timestamp'] = timestamp;
+        config.headers['x-nonces'] = nonce;
+        config.headers['x-signature'] = signature;
+
         return config
     },
     error => {

@@ -13,15 +13,9 @@ const apiEndpoints = {
     NOTICE_UNREAD_COUNT: '/system/notice/unreadCount'  // GET 获取未读通知数量
 };
 
-// 获取基础URL - 从环境变量读取或者使用默认值
+// 获取基础URL - 统一使用 /sp-api 前缀，匹配 Nginx 与 Vite 的 proxy 设定
 const getBaseURL = () => {
-    const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    if (envBaseUrl !== undefined && envBaseUrl !== null && envBaseUrl !== '') {
-        // 确保URL末尾没有斜杠
-        return envBaseUrl.endsWith('/') ? envBaseUrl.slice(0, -1) : envBaseUrl;
-    }
-    // 默认值 - 使用/api前缀用于开发环境，生产环境使用/sp-api前缀
-    return import.meta.env.MODE === 'production' ? '/sp-api' : '/api';
+    return '/sp-api';
 };
 
 // 构建完整的API端点URL

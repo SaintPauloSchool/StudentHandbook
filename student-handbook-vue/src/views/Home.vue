@@ -126,6 +126,8 @@ export default {
       const url = token
         ? `${settings.campusSystemUrl}?token=${encodeURIComponent(token)}`
         : settings.campusSystemUrl;
+        
+      console.log('即將跳轉到校園系統，URL:', url);
       window.open(url, '_blank');
     },
   }
