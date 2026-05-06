@@ -53,42 +53,12 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     @Transactional
-    public String createToken(Long userId, Integer userType) {
-        // 先删除该用户之前的token
-        this.tokenMapper.deleteByUserId(userId);
-
-        // 创建新token
-        String tokenValue = UUID.randomUUID().toString();
-
-        Token token = new Token();
-        token.setUserId(userId);
-        token.setUserType(userType);
-        token.setToken(tokenValue);
-        token.setCreateTime(LocalDateTime.now());
-        token.setUpdateTime(LocalDateTime.now());
-        token.setExpireTime(LocalDateTime.now().plusDays(expireTimeInDays));
-
-        // 使用自定义的insertToken方法
-        this.tokenMapper.insertToken(token);
-
-        return tokenValue;
-    }
-    
-    /**
-     * 为家长用户创建token
-     *
-     * @param userId 用户ID
-     * @param parentUserId 家长用户ID
-     * @param userType 用户类型 (1: parent, 0: student)
-     * @return token值
-     */
-    @Transactional
-    public String createTokenWithParentUserId(Long userId, String parentUserId, Integer userType) {
-        // 先检查该parentUserId是否存在未过期的token
-        Token existingToken = this.tokenMapper.selectValidTokenByParentUserId(parentUserId);
+    public String createToken(String userId, Integer userType) {
+        // 先检查该userId是否存在未过期的token
+        Token existingToken = this.tokenMapper.selectValidTokenByUserId(userId);
         // 如果存在未过期的token，返回现有的token
         if (existingToken != null) {
-            logger.info("用户parentUserId： {} ， 返回token: {}", parentUserId, existingToken.getToken());
+            logger.info("用户userId： {} ， 返回token: {}", userId, existingToken.getToken());
             return existingToken.getToken();
         }
         
@@ -100,7 +70,6 @@ public class TokenServiceImpl implements TokenService {
 
         Token token = new Token();
         token.setUserId(userId);
-        token.setParentUserId(parentUserId);
         token.setUserType(userType);
         token.setToken(tokenValue);
         token.setCreateTime(LocalDateTime.now());
@@ -110,13 +79,13 @@ public class TokenServiceImpl implements TokenService {
         // 使用自定义的insertToken方法
         this.tokenMapper.insertToken(token);
 
-        logger.info("用户parentUserId： {} ， 生成token: {}", parentUserId, tokenValue);
+        logger.info("用户userId： {} ， 生成token: {}", userId, tokenValue);
         return tokenValue;
     }
     
     @Override
     @Transactional
-    public String getParentUserIdByToken(String tokenValue) {
+    public String getUserIdByToken(String tokenValue) {
         if (tokenValue == null || tokenValue.isEmpty()) {
             return null;
         }
@@ -133,6 +102,6 @@ public class TokenServiceImpl implements TokenService {
             return null;
         }
         
-        return token.getParentUserId();
+        return token.getUserId();
     }
 }

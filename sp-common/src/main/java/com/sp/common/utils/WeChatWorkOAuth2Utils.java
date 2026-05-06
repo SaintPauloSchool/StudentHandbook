@@ -35,6 +35,8 @@ public class WeChatWorkOAuth2Utils {
     private static final String AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize";
     private static final String TOKEN_URL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken";
     private static final String USER_INFO_URL = "https://qyapi.weixin.qq.com/cgi-bin/school/getuserinfo";
+    private static final String AUTH_USER_INFO_URL = "https://qyapi.weixin.qq.com/cgi-bin/auth/getuserinfo";
+    private static final String USER_GET_URL = "https://qyapi.weixin.qq.com/cgi-bin/user/get";
     
     /**
      * 构造授权链接
@@ -107,12 +109,12 @@ public class WeChatWorkOAuth2Utils {
         urlBuilder.append("?access_token=").append(accessToken);
         urlBuilder.append("&code=").append(code);
         
-        logger.info("准备获取家校用户信息，URL: {}", urlBuilder.toString());
+        logger.info("准备获取家校用户信息，URL: {}", urlBuilder);
         
         String response = HttpUtils.sendGet(urlBuilder.toString());
-        logger.info("获取家校用户信息响应长度: {}", response != null ? response.length() : 0);
+        logger.info("获取家校用户信息响应长度: {}", response.length());
         
-        if (response == null || response.isEmpty()) {
+        if (response.isEmpty()) {
             logger.error("获取家校用户信息失败，响应为空");
             throw new Exception("获取家校用户信息失败，响应为空");
         }
@@ -120,6 +122,74 @@ public class WeChatWorkOAuth2Utils {
         JSONObject jsonObject = JSONObject.parseObject(response);
         logger.info("获取家校用户信息结果: {}", jsonObject.toJSONString());
         return jsonObject;
+    }
+    
+    /**
+     * 根据code获取访问用户身份（企业微信成员信息）
+     * @param code 通过成员授权获取的code，最大为512字节。每次成员授权带上的code将不一样，code只能使用一次，5分钟未被使用自动过期。
+     * @return 用户身份信息（包含userid、openid等）
+     * @throws Exception 获取失败时抛出异常
+     */
+    public JSONObject getAuthUserInfo(String code) throws Exception {
+        String accessToken = getAccessToken();
+        
+        StringBuilder urlBuilder = new StringBuilder(AUTH_USER_INFO_URL);
+        urlBuilder.append("?access_token=").append(accessToken);
+        urlBuilder.append("&code=").append(code);
+        
+        logger.info("准备获取访问用户身份信息，URL: {}", urlBuilder);
+        
+        String response = HttpUtils.sendGet(urlBuilder.toString());
+        logger.info("获取访问用户身份信息响应长度: {}", response.length());
+        
+        if (response.isEmpty()) {
+            logger.error("获取访问用户身份信息失败，响应为空");
+            throw new Exception("获取访问用户身份信息失败，响应为空");
+        }
+        
+        JSONObject jsonObject = JSONObject.parseObject(response);
+        // 只打印返回结果数据，不做其他操作
+        logger.info("获取访问wecom用户身份信息结果: {}", jsonObject.toJSONString());
+        
+        // 如果获取成功且包含userid，则调用读取成员接口获取详细信息
+        if (jsonObject.getInteger("errcode") == 0 && jsonObject.containsKey("userid")) {
+            // 获取userid
+            String userid = jsonObject.getString("userid");
+            logger.info("获取到userid: {}，开始调用读取成员接口", userid);
+            
+            // 调用读取成员接口
+            StringBuilder userGetUrl = new StringBuilder(USER_GET_URL);
+            userGetUrl.append("?access_token=").append(accessToken);
+            userGetUrl.append("&userid=").append(userid);
+            
+            logger.info("准备获取成员详细信息，URL: {}", userGetUrl);
+            
+            String userResponse = HttpUtils.sendGet(userGetUrl.toString());
+            logger.info("获取成员详细信息响应长度: {}", userResponse.length());
+            
+            if (!userResponse.isEmpty()) {
+                JSONObject userDetail = JSONObject.parseObject(userResponse);
+                // 打印返回结果数据
+                logger.info("获取成员详细信息结果: {}", userDetail.toJSONString());
+                
+                // 直接返回详细的成员信息（包含status等字段）
+                if (userDetail.getInteger("errcode") == 0) {
+                    logger.info("返回详细成员信息");
+                    return userDetail;
+                } else {
+                    String errorMsg = "获取成员详细信息失败: " + userDetail.getString("errmsg");
+                    logger.error(errorMsg);
+                    throw new Exception(errorMsg);
+                }
+            } else {
+                logger.error("获取成员详细信息失败，响应为空");
+                throw new Exception("获取成员详细信息失败，响应为空");
+            }
+        } else {
+            String errorMsg = "获取访问用户身份信息失败: " + jsonObject.getString("errmsg");
+            logger.error(errorMsg);
+            throw new Exception(errorMsg);
+        }
     }
     
     /**

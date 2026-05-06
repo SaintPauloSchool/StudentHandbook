@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * 家校通知Controller
- * parentUserId 由 TokenInterceptor 解析後注入 request attribute，Controller 直接取用
+ * userId 由 TokenInterceptor 解析後注入 request attribute，Controller 直接取用
  */
 @RestController
 @RequestMapping("/system/notice")
@@ -44,9 +44,9 @@ public class ParentNoticeController extends BaseController {
     @Autowired
     private IParentStudentRelationService parentStudentRelationService;
 
-    /** 從 request attribute 取得已驗證的 parentUserId */
-    private String getParentUserId() {
-        return (String) getRequest().getAttribute(TokenInterceptor.PARENT_USER_ID_ATTR);
+    /** 從 request attribute 取得已驗證的 userId */
+    private String getUserId() {
+        return (String) getRequest().getAttribute(TokenInterceptor.USER_ID_ATTR);
     }
 
     /**
@@ -58,14 +58,14 @@ public class ParentNoticeController extends BaseController {
             @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
         try {
-            String parentUserId = getParentUserId();
-            if (parentUserId == null) {
+            String userId = getUserId();
+            if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
             List<NotificationWithReadStatusVO> notifications =
-                    notificationUserReadRecordService.getPublishedNotificationsForUser(pageNum, pageSize, parentUserId);
-            int total = notificationUserReadRecordService.countPublishedNotificationsForUser(parentUserId);
+                    notificationUserReadRecordService.getPublishedNotificationsForUser(pageNum, pageSize, userId);
+            int total = notificationUserReadRecordService.countPublishedNotificationsForUser(userId);
 
             Map<String, Object> result = new HashMap<>();
             result.put("list", notifications);
@@ -88,12 +88,12 @@ public class ParentNoticeController extends BaseController {
     @GetMapping("/unreadCount")
     public AjaxResult getUnreadCount() {
         try {
-            String parentUserId = getParentUserId();
-            if (parentUserId == null) {
+            String userId = getUserId();
+            if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
-            int unreadCount = notificationUserReadRecordService.countUnreadNotificationsForUser(parentUserId);
+            int unreadCount = notificationUserReadRecordService.countUnreadNotificationsForUser(userId);
             Map<String, Object> result = new HashMap<>();
             result.put("unreadCount", unreadCount);
             return AjaxResult.success(result);
@@ -110,8 +110,8 @@ public class ParentNoticeController extends BaseController {
     @GetMapping("/{notificationId}")
     public AjaxResult getInfo(@PathVariable("notificationId") Long notificationId) {
         try {
-            String parentUserId = getParentUserId();
-            if (parentUserId == null) {
+            String userId = getUserId();
+            if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
@@ -121,7 +121,7 @@ public class ParentNoticeController extends BaseController {
                 return AjaxResult.error("通知不存在");
             }
 
-            String studentUserId = notificationAnswerService.getStudentUserIdByParentId(parentUserId);
+            String studentUserId = notificationAnswerService.getStudentUserIdByParentId(userId);
             NotificationAnswer userAnswer = notificationAnswerService.getUserAnswer(notificationId, studentUserId);
 
             if (userAnswer != null) {
@@ -149,11 +149,11 @@ public class ParentNoticeController extends BaseController {
     @PostMapping("/{notificationId}/read")
     public AjaxResult markAsRead(@PathVariable("notificationId") Long notificationId) {
         try {
-            String parentUserId = getParentUserId();
-            if (parentUserId == null) {
+            String userId = getUserId();
+            if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
-            notificationUserReadRecordService.markAsRead(notificationId, parentUserId);
+            notificationUserReadRecordService.markAsRead(notificationId, userId);
             return AjaxResult.success("已标记为已读");
         } catch (Exception e) {
             logger.error("标记已读失败: {}", e.getMessage());
@@ -170,8 +170,8 @@ public class ParentNoticeController extends BaseController {
             @PathVariable("notificationId") Long notificationId,
             @RequestBody SubmitAnswersVO submitAnswersVO) {
         try {
-            String parentUserId = getParentUserId();
-            if (parentUserId == null) {
+            String userId = getUserId();
+            if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
@@ -180,10 +180,10 @@ public class ParentNoticeController extends BaseController {
             }
 
             String userType = "2"; // 2表示家长
-            int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), parentUserId, userType);
+            int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), userId, userType);
 
-            notificationUserReadRecordService.markAsReplied(notificationId, parentUserId);
-            logger.info("用户 {} 提交通知 {} 的回答", parentUserId, notificationId);
+            notificationUserReadRecordService.markAsReplied(notificationId, userId);
+            logger.info("用户 {} 提交通知 {} 的回答", userId, notificationId);
 
             Map<String, Object> result = new HashMap<>();
             result.put("count", count);

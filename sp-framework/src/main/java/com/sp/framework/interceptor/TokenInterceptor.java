@@ -17,15 +17,15 @@ import java.lang.reflect.Method;
 /**
  * Token 驗證全局攔截器
  * - 對所有非 @Anonymous 接口強制驗證 Token（直查資料庫，確保即時準確）
- * - 驗證通過後將 parentUserId 注入 request attribute，供 Controller 直接取用
+ * - 驗證通過後將 userId 注入 request attribute，供 Controller 直接取用
  */
 @Component
 public class TokenInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenInterceptor.class);
 
-    /** Controller 取 parentUserId 用的 attribute key */
-    public static final String PARENT_USER_ID_ATTR = "currentParentUserId";
+    /** Controller 取 userId 用的 attribute key */
+    public static final String USER_ID_ATTR = "currentUserId";
 
     @Autowired
     private TokenService tokenService;
@@ -69,12 +69,12 @@ public class TokenInterceptor implements HandlerInterceptor {
         }
 
         // 驗證 token 是否存在且未過期（直查資料庫，只查一次）
-        String parentUserId = null;
+        String userId = null;
         if (StringUtils.isNotEmpty(token)) {
-            parentUserId = tokenService.getParentUserIdByToken(token);
+            userId = tokenService.getUserIdByToken(token);
         }
 
-        if (StringUtils.isEmpty(parentUserId)) {
+        if (StringUtils.isEmpty(userId)) {
             logger.warn("Token 驗證失敗，請求路徑: {}", requestURI);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
@@ -82,9 +82,9 @@ public class TokenInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 驗證通過，解析 parentUserId 並注入 request attribute，Controller 直接用 request.getAttribute 取得
-        request.setAttribute(PARENT_USER_ID_ATTR, parentUserId);
-        logger.debug("Token 驗證成功，parentUserId: {}，路徑: {}", parentUserId, requestURI);
+        // 驗證通過，解析 userId 並注入 request attribute，Controller 直接用 request.getAttribute 取得
+        request.setAttribute(USER_ID_ATTR, userId);
+        logger.debug("Token 驗證成功，userId: {}，路徑: {}", userId, requestURI);
 
         return true;
     }

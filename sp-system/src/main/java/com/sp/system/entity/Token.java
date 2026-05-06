@@ -15,12 +15,9 @@ public class Token extends BaseEntity {
     private Long id;
 
     /** 用户ID */
-    private Long userId;
+    private String userId;
 
-    /** 家长用户ID */
-    private String parentUserId;
-
-    /** 用户类型 (1: parent, 0: student) */
+    /** 用户类型 (1: parent, 0: student, 2: staff) */
     private Integer userType;
 
     /** Token值 */
@@ -37,20 +34,12 @@ public class Token extends BaseEntity {
         this.id = id;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
-    }
-
-    public String getParentUserId() {
-        return parentUserId;
-    }
-
-    public void setParentUserId(String parentUserId) {
-        this.parentUserId = parentUserId;
     }
 
     public Integer getUserType() {

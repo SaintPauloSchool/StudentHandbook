@@ -7,7 +7,6 @@
     <resultMap type="com.sp.system.entity.Token" id="TokenResult">
         <id     property="id"        column="id"        />
         <result property="userId"    column="user_id"   />
-        <result property="parentUserId"    column="parent_user_id"   />
         <result property="userType"     column="user_type" />
         <result property="token"     column="token"     />
         <result property="expireTime" column="expire_time" />
@@ -16,28 +15,28 @@
     </resultMap>
 
     <select id="selectByTokenValue" parameterType="string" resultMap="TokenResult">
-        select id, user_id, parent_user_id, user_type, token, expire_time, create_time, update_time
+        select id, user_id, user_type, token, expire_time, create_time, update_time
         from sys_token
         where token = #{tokenValue}
     </select>
 
-    <delete id="deleteByUserId" parameterType="long">
+    <delete id="deleteByUserId" parameterType="string">
         delete from sys_token where user_id = #{userId}
     </delete>
 
     <insert id="insertToken" parameterType="com.sp.system.entity.Token">
-        insert into sys_token (user_id, parent_user_id, user_type, token, expire_time, create_time, update_time)
-        values (#{userId}, #{parentUserId}, #{userType}, #{token}, #{expireTime}, #{createTime}, #{updateTime})
+        insert into sys_token (user_id, user_type, token, expire_time, create_time, update_time)
+        values (#{userId}, #{userType}, #{token}, #{expireTime}, #{createTime}, #{updateTime})
     </insert>
 
     <delete id="deleteById" parameterType="long">
         delete from sys_token where id = #{id}
     </delete>
     
-    <select id="selectValidTokenByParentUserId" parameterType="string" resultMap="TokenResult">
-        select id, user_id, parent_user_id, user_type, token, expire_time, create_time, update_time
+    <select id="selectValidTokenByUserId" parameterType="string" resultMap="TokenResult">
+        select id, user_id, user_type, token, expire_time, create_time, update_time
         from sys_token
-        where parent_user_id = #{parentUserId} and expire_time > NOW()
+        where user_id = #{userId} and expire_time > NOW()
     </select>
 
 </mapper>

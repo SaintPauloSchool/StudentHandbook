@@ -22,7 +22,7 @@ public interface TokenMapper {
      * @param userId 用户ID
      * @return 删除记录数
      */
-    int deleteByUserId(@Param("userId") Long userId);
+    int deleteByUserId(@Param("userId") String userId);
     
     /**
      * 插入Token信息
@@ -41,10 +41,10 @@ public interface TokenMapper {
     int deleteById(@Param("id") Long id);
     
     /**
-     * 根据家长用户ID查找未过期的Token
+     * 根据用户ID查找未过期的Token
      * 
-     * @param parentUserId 家长用户ID
+     * @param userId 用户ID
      * @return Token信息
      */
-    Token selectValidTokenByParentUserId(@Param("parentUserId") String parentUserId);
+    Token selectValidTokenByUserId(@Param("userId") String userId);
 }
