@@ -8,7 +8,7 @@
     </div>
 
     <div class="buttons-container">
-      <div class="button-wrapper">
+      <div class="button-wrapper" v-if="userType === 0 || userType === 1 || userType === null">
         <button class="feature-button primary-button" @click="goToStudentHandbook">
           <div class="button-content">
             <span class="button-icon">📘</span>
@@ -17,7 +17,7 @@
         </button>
       </div>
 
-      <div class="button-wrapper">
+      <div class="button-wrapper" v-if="userType === 0 || userType === 1 || userType === null">
         <button class="feature-button success-button" @click="goToParentNotice">
           <div class="button-content">
             <span class="button-icon">📢</span>
@@ -27,7 +27,7 @@
         <span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
       </div>
 
-      <div class="button-wrapper">
+      <div class="button-wrapper" v-if="userType === 2 || userType === null">
         <button class="feature-button warning-button" @click="goToCampusSystem">
           <div class="button-content">
             <span class="button-icon">🏫</span>
@@ -48,9 +48,11 @@ import { API_ENDPOINTS, baseURL } from '@/config/api.js' // 导入API端点配�
 export default {
   name: 'Home',
   data() {
+    const cachedUserType = localStorage.getItem('userType');
     return {
       unreadCount: 0, // 未读通知数量
-      isNavigatingToCampus: false // 是否正在跳轉至校園系統
+      isNavigatingToCampus: false, // 是否正在跳轉至校園系統
+      userType: cachedUserType !== null ? parseInt(cachedUserType) : null // 0: 學生, 1: 家長, 2: 員工
     }
   },
   mounted() {
@@ -65,21 +67,35 @@ export default {
 
     // 获取未读通知数量
     this.fetchUnreadCount();
+
+    // 獲取使用者資訊（包含 userType）
+    this.fetchUserInfo();
   },
 
   methods: {
-    // 检查URL参数中的token
+    // 检查URL参数中的token和userType
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
+      const urlUserType = urlParams.get('userType');
 
       if (token) {
         // 保存token到本地存储，同时记录过期时间 (7天)
         localStorage.setItem('token', token);
         localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
+        
+        // 如果URL中有傳遞 userType，直接保存並使用，避免按鈕閃爍
+        if (urlUserType !== null) {
+          this.userType = parseInt(urlUserType);
+          localStorage.setItem('userType', this.userType);
+        } else {
+          localStorage.removeItem('userType'); // 登入時清除舊的 userType
+          this.userType = null;
+        }
 
-        // 清除URL中的token参数，避免在地址栏显示敏感信息
+        // 清除URL中的参数，避免在地址栏显示敏感信息
         urlParams.delete('token');
+        urlParams.delete('userType');
         const newUrl = window.location.pathname +
             (urlParams.toString() ? '?' + urlParams.toString() : '') +
             window.location.hash;
@@ -110,9 +126,7 @@ export default {
     async fetchUnreadCount() {
       try {
         const response = await service.get(API_ENDPOINTS.NOTICE_UNREAD_COUNT);
-        console.log('未读通知API响应:', response); // 调试信息
-        const res = response.data; // 获取实际的响应数据
-        console.log('解析后的响应数据:', res); // 调试信息
+        const res = response.data;
         if (res.code === 200 && res.data) {
           this.unreadCount = res.data.unreadCount || 0;
           console.log('设置未读数量为:', this.unreadCount); // 调试信息
@@ -122,6 +136,22 @@ export default {
       }
     },
     
+    // 獲取使用者資訊
+    async fetchUserInfo() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      try {
+        const response = await service.get(API_ENDPOINTS.VALIDATE_TOKEN);
+        if (response.data.code === 200 && response.data.data) {
+          this.userType = response.data.data.userType;
+          localStorage.setItem('userType', this.userType);
+        }
+      } catch (error) {
+        console.error('獲取使用者資訊失敗:', error);
+      }
+    },
+
     goToStudentHandbook() {
       // 跳轉到學生手冊頁面
       this.$router.push('/handbook');

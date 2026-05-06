@@ -68,7 +68,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 // 預設模擬登錄的身份為家長，因此 userType 傳入 1
                 String token = tokenService.createToken(devParentUserId, 1);
                 logger.info("开发环境模拟登录，生成token: {}", token);
-                response.sendRedirect("/?token=" + token);
+                response.sendRedirect("/?token=" + token + "&userType=1");
                 return;
             }
 
@@ -155,8 +155,8 @@ public class WeChatWorkOAuthController extends BaseController {
             logger.info("用户 {} (类型: {}) 登录成功，生成token: {}", userId, 
                     userType == 0 ? "学生" : (userType == 1 ? "家长" : "员工"), token);
 
-            // 重定向到前端页面
-            response.sendRedirect("/?token=" + token);
+            // 重定向到前端页面并带上 userType，方便前端立刻决定显示哪些按钮
+            response.sendRedirect("/?token=" + token + "&userType=" + userType);
         } catch (Exception e) {
             logger.error("处理企业微信家校授权回调时发生错误", e);
             try {

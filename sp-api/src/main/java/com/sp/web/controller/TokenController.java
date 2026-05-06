@@ -3,6 +3,7 @@ package com.sp.web.controller;
 import com.sp.common.annotation.Anonymous;
 import com.sp.common.core.controller.BaseController;
 import com.sp.common.core.domain.AjaxResult;
+import com.sp.system.entity.Token;
 import com.sp.system.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Token 相关接口
@@ -40,9 +44,12 @@ public class TokenController extends BaseController {
             if (token == null || token.isEmpty()) {
                 return AjaxResult.error("token_missing");
             }
-            boolean valid = tokenService.validateToken(token);
-            if (valid) {
-                return AjaxResult.success(token);
+            Token tokenEntity = tokenService.getTokenInfo(token);
+            if (tokenEntity != null) {
+                // 安全考量：不要把整個資料庫實體（包含ID、建立時間等）丟給前端，只回傳必要的資訊
+                Map<String, Object> safeData = new HashMap<>();
+                safeData.put("userType", tokenEntity.getUserType());
+                return AjaxResult.success(safeData);
             } else {
                 return AjaxResult.error("token_expired");
             }

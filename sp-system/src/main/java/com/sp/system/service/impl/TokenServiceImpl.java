@@ -32,23 +32,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     @Transactional
     public boolean validateToken(String tokenValue) {
-        if (tokenValue == null || tokenValue.isEmpty()) {
-            return false;
-        }
-
-        Token token = this.tokenMapper.selectByTokenValue(tokenValue);
-        if (token == null) {
-            return false;
-        }
-
-        // 检查token是否过期
-        if (token.getExpireTime().isBefore(LocalDateTime.now())) {
-            // 删除过期token
-            this.tokenMapper.deleteById(token.getId());
-            return false;
-        }
-
-        return true;
+        return getTokenInfo(tokenValue) != null;
     }
 
     @Override
@@ -86,6 +70,13 @@ public class TokenServiceImpl implements TokenService {
     @Override
     @Transactional
     public String getUserIdByToken(String tokenValue) {
+        Token token = getTokenInfo(tokenValue);
+        return token != null ? token.getUserId() : null;
+    }
+
+    @Override
+    @Transactional
+    public Token getTokenInfo(String tokenValue) {
         if (tokenValue == null || tokenValue.isEmpty()) {
             return null;
         }
@@ -102,6 +93,6 @@ public class TokenServiceImpl implements TokenService {
             return null;
         }
         
-        return token.getUserId();
+        return token;
     }
 }
