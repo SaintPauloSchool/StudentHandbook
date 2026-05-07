@@ -16,6 +16,8 @@ export default defineConfig(({ mode }) => {
             }
         },
         build: {
+            // 关闭 sourcemap，防止源码泄漏
+            sourcemap: false,
             // 确保资源路径正确
             assetsDir: 'assets',
             rollupOptions: {
@@ -38,6 +40,10 @@ export default defineConfig(({ mode }) => {
         },
         optimizeDeps: {
             include: ['element-plus']
+        },
+        esbuild: {
+            // 生产环境下移除 console.log 和 debugger
+            drop: mode === 'production' ? ['console', 'debugger'] : []
         }
     }
 })
