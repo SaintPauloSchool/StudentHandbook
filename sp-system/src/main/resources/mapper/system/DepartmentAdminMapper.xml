@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sp.system.mapper.DepartmentAdminMapper">
+
+    <resultMap id="DepartmentAdminResultMap" type="com.sp.system.entity.DepartmentAdmin">
+        <id property="id" column="id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="userid" column="userid"/>
+        <result property="type" column="type"/>
+        <result property="subject" column="subject"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 批量插入部门管理员（忽略重复） -->
+    <insert id="batchInsertDepartmentAdmins" parameterType="java.util.List">
+        INSERT INTO sys_department_admin (department_id, userid, type, subject, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.departmentId}, #{item.userid}, #{item.type}, #{item.subject}, NOW(), NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        type = VALUES(type),
+        subject = VALUES(subject),
+        update_time = NOW()
+    </insert>
+
+</mapper>

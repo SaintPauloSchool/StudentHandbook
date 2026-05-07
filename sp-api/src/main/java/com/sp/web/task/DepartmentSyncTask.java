@@ -5,7 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.sp.common.utils.WeChatWorkSchoolUtils;
 import com.sp.common.utils.http.HttpUtils;
 import com.sp.system.entity.Department;
+import com.sp.system.entity.DepartmentAdmin;
 import com.sp.system.service.DepartmentService;
+import com.sp.system.service.DepartmentAdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class DepartmentSyncTask {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private DepartmentAdminService departmentAdminService;
 
     private static final AtomicBoolean isExecuting = new AtomicBoolean(false);
 
@@ -82,6 +87,35 @@ public class DepartmentSyncTask {
                     // 批量保存部门信息（存在则更新，不存在则新增）
                     departmentService.batchSaveDepartments(departmentsToSave);
                     logger.info("成功同步 {} 个部门信息到数据库", departmentsArray.size());
+
+                    // 解析并保存部门管理员信息
+                    List<DepartmentAdmin> allAdmins = new ArrayList<>();
+                    for (int i = 0; i < departmentsArray.size(); i++) {
+                        JSONObject deptObj = departmentsArray.getJSONObject(i);
+                        JSONArray adminsArray = deptObj.getJSONArray("department_admins");
+                        
+                        if (adminsArray != null && !adminsArray.isEmpty()) {
+                            Long departmentId = deptObj.getLong("id");
+                            
+                            for (int j = 0; j < adminsArray.size(); j++) {
+                                JSONObject adminObj = adminsArray.getJSONObject(j);
+                                
+                                DepartmentAdmin admin = new DepartmentAdmin();
+                                admin.setDepartmentId(departmentId);
+                                admin.setUserid(adminObj.getString("userid"));
+                                admin.setType(adminObj.getInteger("type"));
+                                admin.setSubject(adminObj.getString("subject"));
+                                
+                                allAdmins.add(admin);
+                            }
+                        }
+                    }
+                    
+                    // 批量保存部门管理员信息
+                    if (!allAdmins.isEmpty()) {
+                        departmentAdminService.batchSaveDepartmentAdmins(allAdmins);
+                        logger.info("成功同步 {} 个部门管理员信息到数据库", allAdmins.size());
+                    }
                 } else {
                     logger.info("部门列表为空");
                 }
