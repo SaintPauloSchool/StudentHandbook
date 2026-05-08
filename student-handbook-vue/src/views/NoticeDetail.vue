@@ -365,6 +365,7 @@ import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled } from '@element-plus/icons-vue'
+import settings from '@/config/settings' // 导入全局配置设置
 
 export default {
   name: 'NoticeDetail',
@@ -430,9 +431,60 @@ export default {
   mounted() {
     // 组件挂载时立即滚动到顶部
     window.scrollTo(0, 0)
+    // 加载时获取学生列表，设置默认学生
+    this.loadStudentList()
     this.loadNoticeDetail()
   },
   methods: {
+    // 加载学生列表，设置默认学生
+    async loadStudentList() {
+      try {
+        // 检查是否启用Token验证
+        if (settings.enableTokenAuth) {
+          // 从前端存储获取token
+          const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+          if (!token) {
+            console.warn('未找到token，无法获取学生列表');
+            return;
+          }
+        }
+
+        // 调用后端API获取当前token关联的学生列表
+        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
+
+        if (response.data.code === 200) {
+          const relations = response.data.data;
+
+          if (relations && relations.length > 0) {
+            // 检查localStorage中是否已有选中的学生
+            const savedStudentUserId = localStorage.getItem('currentStudentUserId');
+            if (savedStudentUserId) {
+              // 验证保存的学生ID是否在当前关系中
+              const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
+              if (isValid) {
+                console.log('使用缓存的学生ID:', savedStudentUserId);
+              } else {
+                // 如果缓存的学生ID无效，使用第一个学生
+                localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
+                console.log('缓存的学生ID无效，使用第一个学生:', relations[0].studentUserId);
+              }
+            } else {
+              // 没有缓存，使用第一个学生作为默认
+              localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
+              console.log('设置默认学生:', relations[0].studentUserId);
+            }
+          } else {
+            console.warn('當前帳號未關聯任何學生');
+          }
+        } else {
+          console.error('获取学生列表失败:', response.data.msg);
+        }
+      } catch (error) {
+        console.error('獲取學生列表失敗:', error);
+      }
+    },
+
     // 返回上一页
     goBack() {
       if (window.history.length > 1) {
@@ -982,6 +1034,18 @@ export default {
         const formData = new FormData();
         formData.append('file', file);
         
+        // 获取当前选中的学生ID（从localStorage或sessionStorage）
+        const studentUserId = localStorage.getItem('currentStudentUserId') || sessionStorage.getItem('currentStudentUserId');
+        console.log('当前学生ID:', studentUserId);
+        
+        if (!studentUserId) {
+          this.showToast('請先切換學生後再上傳文件', 'warning');
+          event.target.value = '';
+          return;
+        }
+        
+        formData.append('studentUserId', studentUserId);
+        
         // 调用上传接口（不要手动设置 headers，让 axios 拦截器自动处理）
         const response = await service.post(API_ENDPOINTS.FILE_UPLOAD, formData);
         
@@ -1005,7 +1069,9 @@ export default {
         }
       } catch (error) {
         console.error('文件上傳失敗:', error);
-        this.showToast('文件上傳失敗，請重試', 'error');
+        // 显示后端返回的错误信息
+        const errorMsg = error.response?.data?.msg || error.message || '文件上傳失敗，請重試';
+        this.showToast(errorMsg, 'error');
       } finally {
         // 清空input，允许重复选择同一文件
         event.target.value = '';

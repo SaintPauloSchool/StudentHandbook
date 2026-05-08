@@ -6,10 +6,16 @@
         <el-icon class="back-icon"><HomeFilled /></el-icon>
         返回首頁
       </button>
-      <button class="refresh-button" @click="refreshList" :disabled="loading">
-        <el-icon class="refresh-icon" :class="{ 'rotating': loading }"><Refresh /></el-icon>
-        刷新
-      </button>
+      <div class="header-buttons">
+        <button class="refresh-button" @click="refreshList" :disabled="loading">
+          <el-icon class="refresh-icon" :class="{ 'rotating': loading }"><Refresh /></el-icon>
+          刷新
+        </button>
+        <button class="user-switch-btn" @click="toggleUserMenu">
+          <el-icon class="user-icon"><User /></el-icon>
+          切換學生
+        </button>
+      </div>
     </div>
 
     <!-- 通知列表 -->
@@ -70,6 +76,41 @@
       <div class="loading-spinner"></div>
       <p class="loading-text">加載中...</p>
     </div>
+
+    <!-- 學生選擇對話框 -->
+    <div v-if="studentSelectionDialogVisible" class="custom-modal-overlay" @click="closeStudentSelectionDialog">
+      <div class="custom-student-dialog" @click.stop>
+        <div class="modal-header">
+          <h3>請選擇要切換的學生</h3>
+          <button class="close-btn" @click="closeStudentSelectionDialog">×</button>
+        </div>
+        <div class="student-selection-content">
+          <div class="student-list">
+            <div class="student-options-group">
+              <div
+                  v-for="relation in studentRelations"
+                  :key="relation.studentUserId"
+                  class="student-item-radio"
+                  :class="{ 'selected': selectedStudentUserId === relation.studentUserId }"
+                  @click="selectStudent(relation.studentUserId, relation.studentName)"
+              >
+                <span class="student-name">{{ relation.studentName }}</span>
+              </div>
+            </div>
+            <!-- 学生列表为空时的提示 -->
+            <div v-if="studentRelations.length === 0" class="empty-student-list">
+              <p class="no-student-text">暂无学生数据</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <el-button @click="studentSelectionDialogVisible = false" size="large" class="dialog-cancel-btn">取消
+          </el-button>
+          <el-button type="primary" @click="confirmStudentSwitchTemp" size="large" class="dialog-confirm-btn">確認
+          </el-button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -78,6 +119,7 @@ import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, HomeFilled, Refresh } from '@element-plus/icons-vue'
+import settings from '@/config/settings' // 导入全局配置设置
 
 export default {
   name: 'ParentNotice',
@@ -97,12 +139,20 @@ export default {
       total: 0,
       hasMore: true,
       savedScrollTop: 0, // 保存滚动位置
-      isInitialMount: false // 是否初次挂载
+      isInitialMount: false, // 是否初次挂载
+      
+      // 學生選擇相關
+      studentSelectionDialogVisible: false, // 控制學生選擇對話框顯示
+      selectedStudent: '', // 已選擇的學生姓名（用于显示）
+      selectedStudentUserId: '', // 已選擇的學生ID（用于数据传输）
+      studentRelations: [] // 存儲家長與學生關係的完整數據
     }
   },
   mounted() {
     this.isInitialMount = true
     this.loadNoticeList()
+    // 加载时获取学生列表，设置默认学生
+    this.loadStudentList()
   },
   activated() {
     if (this.isInitialMount) {
@@ -134,6 +184,65 @@ export default {
     }
   },
   methods: {
+    // 加载学生列表，设置默认学生
+    async loadStudentList() {
+      try {
+        // 检查是否启用Token验证
+        if (settings.enableTokenAuth) {
+          // 从前端存储获取token
+          const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+          if (!token) {
+            console.warn('未找到token，无法获取学生列表');
+            return;
+          }
+        }
+
+        // 调用后端API获取当前token关联的学生列表
+        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
+
+        if (response.data.code === 200) {
+          const relations = response.data.data;
+
+          if (relations && relations.length > 0) {
+            // 存储完整的关系数据
+            this.studentRelations = relations;
+            
+            // 检查localStorage中是否已有选中的学生
+            const savedStudentUserId = localStorage.getItem('currentStudentUserId');
+            if (savedStudentUserId) {
+              // 验证保存的学生ID是否在当前关系中
+              const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
+              if (isValid) {
+                this.selectedStudentUserId = savedStudentUserId;
+                const savedRelation = relations.find(r => r.studentUserId === savedStudentUserId);
+                this.selectedStudent = savedRelation ? savedRelation.studentName : '';
+                console.log('使用缓存的学生ID:', savedStudentUserId);
+              } else {
+                // 如果缓存的学生ID无效，使用第一个学生
+                this.selectedStudentUserId = relations[0].studentUserId;
+                this.selectedStudent = relations[0].studentName;
+                localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
+                console.log('缓存的学生ID无效，使用第一个学生:', this.selectedStudentUserId);
+              }
+            } else {
+              // 没有缓存，使用第一个学生作为默认
+              this.selectedStudentUserId = relations[0].studentUserId;
+              this.selectedStudent = relations[0].studentName;
+              localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
+              console.log('设置默认学生:', this.selectedStudentUserId);
+            }
+          } else {
+            console.warn('當前帳號未關聯任何學生');
+          }
+        } else {
+          console.error('获取学生列表失败:', response.data.msg);
+        }
+      } catch (error) {
+        console.error('獲取學生列表失敗:', error);
+      }
+    },
+
     // 返回上一页
     goBack() {
       this.$router.push('/')
@@ -294,6 +403,128 @@ export default {
         console.error('刷新失败:', error)
         ElMessage.error('刷新失敗，請稍後重試')
       }
+    },
+
+    // 切換用戶菜單顯示狀態
+    async toggleUserMenu() {
+      try {
+        // 检查是否启用Token验证
+        if (settings.enableTokenAuth) {
+          // 从前端存储获取token
+          const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+          if (!token) {
+            ElMessage.error('請先登錄獲取訪問令牌');
+            return;
+          }
+        }
+
+        // 调用后端API获取当前token关联的学生列表
+        // token会在axios拦截器中自动添加到请求头
+        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
+
+        if (response.data.code === 200) {
+          const relations = response.data.data;
+
+          if (relations && relations.length > 0) {
+            // 存储完整的关系数据，包含studentName和studentUserId
+            this.studentRelations = relations;
+            
+            // 检查是否有已选中的学生（从localStorage读取）
+            const savedStudentUserId = localStorage.getItem('currentStudentUserId');
+            if (savedStudentUserId) {
+              // 验证保存的学生ID是否在当前关系中
+              const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
+              if (isValid) {
+                // 使用缓存的学生ID
+                const savedRelation = relations.find(r => r.studentUserId === savedStudentUserId);
+                this.selectedStudentUserId = savedStudentUserId;
+                this.selectedStudent = savedRelation ? savedRelation.studentName : '';
+              } else {
+                // 如果缓存的学生ID无效，使用第一个学生
+                this.selectedStudentUserId = relations[0].studentUserId;
+                this.selectedStudent = relations[0].studentName;
+              }
+            } else {
+              // 没有缓存，使用第一个学生
+              this.selectedStudentUserId = relations[0].studentUserId;
+              this.selectedStudent = relations[0].studentName;
+            }
+            
+            this.studentSelectionDialogVisible = true;
+          } else {
+            ElMessage.info('當前帳號未關聯任何學生');
+          }
+        } else {
+          ElMessage.error(response.data.msg || '獲取學生列表失敗');
+        }
+      } catch (error) {
+        console.error('獲取學生列表失敗:', error);
+        ElMessage.error('獲取學生列表失敗: ' + (error.message || '網絡錯誤'));
+      }
+    },
+
+    // 关闭学生选择对话框
+    closeStudentSelectionDialog() {
+      this.studentSelectionDialogVisible = false;
+    },
+
+    // 选择学生
+    selectStudent(studentUserId, studentName) {
+      this.selectedStudentUserId = studentUserId;
+      this.selectedStudent = studentName;
+    },
+
+    // 確認切換學生
+    async confirmStudentSwitchTemp() {
+      if (!this.selectedStudentUserId) {
+        ElMessage.warning('請選擇一個學生');
+        return;
+      }
+
+      try {
+        // 驗證必要數據
+        if (!this.studentRelations?.length || !this.selectedStudent || !this.selectedStudentUserId) {
+          ElMessage.error('學生信息不完整或未加載');
+          return;
+        }
+
+        // 驗證學生關聯關係
+        const isValidStudent = this.studentRelations.some(relation => 
+          relation.studentName === this.selectedStudent && 
+          relation.studentUserId === this.selectedStudentUserId
+        );
+
+        if (!isValidStudent) {
+          ElMessage.error('家長未關聯該學生，無法切換');
+          return;
+        }
+
+        // 調用後端API
+        const response = await service.post(API_ENDPOINTS.SWITCH_STUDENT, {
+          studentName: this.selectedStudent,
+          studentUserId: this.selectedStudentUserId
+        });
+
+        if (response.data.code === 200) {
+          ElMessage.success({
+            message: '已成功切換到學生',
+            duration: 1000
+          });
+          this.studentSelectionDialogVisible = false;
+
+          // 保存当前选中的学生ID到localStorage，供其他页面使用
+          localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
+
+          // 刷新通知列表
+          await this.loadNoticeList(true);
+        } else {
+          ElMessage.error(response.data.msg || '切換學生失敗');
+        }
+      } catch (error) {
+        console.error('切換學生失敗:', error);
+        ElMessage.error('切換學生失敗: ' + (error.message || '未知錯誤'));
+      }
     }
   }
 }
@@ -317,6 +548,12 @@ export default {
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .back-button {
@@ -391,6 +628,34 @@ export default {
   to {
     transform: rotate(360deg);
   }
+}
+
+.user-switch-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
+  border: none;
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.user-switch-btn:hover {
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+}
+
+.user-icon {
+  width: 16px;
+  height: 16px;
 }
 
 /* 通知列表 */
@@ -647,6 +912,15 @@ export default {
     font-size: 14px;
   }
 
+  .user-switch-btn {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .header-buttons {
+    gap: 8px;
+  }
+
   .notice-list {
     padding: 15px;
   }
@@ -662,6 +936,225 @@ export default {
   .notice-content {
     font-size: 14px;
     padding: 10px;
+  }
+}
+
+/* 學生選擇項目的樣式 */
+.student-options-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 5px 0;
+  align-items: stretch;
+}
+
+.student-list {
+  padding: 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none; /* 移除邊框 */
+  max-height: unset; /* 移除最大高度限制 */
+  overflow-y: visible; /* 移除滾動條 */
+}
+
+.empty-student-list {
+  text-align: center;
+  padding: 20px;
+}
+
+.no-student-text {
+  font-weight: bold;
+  text-align: center;
+  font-size: 16px;
+  color: #606266;
+  margin: 0;
+}
+
+.student-item-radio {
+  display: block;
+  width: calc(100% - 20px);
+  max-width: 100%;
+  padding: 12px 16px;
+  margin: 8px 0;
+  border: 1px solid #d1e5f5; /* 添加淡藍色框線 */
+  border-radius: 8px;
+  background: transparent; /* 透明背景 */
+  transition: all 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-item-radio:hover {
+  background: #dbeafe; /* 懸停時的淺藍色背景 */
+  border: 1px solid #3b82f6 !important; /* 懸停時的藍色邊框 */
+  color: #1e40af !important; /* 懸停時的深藍色文字 */
+  transform: translateY(-1px);
+}
+
+/* 選中狀態的樣式 */
+.student-item-radio.selected {
+  background: #2563eb !important; /* 選中時的深藍色背景 */
+  border: 2px solid #1d4ed8 !important; /* 選中時的深藍色邊框 */
+  color: white !important; /* 選中時的白色文字 */
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+  transform: translateY(-2px);
+}
+
+.student-item-radio.selected .student-name {
+  color: white !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+.student-name {
+  font-size: 16px;
+  color: #374151; /* 默認深灰色文字 */
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.dialog-cancel-btn {
+  background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%) !important;
+  border: none !important;
+  color: #1e40af !important;
+  font-weight: 600;
+  padding: 12px 24px !important;
+  font-size: 14px !important;
+  min-width: 100px;
+  margin: 0 8px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2) !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.dialog-cancel-btn:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
+}
+
+.dialog-confirm-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 600;
+  padding: 12px 24px !important;
+  font-size: 14px !important;
+  min-width: 100px;
+  margin: 0 8px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2) !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.dialog-confirm-btn:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* 自定义模态对话框样式 */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(12, 74, 160, 0.6) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+}
+
+.custom-student-dialog {
+  background: transparent;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  width: 30%;
+  max-width: 90%;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  padding: 20px;
+  border-radius: 16px 16px 0 0;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.student-selection-content {
+  padding: 25px;
+  background: transparent;
+  color: white;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 0 25px 25px;
+}
+
+/* 手机端适配 */
+@media (max-width: 768px) {
+  .custom-student-dialog {
+    width: 90%;
   }
 }
 </style>

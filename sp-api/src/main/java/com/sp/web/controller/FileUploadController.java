@@ -39,11 +39,13 @@ public class FileUploadController extends BaseController {
     /**
      * 通用文件上传
      * @param file 上传的文件
+     * @param studentUserId 学生用户ID（可选，如果不传则使用默认学生）
      * @return 文件访问URL
      */
     @Log(title = "文件上传", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult uploadFile(@RequestParam("file") MultipartFile file,
+                                  @RequestParam(value = "studentUserId", required = false) String studentUserId,
                                   HttpServletRequest request) {
         try {
             // 从token获取家长ID
@@ -57,8 +59,8 @@ public class FileUploadController extends BaseController {
             String renamedFileName = null;
             
             if (StringUtils.isNotEmpty(parentUserId)) {
-                // 构建自定义文件名
-                renamedFileName = fileUploadHandler.buildCustomFileName(parentUserId, file.getOriginalFilename());
+                // 构建自定义文件名，传入studentUserId
+                renamedFileName = fileUploadHandler.buildCustomFileName(parentUserId, studentUserId);
                 if (StringUtils.isNotEmpty(renamedFileName)) {
                     filePath = FileUploadUtils.uploadWithCustomName(file, renamedFileName);
                 } else {
