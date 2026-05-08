@@ -67,6 +67,26 @@ public class FileUploadUtils
     }
 
     /**
+     * 使用自定义文件名上传文件
+     *
+     * @param file 上传的文件
+     * @param customFileName 自定义文件名（不含扩展名）
+     * @return 文件名称
+     * @throws Exception
+     */
+    public static final String uploadWithCustomName(MultipartFile file, String customFileName) throws IOException
+    {
+        try
+        {
+            return uploadWithCustomName(getDefaultBaseDir(), file, customFileName, MimeTypeUtils.DEFAULT_ALLOWED_EXTENSION);
+        }
+        catch (Exception e)
+        {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * 根据文件路径上传
      *
      * @param baseDir 相对应用的基目录
@@ -151,6 +171,24 @@ public class FileUploadUtils
     public static final String uuidFilename(MultipartFile file)
     {
         return StringUtils.format("{}/{}.{}", DateUtils.datePath(), IdUtils.fastSimpleUUID(), getExtension(file));
+    }
+
+    /**
+     * 使用自定义文件名上传
+     */
+    public static final String uploadWithCustomName(String baseDir, MultipartFile file, String customFileName,
+                                                     String[] allowedExtension)
+            throws FileSizeLimitExceededException, IOException, FileNameLengthLimitExceededException,
+            InvalidExtensionException
+    {
+        assertAllowed(file, allowedExtension);
+
+        // 使用自定义文件名 + 日期目录 + 扩展名
+        String fileName = StringUtils.format("{}/{}.{}", DateUtils.datePath(), customFileName, getExtension(file));
+
+        String absPath = getAbsoluteFile(baseDir, fileName).getAbsolutePath();
+        file.transferTo(Paths.get(absPath));
+        return getPathFileName(baseDir, fileName);
     }
 
     public static final File getAbsoluteFile(String uploadDir, String fileName) throws IOException

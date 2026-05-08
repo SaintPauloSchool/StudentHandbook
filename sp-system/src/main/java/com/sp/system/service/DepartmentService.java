@@ -27,4 +27,12 @@ public interface DepartmentService {
      * @return 部门 ID 列表
      */
     List<Long> getClassDepartmentId();
+
+    /**
+     * 根据家长ID和学生ID获取班级名
+     * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
+     * @return 班级名
+     */
+    String getClassNameByParentAndStudent(String parentUserId, String studentUserId);
 }

@@ -28,4 +28,14 @@ public interface ParentStudentRelationMapper {
      * @return 结果
      */
     int insertIgnore(ParentStudentRelation parentStudentRelation);
+
+    /**
+     * 根据家长ID和学生ID查询关系信息
+     *
+     * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
+     * @return 家长学生关系信息
+     */
+    ParentStudentRelation selectByParentAndStudent(@Param("parentUserId") String parentUserId,
+                                                    @Param("studentUserId") String studentUserId);
 }

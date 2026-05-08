@@ -987,11 +987,13 @@ export default {
         
         if (response.data.code === 200) {
           // 上传成功，保存文件URL
-          const fileUrl = response.data.data;
+          const result = response.data.data;
+          const fileUrl = result.url;
+          const fileName = result.fileName || file.name; // 使用后端返回的文件名，如果没有则使用原始文件名
           const state = this.logicFormStates[questionId];
           if (state) {
             state.answers[nodeId] = {
-              name: file.name,
+              name: fileName,
               url: fileUrl,
               size: file.size,
               type: file.type

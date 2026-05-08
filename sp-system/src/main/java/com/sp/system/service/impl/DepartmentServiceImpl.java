@@ -1,9 +1,13 @@
 package com.sp.system.service.impl;
 
+import com.sp.system.entity.ClassSection;
 import com.sp.system.entity.Department;
 import com.sp.system.mapper.DepartmentMapper;
 import com.sp.system.mapper.DepartmentParentBindingMapper;
 import com.sp.system.service.DepartmentService;
+import com.sp.system.service.IClassSectionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +21,16 @@ import java.util.List;
 @Service
 public class DepartmentServiceImpl implements DepartmentService {
 
+    private static final Logger logger = LoggerFactory.getLogger(DepartmentServiceImpl.class);
+
     @Autowired
     private DepartmentMapper departmentMapper;
     
     @Autowired
     private DepartmentParentBindingMapper departmentParentBindingMapper;
+
+    @Autowired
+    private IClassSectionService classSectionService;
 
     /**
      * 批量保存部门信息
@@ -70,5 +79,38 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public List<Long> getClassDepartmentId() {
        return departmentMapper.selectClassDepartmentId();
+    }
+
+    /**
+     * 根据家长ID和学生ID获取班级名
+     * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
+     * @return 班级名
+     */
+    @Override
+    public String getClassNameByParentAndStudent(String parentUserId, String studentUserId) {
+        try {
+            // 1. 获取部门信息
+            List<Department> departments = getDepartmentsByParentUserId(parentUserId, studentUserId);
+            if (departments == null || departments.isEmpty()) {
+                logger.warn("未找到家长 {} 和学生 {} 的部门信息", parentUserId, studentUserId);
+                return null;
+            }
+
+            String departmentName = departments.get(0).getName();
+            logger.debug("获取到部门名称: {}", departmentName);
+
+            // 2. 使用部门名称查询 class_section 表获取 class_section_sp
+            ClassSection classSection = classSectionService.getClassSectionByDsedj(departmentName);
+            if (classSection == null || classSection.getClassSectionSp() == null) {
+                logger.warn("未找到部门 {} 对应的班级信息", departmentName);
+                return null;
+            }
+
+            return classSection.getClassSectionSp();
+        } catch (Exception e) {
+            logger.error("获取班级名失败: {}", e.getMessage(), e);
+            return null;
+        }
     }
 }

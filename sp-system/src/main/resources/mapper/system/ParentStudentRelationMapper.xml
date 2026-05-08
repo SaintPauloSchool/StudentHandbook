@@ -87,4 +87,12 @@
         where parent_user_id = #{parentUserId}
     </select>
 
+    <select id="selectByParentAndStudent" resultMap="ParentStudentRelationResult">
+        select id, parent_user_id, student_user_id, student_name, relation_desc, mobile, external_userid, create_time, update_time
+        from sys_parent_student_relation
+        where parent_user_id = #{parentUserId}
+          and student_user_id = #{studentUserId}
+        limit 1
+    </select>
+
 </mapper>
