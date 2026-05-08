@@ -199,7 +199,7 @@
                                <el-icon class="file-icon"><Document /></el-icon>
                                <span class="file-name">{{ getLogicFormState(question).answers[getActiveNode(question).node.id].name }}</span>
                             </div>
-                            <span class="file-success"><el-icon><Check /></el-icon> 已準備就緒</span>
+                            <span class="file-success"><el-icon><Check /></el-icon> 已上傳</span>
                          </div>
                       </div>
                    </div>
@@ -347,8 +347,13 @@
 
     <!-- 居中提示弹窗 -->
     <div class="center-toast" v-if="showCenterToast">
-      <div class="toast-content">
-        <div class="toast-icon">⚠️</div>
+      <div class="toast-content" :class="`toast-${toastType}`">
+        <div class="toast-icon-wrapper">
+          <el-icon v-if="toastType === 'success'" :size="36" color="#10b981"><Check /></el-icon>
+          <el-icon v-else-if="toastType === 'error'" :size="36" color="#ef4444"><Close /></el-icon>
+          <el-icon v-else-if="toastType === 'warning'" :size="36" color="#f59e0b"><Warning /></el-icon>
+          <el-icon v-else :size="36" color="#3b82f6"><InfoFilled /></el-icon>
+        </div>
         <p class="toast-message">{{ toastMessage }}</p>
       </div>
     </div>
@@ -359,7 +364,7 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
-import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check } from '@element-plus/icons-vue'
+import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'NoticeDetail',
@@ -371,7 +376,11 @@ export default {
     Document,
     Select,
     UploadFilled,
-    Check
+    Check,
+    Download,
+    Close,
+    Warning,
+    InfoFilled
   },
   data() {
     return {
@@ -553,6 +562,23 @@ export default {
               answerValue = nodeAnswer.answerContent
             }
             
+            // 如果是附件类型，从attachmentUrls恢复文件信息
+            if (String(nodeAnswer.nodeType) === '4' && nodeAnswer.attachmentUrls) {
+              try {
+                const attachments = JSON.parse(nodeAnswer.attachmentUrls)
+                if (Array.isArray(attachments) && attachments.length > 0) {
+                  answerValue = {
+                    name: attachments[0].name,
+                    url: attachments[0].url,
+                    size: attachments[0].size,
+                    type: attachments[0].type
+                  }
+                }
+              } catch (e) {
+                console.error('解析附件URL失败:', e)
+              }
+            }
+            
             state.answers[nodeId] = answerValue
           })
         }
@@ -596,6 +622,23 @@ export default {
                 }
               } catch (e) {
                 answerValue = nodeAnswer.answerContent
+              }
+              
+              // 如果是附件类型，从attachmentUrls恢复文件信息
+              if (String(nodeAnswer.nodeType) === '4' && nodeAnswer.attachmentUrls) {
+                try {
+                  const attachments = JSON.parse(nodeAnswer.attachmentUrls)
+                  if (Array.isArray(attachments) && attachments.length > 0) {
+                    answerValue = {
+                      name: attachments[0].name,
+                      url: attachments[0].url,
+                      size: attachments[0].size,
+                      type: attachments[0].type
+                    }
+                  }
+                } catch (e) {
+                  console.error('解析附件URL失败:', e)
+                }
               }
               
               state.answers[nodeId] = answerValue
@@ -927,15 +970,44 @@ export default {
     },
 
     // 處理附件選擇
-    handleFileUpload(event, questionId, nodeId) {
+    async handleFileUpload(event, questionId, nodeId) {
       const file = event.target.files[0];
-      if (file) {
-        const state = this.logicFormStates[questionId];
-        if (state) {
-          state.answers[nodeId] = file;
+      if (!file) return;
+      
+      try {
+        // 显示上传中状态
+        this.showToast('正在上傳文件...', 'info');
+        
+        // 创建 FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // 调用上传接口（不要手动设置 headers，让 axios 拦截器自动处理）
+        const response = await service.post(API_ENDPOINTS.FILE_UPLOAD, formData);
+        
+        if (response.data.code === 200) {
+          // 上传成功，保存文件URL
+          const fileUrl = response.data.data;
+          const state = this.logicFormStates[questionId];
+          if (state) {
+            state.answers[nodeId] = {
+              name: file.name,
+              url: fileUrl,
+              size: file.size,
+              type: file.type
+            };
+          }
+          this.showToast('文件上傳成功', 'success');
+        } else {
+          this.showToast(response.data.msg || '文件上傳失敗', 'error');
         }
+      } catch (error) {
+        console.error('文件上傳失敗:', error);
+        this.showToast('文件上傳失敗，請重試', 'error');
+      } finally {
+        // 清空input，允许重复选择同一文件
+        event.target.value = '';
       }
-      event.target.value = '';
     },
 
     // 下一題
@@ -1327,11 +1399,15 @@ export default {
           }
           answerContent = JSON.stringify(fillBlankAnswers);
         } else if (String(node.type) === '4') {
-          // 附件上传：存储文件对象
-          if (answerValue instanceof File) {
-            // TODO: 实际项目中需要先上传文件，然后存储URL
+          // 附件上传：存储文件URL
+          if (answerValue && typeof answerValue === 'object' && answerValue.url) {
             answerContent = answerValue.name;
-            attachmentUrls = JSON.stringify([{ name: answerValue.name, size: answerValue.size }]);
+            attachmentUrls = JSON.stringify([{
+              name: answerValue.name,
+              url: answerValue.url,
+              size: answerValue.size,
+              type: answerValue.type
+            }]);
           }
         }
 
@@ -1397,12 +1473,13 @@ export default {
     },
 
     // 显示居中提示
-    showToast(message) {
+    showToast(message, type = 'info') {
       this.toastMessage = message;
+      this.toastType = type;
       this.showCenterToast = true;
       setTimeout(() => {
         this.showCenterToast = false;
-      }, 1000);
+      }, 1500);
     }
   }
 }
@@ -1597,20 +1674,79 @@ export default {
 }
 
 .toast-content {
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 20px 30px;
-  border-radius: 12px;
+  background: white;
+  color: #1f2937;
+  padding: 24px 32px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
   animation: toastFadeIn 0.3s ease;
-  max-width: 300px;
+  max-width: 320px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
-.toast-icon {
-  font-size: 36px;
+/* 成功类型 */
+.toast-content.toast-success {
+  border-top: 4px solid #10b981;
+}
+
+.toast-content.toast-success .toast-icon {
+  color: #10b981;
+}
+
+/* 错误类型 */
+.toast-content.toast-error {
+  border-top: 4px solid #ef4444;
+}
+
+.toast-content.toast-error .toast-icon {
+  color: #ef4444;
+}
+
+/* 警告类型 */
+.toast-content.toast-warning {
+  border-top: 4px solid #f59e0b;
+}
+
+.toast-content.toast-warning .toast-icon {
+  color: #f59e0b;
+}
+
+/* 信息类型 */
+.toast-content.toast-info {
+  border-top: 4px solid #3b82f6;
+}
+
+.toast-content.toast-info .toast-icon {
+  color: #3b82f6;
+}
+
+.toast-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f3f4f6;
+}
+
+.toast-content.toast-success .toast-icon-wrapper {
+  background: #d1fae5;
+}
+
+.toast-content.toast-error .toast-icon-wrapper {
+  background: #fee2e2;
+}
+
+.toast-content.toast-warning .toast-icon-wrapper {
+  background: #fef3c7;
+}
+
+.toast-content.toast-info .toast-icon-wrapper {
+  background: #dbeafe;
 }
 
 .toast-message {
