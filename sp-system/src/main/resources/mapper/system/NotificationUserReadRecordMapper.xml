@@ -90,6 +90,9 @@
               AND n.status = '1'
         WHERE r.user_id = #{userId}
           AND r.send_status = '1'
+        <if test="studentUserId != null and studentUserId != ''">
+          AND r.student_user_id = #{studentUserId}
+        </if>
         ORDER BY n.create_time DESC
         LIMIT #{offset}, #{limit}
     </select>
@@ -104,15 +107,21 @@
               AND n.status = '1'
         WHERE r.user_id = #{userId}
           AND r.send_status = '1'
+        <if test="studentUserId != null and studentUserId != ''">
+          AND r.student_user_id = #{studentUserId}
+        </if>
     </select>
 
     <!-- 未读通知数量（仅统计发送给当前用户的未读通知） -->
     <select id="countUnreadNotificationsForUser" resultType="int">
         SELECT COUNT(*)
-        FROM notification_user_read_record
-        WHERE user_id = #{userId}
-          AND send_status = '1'
-          AND (is_read = '0' OR is_read IS NULL)
+        FROM notification_user_read_record r
+        WHERE r.user_id = #{userId}
+          AND r.send_status = '1'
+          AND (r.is_read = '0' OR r.is_read IS NULL)
+        <if test="studentUserId != null and studentUserId != ''">
+          AND r.student_user_id = #{studentUserId}
+        </if>
     </select>
 
 </mapper>

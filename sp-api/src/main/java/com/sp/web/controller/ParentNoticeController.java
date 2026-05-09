@@ -56,7 +56,8 @@ public class ParentNoticeController extends BaseController {
     @GetMapping("/list")
     public AjaxResult list(
             @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+            @RequestParam(value = "studentUserId", required = false) String studentUserId) {
         try {
             String userId = getUserId();
             if (userId == null) {
@@ -64,8 +65,8 @@ public class ParentNoticeController extends BaseController {
             }
 
             List<NotificationWithReadStatusVO> notifications =
-                    notificationUserReadRecordService.getPublishedNotificationsForUser(pageNum, pageSize, userId);
-            int total = notificationUserReadRecordService.countPublishedNotificationsForUser(userId);
+                    notificationUserReadRecordService.getPublishedNotificationsForUser(pageNum, pageSize, userId, studentUserId);
+            int total = notificationUserReadRecordService.countPublishedNotificationsForUser(userId, studentUserId);
 
             Map<String, Object> result = new HashMap<>();
             result.put("list", notifications);
@@ -86,14 +87,14 @@ public class ParentNoticeController extends BaseController {
      */
     @Log(title = "获取未读通知数量", businessType = BusinessType.SELECT)
     @GetMapping("/unreadCount")
-    public AjaxResult getUnreadCount() {
+    public AjaxResult getUnreadCount(@RequestParam(value = "studentUserId", required = false) String studentUserId) {
         try {
             String userId = getUserId();
             if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
-            int unreadCount = notificationUserReadRecordService.countUnreadNotificationsForUser(userId);
+            int unreadCount = notificationUserReadRecordService.countUnreadNotificationsForUser(userId, studentUserId);
             Map<String, Object> result = new HashMap<>();
             result.put("unreadCount", unreadCount);
             return AjaxResult.success(result);

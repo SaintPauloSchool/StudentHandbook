@@ -271,11 +271,17 @@ export default {
 
       try {
         this.loadingMore = true
+        const params = {
+          pageNum: this.currentPage,
+          pageSize: this.pageSize
+        }
+        // 如果有选中的学生ID，添加到请求参数中
+        if (this.selectedStudentUserId) {
+          params.studentUserId = this.selectedStudentUserId
+        }
+        
         const response = await service.get(API_ENDPOINTS.NOTICE_LIST, {
-          params: {
-            pageNum: this.currentPage,
-            pageSize: this.pageSize
-          }
+          params: params
         })
         if (response.data.code === 200) {
           const data = response.data.data
@@ -518,6 +524,12 @@ export default {
 
           // 刷新通知列表
           await this.loadNoticeList(true);
+          
+          // 通知父组件或全局更新未读数量（通过事件总线或vuex）
+          // 这里简单起见，直接触发一个自定义事件
+          window.dispatchEvent(new CustomEvent('studentChanged', { 
+            detail: { studentUserId: this.selectedStudentUserId } 
+          }));
         } else {
           ElMessage.error(response.data.msg || '切換學生失敗');
         }

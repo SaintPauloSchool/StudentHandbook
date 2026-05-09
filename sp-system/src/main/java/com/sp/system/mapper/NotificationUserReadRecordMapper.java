@@ -43,26 +43,30 @@ public interface NotificationUserReadRecordMapper {
      * @param offset 偏移量
      * @param limit  每页数量
      * @param userId 当前家长用户ID
+     * @param studentUserId 学生用户ID（可为null）
      * @return 通知列表（含 isRead、readId、sendRecordId 字段）
      */
     List<NotificationWithReadStatusVO> selectPublishedNotificationsForUser(
             @Param("offset") int offset,
             @Param("limit") int limit,
-            @Param("userId") String userId);
+            @Param("userId") String userId,
+            @Param("studentUserId") String studentUserId);
 
     /**
      * 查询发送给当前用户的已发布通知总数
      *
      * @param userId 当前家长用户ID
+     * @param studentUserId 学生用户ID（可为null）
      * @return 总数
      */
-    int countPublishedNotificationsForUser(@Param("userId") String userId);
+    int countPublishedNotificationsForUser(@Param("userId") String userId, @Param("studentUserId") String studentUserId);
 
     /**
      * 查询发送给当前用户的未读通知数量
      *
      * @param userId 当前家长用户ID
+     * @param studentUserId 学生用户ID（可为null）
      * @return 未读数量
      */
-    int countUnreadNotificationsForUser(@Param("userId") String userId);
+    int countUnreadNotificationsForUser(@Param("userId") String userId, @Param("studentUserId") String studentUserId);
 }

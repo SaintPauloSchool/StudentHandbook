@@ -126,21 +126,22 @@ CREATE TABLE notification_send_record (
 -- ----------------------------
 DROP TABLE IF EXISTS notification_user_read_record;
 CREATE TABLE notification_user_read_record (
-       read_id             BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '閱讀記錄ID',
-       send_record_id      BIGINT(20)      NOT NULL                   COMMENT '發送記錄ID',
-       user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID',
-       user_type           CHAR(1)         NOT NULL                   COMMENT '用戶類型（1學生 2家長 3教師）',
-       is_read             CHAR(1)         DEFAULT '0'                COMMENT '是否已讀（0未讀 1已讀）',
-       read_time           DATETIME        DEFAULT NULL               COMMENT '閱讀時間',
-       reply_status        CHAR(1)         DEFAULT '0'                COMMENT '回覆狀態（0未回覆 1已回覆）',
-       reply_time          DATETIME        DEFAULT NULL               COMMENT '回覆時間',
-       send_status         CHAR(1)         DEFAULT '0'                COMMENT '發送狀態（0發送失敗 1發送成功）',
-       create_time         DATETIME                                   COMMENT '創建時間',
-       PRIMARY KEY (read_id),
-       KEY idx_send_record (send_record_id),
-       KEY idx_user (user_id),
-       KEY idx_read_status (is_read),
-       KEY idx_reply_status (reply_status)
+                                               read_id             BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '閱讀記錄ID',
+                                               send_record_id      BIGINT(20)      NOT NULL                   COMMENT '發送記錄ID',
+                                               user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID',
+                                               user_type           CHAR(1)         NOT NULL                   COMMENT '用戶類型（1學生 2家長 3教師）',
+                                               is_read             CHAR(1)         DEFAULT '0'                COMMENT '是否已讀（0未讀 1已讀）',
+                                               read_time           DATETIME        DEFAULT NULL               COMMENT '閱讀時間',
+                                               reply_status        CHAR(1)         DEFAULT '0'                COMMENT '回覆狀態（0未回覆 1已回覆）',
+                                               reply_time          DATETIME        DEFAULT NULL               COMMENT '回覆時間',
+                                               send_status         CHAR(1)         DEFAULT '0'                COMMENT '發送狀態（0發送失敗 1發送成功）',
+                                               student_user_id     VARCHAR(64)     DEFAULT NULL               COMMENT '關聯的學生ID（當接收者是家長時記錄，若發送給學生本身則與userId相同）',
+                                               create_time         DATETIME                                   COMMENT '創建時間',
+                                               PRIMARY KEY (read_id),
+                                               KEY idx_send_record (send_record_id),
+                                               KEY idx_user (user_id),
+                                               KEY idx_read_status (is_read),
+                                               KEY idx_reply_status (reply_status)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COMMENT = '通知用戶閱讀記錄表';
 
 -- ----------------------------

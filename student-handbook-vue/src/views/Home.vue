@@ -70,6 +70,13 @@ export default {
 
     // 獲取使用者資訊（包含 userType）
     this.fetchUserInfo();
+    
+    // 监听学生切换事件
+    window.addEventListener('studentChanged', this.handleStudentChanged);
+  },
+  beforeUnmount() {
+    // 移除事件监听器
+    window.removeEventListener('studentChanged', this.handleStudentChanged);
   },
 
   methods: {
@@ -125,7 +132,17 @@ export default {
     // 获取未读通知数量
     async fetchUnreadCount() {
       try {
-        const response = await service.get(API_ENDPOINTS.NOTICE_UNREAD_COUNT);
+        // 从localStorage获取当前选中的学生ID
+        const studentUserId = localStorage.getItem('currentStudentUserId');
+        
+        const params = {};
+        if (studentUserId) {
+          params.studentUserId = studentUserId;
+        }
+        
+        const response = await service.get(API_ENDPOINTS.NOTICE_UNREAD_COUNT, {
+          params: params
+        });
         const res = response.data;
         if (res.code === 200 && res.data) {
           this.unreadCount = res.data.unreadCount || 0;
@@ -207,6 +224,12 @@ export default {
       const corpId = settings.wechat.corpId;
       const agentId = settings.wechat.agentId;
       window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
+    },
+    
+    // 处理学生切换事件
+    handleStudentChanged(event) {
+      console.log('学生已切换，重新获取未读通知数量');
+      this.fetchUnreadCount();
     },
   }
 }

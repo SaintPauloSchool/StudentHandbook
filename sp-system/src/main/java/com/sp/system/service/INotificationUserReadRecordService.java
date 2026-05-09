@@ -21,25 +21,28 @@ public interface INotificationUserReadRecordService {
      * @param pageNum  页码（从 1 开始）
      * @param pageSize 每页数量
      * @param userId   当前家长用户ID
+     * @param studentUserId 学生用户ID（可为null）
      * @return 通知列表（含 isRead、readId、sendRecordId 字段）
      */
-    List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId);
+    List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId, String studentUserId);
 
     /**
      * 查询发送给当前用户的已发布通知总数
      *
      * @param userId 当前家长用户ID
+     * @param studentUserId 学生用户ID（可为null）
      * @return 总数
      */
-    int countPublishedNotificationsForUser(String userId);
+    int countPublishedNotificationsForUser(String userId, String studentUserId);
 
     /**
      * 查询发送给当前用户的未读通知数量
      *
      * @param userId 当前家长用户ID
+     * @param studentUserId 学生用户ID（可为null）
      * @return 未读数量
      */
-    int countUnreadNotificationsForUser(String userId);
+    int countUnreadNotificationsForUser(String userId, String studentUserId);
 
     /**
      * 将指定通知对当前用户标记为已读

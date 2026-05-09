@@ -22,25 +22,25 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
      * 分页查询发送给当前用户的已发布通知列表（附带阅读状态）
      */
     @Override
-    public List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId) {
+    public List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId, String studentUserId) {
         int offset = (pageNum - 1) * pageSize;
-        return notificationUserReadRecordMapper.selectPublishedNotificationsForUser(offset, pageSize, userId);
+        return notificationUserReadRecordMapper.selectPublishedNotificationsForUser(offset, pageSize, userId, studentUserId);
     }
 
     /**
      * 查询发送给当前用户的已发布通知总数
      */
     @Override
-    public int countPublishedNotificationsForUser(String userId) {
-        return notificationUserReadRecordMapper.countPublishedNotificationsForUser(userId);
+    public int countPublishedNotificationsForUser(String userId, String studentUserId) {
+        return notificationUserReadRecordMapper.countPublishedNotificationsForUser(userId, studentUserId);
     }
 
     /**
      * 查询发送给当前用户的未读通知数量
      */
     @Override
-    public int countUnreadNotificationsForUser(String userId) {
-        return notificationUserReadRecordMapper.countUnreadNotificationsForUser(userId);
+    public int countUnreadNotificationsForUser(String userId, String studentUserId) {
+        return notificationUserReadRecordMapper.countUnreadNotificationsForUser(userId, studentUserId);
     }
 
     /**
