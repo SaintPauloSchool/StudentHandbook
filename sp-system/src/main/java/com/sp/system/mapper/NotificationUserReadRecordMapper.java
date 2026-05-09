@@ -16,10 +16,12 @@ public interface NotificationUserReadRecordMapper {
      *
      * @param notificationId 通知ID
      * @param userId         用户ID
+     * @param studentUserId  学生用户ID（可为null）
      * @return 阅读记录；若不存在则返回null
      */
     NotificationUserReadRecord selectByNotificationAndUser(@Param("notificationId") Long notificationId,
-                                                           @Param("userId") String userId);
+                                                           @Param("userId") String userId,
+                                                           @Param("studentUserId") String studentUserId);
 
     /**
      * 将指定记录标记为已读

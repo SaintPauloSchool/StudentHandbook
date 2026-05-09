@@ -68,20 +68,20 @@ public class ParentStudentRelationServiceImpl implements IParentStudentRelationS
     /**
      * 获取作答人信息（学生姓名 + 关系）
      * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
      * @return 作答人信息，例如：“吴煜键 - 妈妈”
      */
     @Override
-    public String getAnswererInfo(String parentUserId) {
+    public String getAnswererInfo(String parentUserId, String studentUserId) {
         try {
-            if (parentUserId == null || parentUserId.isEmpty()) {
+            if (parentUserId == null || parentUserId.isEmpty() || studentUserId == null || studentUserId.isEmpty()) {
                 return "";
             }
             
-            // 根据parentUserId查询sys_parent_student_relation表
-            List<ParentStudentRelation> relations = parentStudentRelationMapper.selectByParentId(parentUserId);
+            // 直接根据parentUserId和studentUserId查询，更高效
+            ParentStudentRelation relation = parentStudentRelationMapper.selectByParentAndStudent(parentUserId, studentUserId);
             
-            if (relations != null && !relations.isEmpty()) {
-                ParentStudentRelation relation = relations.get(0);
+            if (relation != null) {
                 String studentName = relation.getStudentName();
                 String relationDesc = relation.getRelationDesc();
                 

@@ -52,8 +52,9 @@ public interface INotificationUserReadRecordService {
      *
      * @param notificationId 通知ID
      * @param userId         当前家长用户ID
+     * @param studentUserId  学生用户ID（可为null）
      */
-    void markAsRead(Long notificationId, String userId);
+    void markAsRead(Long notificationId, String userId, String studentUserId);
 
     /**
      * 将指定通知对当前用户标记为已回复
@@ -63,6 +64,7 @@ public interface INotificationUserReadRecordService {
      *
      * @param notificationId 通知ID
      * @param userId         当前家长用户ID
+     * @param studentUserId  学生用户ID
      */
-    void markAsReplied(Long notificationId, String userId);
+    void markAsReplied(Long notificationId, String userId, String studentUserId);
 }

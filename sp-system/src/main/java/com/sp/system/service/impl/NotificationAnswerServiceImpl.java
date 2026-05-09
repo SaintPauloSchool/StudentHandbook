@@ -35,24 +35,18 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
      * @param answerData 前端传来的答案数据（单个问题）
      * @param userId 用户ID（parentUserId）
      * @param userType 用户类型
+     * @param studentUserId 学生用户ID
      * @return 插入记录数
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int submitAnswers(AnswerItemVO answerData, String userId, String userType) {
+    public int submitAnswers(AnswerItemVO answerData, String userId, String userType, String studentUserId) {
         if (answerData == null) {
             logger.warn("答案数据为空，无需保存");
             return 0;
         }
-        
+
         try {
-            // 根据家长ID查询学生ID
-            String studentUserId = getStudentUserIdByParentId(userId);
-            if (studentUserId == null) {
-                logger.warn("家长 {} 未绑定学生", userId);
-                throw new RuntimeException("未找到对应的学生信息，请联系管理员");
-            }
-            
             // 检查学生是否已经回答过这个问题
             boolean exists = checkStudentAnswerExists(
                 answerData.getNotificationId(), 

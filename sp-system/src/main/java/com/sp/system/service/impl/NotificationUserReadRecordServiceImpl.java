@@ -50,10 +50,10 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
      * （阅读记录由发送时创建，此处不自动插入）。
      */
     @Override
-    public void markAsRead(Long notificationId, String userId) {
+    public void markAsRead(Long notificationId, String userId, String studentUserId) {
         // 查询对应的阅读记录
         NotificationUserReadRecord record =
-                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId);
+                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
         // 若存在且为未读则更新
         if (record != null && "0".equals(record.getIsRead())) {
             notificationUserReadRecordMapper.markAsRead(record.getReadId());
@@ -66,10 +66,10 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
      * 查询对应的阅读记录，若存在且为未回复则更新 reply_status='1' 与 reply_time；否则忽略。
      */
     @Override
-    public void markAsReplied(Long notificationId, String userId) {
-        // 查询对应的阅读记录
+    public void markAsReplied(Long notificationId, String userId, String studentUserId) {
+        // 查询对应的阅读记录（根据userId和studentUserId）
         NotificationUserReadRecord record =
-                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId);
+                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
         // 若存在且为未回复则更新
         if (record != null && "0".equals(record.getReplyStatus())) {
             notificationUserReadRecordMapper.markAsReplied(record.getReadId());

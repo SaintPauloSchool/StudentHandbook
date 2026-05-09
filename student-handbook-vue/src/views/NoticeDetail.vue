@@ -505,7 +505,17 @@ export default {
 
       this.loading = true
       try {
-        const response = await service.get(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}`)
+        // 从localStorage获取当前选中的学生ID
+        const studentUserId = localStorage.getItem('currentStudentUserId')
+        
+        const params = {}
+        if (studentUserId) {
+          params.studentUserId = studentUserId
+        }
+        
+        const response = await service.get(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}`, {
+          params: params
+        })
         if (response.data.code === 200) {
           this.notice = response.data.data.notification
           this.questions = response.data.data.questions || []
@@ -542,7 +552,17 @@ export default {
     // 标记通知为已读（静默，不影响主流程）
     async markAsRead(notificationId) {
       try {
-        await service.post(`${API_ENDPOINTS.NOTICE_MARK_READ}/${notificationId}/read`)
+        // 从localStorage获取当前选中的学生ID
+        const studentUserId = localStorage.getItem('currentStudentUserId')
+        
+        const params = {}
+        if (studentUserId) {
+          params.studentUserId = studentUserId
+        }
+        
+        await service.post(`${API_ENDPOINTS.NOTICE_MARK_READ}/${notificationId}/read`, null, {
+          params: params
+        })
       } catch (e) {
         // 静默忽略，不影响用户体验
         console.warn('标记已读失败（已忽略）:', e)
@@ -1276,10 +1296,19 @@ export default {
 
         this.submitting = true;
 
+        // 从localStorage获取当前选中的学生ID
+        const studentUserId = localStorage.getItem('currentStudentUserId');
+        if (!studentUserId) {
+          ElMessage.error('请指定学生ID');
+          this.submitting = false;
+          return;
+        }
+
         // 调用后端API提交答案（只传第一个问题的答案）
         const notificationId = this.$route.params.id;
         const response = await service.post(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}/submit`, {
-          answer: answers[0]  // 只传单个问题对象
+          answer: answers[0],  // 只传单个问题对象
+          studentUserId: studentUserId  // 传递学生ID
         });
 
         if (response.data.code === 200) {

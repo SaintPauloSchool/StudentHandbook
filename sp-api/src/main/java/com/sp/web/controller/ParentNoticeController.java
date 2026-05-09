@@ -109,24 +109,33 @@ public class ParentNoticeController extends BaseController {
      */
     @Log(title = "查询通知详情", businessType = BusinessType.SELECT)
     @GetMapping("/{notificationId}")
-    public AjaxResult getInfo(@PathVariable("notificationId") Long notificationId) {
+    public AjaxResult getInfo(
+            @PathVariable("notificationId") Long notificationId,
+            @RequestParam(value = "studentUserId", required = false) String studentUserId) {
         try {
             String userId = getUserId();
             if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
 
+            // 必须传递studentUserId参数
+            if (studentUserId == null || studentUserId.isEmpty()) {
+                return AjaxResult.error("请指定学生ID");
+            }
+
+            // 获取通知详情
             Map<String, Object> result = notificationService.selectNotificationDetail(notificationId);
 
             if (result == null || result.get("notification") == null) {
                 return AjaxResult.error("通知不存在");
             }
 
-            String studentUserId = notificationAnswerService.getStudentUserIdByParentId(userId);
+            // 获取学生信息
             NotificationAnswer userAnswer = notificationAnswerService.getUserAnswer(notificationId, studentUserId);
 
             if (userAnswer != null) {
-                String answererInfo = parentStudentRelationService.getAnswererInfo(userAnswer.getUserId());
+                // 使用userId(家长ID)和studentUserId获取作答人信息
+                String answererInfo = parentStudentRelationService.getAnswererInfo(userId, studentUserId);
                 result.put("userAnswer", userAnswer);
                 result.put("answererInfo", answererInfo);
                 result.put("hasSubmitted", true);
@@ -148,13 +157,21 @@ public class ParentNoticeController extends BaseController {
      */
     @Log(title = "标记通知为已读", businessType = BusinessType.UPDATE)
     @PostMapping("/{notificationId}/read")
-    public AjaxResult markAsRead(@PathVariable("notificationId") Long notificationId) {
+    public AjaxResult markAsRead(
+            @PathVariable("notificationId") Long notificationId,
+            @RequestParam(value = "studentUserId", required = false) String studentUserId) {
         try {
             String userId = getUserId();
             if (userId == null) {
                 return AjaxResult.error("无效的访问令牌或用户未登录");
             }
-            notificationUserReadRecordService.markAsRead(notificationId, userId);
+
+            // 必须传递studentUserId参数
+            if (studentUserId == null || studentUserId.isEmpty()) {
+                return AjaxResult.error("请指定学生ID");
+            }
+            
+            notificationUserReadRecordService.markAsRead(notificationId, userId, studentUserId);
             return AjaxResult.success("已标记为已读");
         } catch (Exception e) {
             logger.error("标记已读失败: {}", e.getMessage());
@@ -179,12 +196,19 @@ public class ParentNoticeController extends BaseController {
             if (submitAnswersVO == null || submitAnswersVO.getAnswer() == null) {
                 return AjaxResult.error("请至少回答一个问题");
             }
+            
+            // 必须传递studentUserId参数
+            String studentUserId = submitAnswersVO.getStudentUserId();
+            if (studentUserId == null || studentUserId.isEmpty()) {
+                return AjaxResult.error("请指定学生ID");
+            }
 
             String userType = "2"; // 2表示家长
-            int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), userId, userType);
+            int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), userId, userType, studentUserId);
 
-            notificationUserReadRecordService.markAsReplied(notificationId, userId);
-            logger.info("用户 {} 提交通知 {} 的回答", userId, notificationId);
+            // 标记为已回复（传入studentUserId）
+            notificationUserReadRecordService.markAsReplied(notificationId, userId, studentUserId);
+            logger.info("用户 {} 提交通知 {} 的回答，学生ID: {}", userId, notificationId, studentUserId);
 
             Map<String, Object> result = new HashMap<>();
             result.put("count", count);

@@ -17,7 +17,7 @@
         <result property="createTime"   column="create_time"/>
     </resultMap>
 
-    <!-- 按 notification_id + user_id 联查 -->
+    <!-- 按 notification_id + user_id + student_user_id 联查 -->
     <select id="selectByNotificationAndUser" resultMap="ReadRecordResult">
         SELECT r.read_id, r.send_record_id, r.user_id, r.user_type,
                r.is_read, r.read_time, r.reply_status, r.reply_time, r.send_status, r.create_time
@@ -26,6 +26,9 @@
         WHERE s.notification_id = #{notificationId}
           AND r.user_id = #{userId}
           AND r.send_status = '1'
+        <if test="studentUserId != null and studentUserId != ''">
+          AND r.student_user_id = #{studentUserId}
+        </if>
         LIMIT 1
     </select>
 

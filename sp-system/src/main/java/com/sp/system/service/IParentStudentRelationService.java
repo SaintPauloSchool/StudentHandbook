@@ -34,8 +34,9 @@ public interface IParentStudentRelationService {
     /**
      * 获取作答人信息（学生姓名 + 关系）
      * @param parentUserId 家长用户ID
+     * @param studentUserId 学生用户ID
      * @return 作答人信息，例如：“吴煜键 - 妈妈”
      */
-    String getAnswererInfo(String parentUserId);
+    String getAnswererInfo(String parentUserId, String studentUserId);
 
 }

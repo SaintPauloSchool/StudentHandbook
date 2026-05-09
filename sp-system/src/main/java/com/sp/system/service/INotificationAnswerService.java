@@ -15,10 +15,11 @@ public interface INotificationAnswerService {
      * @param answerData 前端传来的答案数据（单个问题）
      * @param userId 用户ID（parentUserId）
      * @param userType 用户类型
+     * @param studentUserId 学生用户ID
      * @return 插入记录数
      * @throws RuntimeException 如果学生已经回答过该问题
      */
-    int submitAnswers(AnswerItemVO answerData, String userId, String userType);
+    int submitAnswers(AnswerItemVO answerData, String userId, String userType, String studentUserId);
     
     /**
      * 根据家长ID获取对应的学生ID
