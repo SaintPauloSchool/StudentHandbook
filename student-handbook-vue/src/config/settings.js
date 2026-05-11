@@ -17,6 +17,9 @@ export default {
     // API 安全校驗密鑰
     appSecret: 'HVc1D4MU69UDMr1g',
 
+    // 学生ID加密盐值（用于微信消息通知跳转）
+    studentIdEncryptionSalt: '5nQtaatpcOs9iKsM',
+
     // 企业微信配置
     wechat: {
         corpId: 'ww04fad852e91fd490', // 企业微信应用ID

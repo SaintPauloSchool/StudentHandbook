@@ -14,6 +14,13 @@
       <p class="loading-text">加載中...</p>
     </div>
 
+    <!-- 错误状态 -->
+    <div class="error-state" v-else-if="errorMessage">
+      <div class="error-icon">❌</div>
+      <p class="error-text">{{ errorMessage }}</p>
+      <button class="retry-button" @click="goBack">返回</button>
+    </div>
+
     <!-- 通知详情内容 -->
     <div class="detail-content" v-else-if="notice">
       <!-- 通知头部信息 -->
@@ -338,13 +345,6 @@
 
     </div>
 
-    <!-- 错误状态 -->
-    <div class="error-state" v-else>
-      <div class="error-icon">❌</div>
-      <p class="error-text">加載失敗，請重試</p>
-      <button class="retry-button" @click="loadNoticeDetail">重試</button>
-    </div>
-
     <!-- 居中提示弹窗 -->
     <div class="center-toast" v-if="showCenterToast">
       <div class="toast-content" :class="`toast-${toastType}`">
@@ -366,6 +366,7 @@ import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled } from '@element-plus/icons-vue'
 import settings from '@/config/settings' // 导入全局配置设置
+import CryptoJS from 'crypto-js' // 导入crypto-js库用于MD5加密
 
 export default {
   name: 'NoticeDetail',
@@ -391,12 +392,14 @@ export default {
       submitting: false, // 提交中状态
       hasSubmitted: false, // 是否已提交
       userAnswer: null, // 用户已提交的答案（单个对象）
-      answererInfo: '', // 作答人信息，例如："吴煜键 - 妈妈"
+      answererInfo: '', // 作答人信息，例如：“吴煜键 - 妈妈”
       isExpired: false, // 是否已过期
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
       showCenterToast: false,
-      toastMessage: ''
+      toastMessage: '',
+      errorMessage: '', // 错误信息
+      isFromWechatLink: false // 是否从微信链接进入（带有sid参数）
     }
   },
   computed: {
@@ -436,6 +439,11 @@ export default {
     this.loadNoticeDetail()
   },
   methods: {
+    // MD5加密函数（使用crypto-js库）
+    md5Encrypt(text) {
+      return CryptoJS.MD5(text).toString();
+    },
+    
     // 加载学生列表，设置默认学生
     async loadStudentList() {
       try {
@@ -457,22 +465,50 @@ export default {
           const relations = response.data.data;
 
           if (relations && relations.length > 0) {
-            // 检查localStorage中是否已有选中的学生
-            const savedStudentUserId = localStorage.getItem('currentStudentUserId');
-            if (savedStudentUserId) {
-              // 验证保存的学生ID是否在当前关系中
-              const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
-              if (isValid) {
-                console.log('使用缓存的学生ID:', savedStudentUserId);
+            // 检查URL中是否有加密的学生ID（sid参数）
+            const urlSid = this.$route.query.sid;
+            
+            if (urlSid) {
+              // 标记为从微信链接进入
+              this.isFromWechatLink = true;
+              
+              // 遍历学生列表，对每个学生ID进行MD5加密并匹配
+              let matchedStudent = null;
+              const encryptionSalt = settings.studentIdEncryptionSalt; // 从配置中获取加密盐值
+              
+              for (const relation of relations) {
+                const studentUserId = relation.studentUserId;
+                // 对学生ID进行MD5加密：studentUserId + salt
+                const encryptedId = this.md5Encrypt(studentUserId + encryptionSalt);
+                
+                if (encryptedId === urlSid) {
+                  matchedStudent = relation;
+                  break;
+                }
+              }
+              
+              if (matchedStudent) {
+                // 匹配成功，使用匹配到的学生ID
+                localStorage.setItem('currentStudentUserId', matchedStudent.studentUserId);
               } else {
-                // 如果缓存的学生ID无效，使用第一个学生
-                localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
-                console.log('缓存的学生ID无效，使用第一个学生:', relations[0].studentUserId);
+                // 匹配失败，设置错误信息并停止加载
+                this.errorMessage = '无效的访问链接，无法识别学生信息';
+                this.loading = false;
               }
             } else {
-              // 没有缓存，使用第一个学生作为默认
-              localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
-              console.log('设置默认学生:', relations[0].studentUserId);
+              // 没有sid参数，检查localStorage中是否已有选中的学生
+              const savedStudentUserId = localStorage.getItem('currentStudentUserId');
+              if (savedStudentUserId) {
+                // 验证保存的学生ID是否在当前关系中
+                const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
+                if (!isValid) {
+                  // 如果缓存的学生ID无效，使用第一个学生
+                  localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
+                }
+              } else {
+                // 没有缓存，使用第一个学生作为默认
+                localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
+              }
             }
           } else {
             console.warn('當前帳號未關聯任何學生');
@@ -485,12 +521,18 @@ export default {
       }
     },
 
-    // 返回上一页
+    // 返回上一页或通知列表
     goBack() {
-      if (window.history.length > 1) {
-        this.$router.back()
-      } else {
+      // 如果从微信链接进入，返回通知列表
+      if (this.isFromWechatLink) {
         this.$router.push('/notice')
+      } else {
+        // 否则返回浏览器历史上一页
+        if (window.history.length > 1) {
+          this.$router.back()
+        } else {
+          this.$router.push('/notice')
+        }
       }
     },
 
@@ -498,8 +540,8 @@ export default {
     async loadNoticeDetail() {
       const notificationId = this.$route.params.id
       if (!notificationId) {
-        ElMessage.error('通知ID不存在')
-        this.goBack()
+        this.errorMessage = '通知ID不存在'
+        this.loading = false
         return
       }
 
@@ -507,6 +549,13 @@ export default {
       try {
         // 从localStorage获取当前选中的学生ID
         const studentUserId = localStorage.getItem('currentStudentUserId')
+        
+        // 如果没有学生ID，显示错误
+        if (!studentUserId) {
+          this.errorMessage = '无法获取学生信息，请重新登录'
+          this.loading = false
+          return
+        }
         
         const params = {}
         if (studentUserId) {
