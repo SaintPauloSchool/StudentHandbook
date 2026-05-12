@@ -35,6 +35,19 @@ router.beforeEach((to, from, next) => {
                 (urlParams.toString() ? '?' + urlParams.toString() : '') +
                 window.location.hash;
             window.history.replaceState({}, document.title, newUrl);
+            
+            // 如果之前有保存的跳轉路徑，則跳轉過去
+            const redirectUrl = sessionStorage.getItem('redirect_url');
+            if (redirectUrl) {
+                sessionStorage.removeItem('redirect_url');
+                next(redirectUrl);
+                return;
+            } else if (to.path === '/login') {
+                // 如果沒有保存的路徑，但當前是登錄頁，則預設跳轉到首頁
+                next('/');
+                return;
+            }
+            
             // 有token，允许访问
             next();
             return;
@@ -49,7 +62,8 @@ router.beforeEach((to, from, next) => {
                 // 有token，允许访问
                 next()
             } else {
-                // 没有token，重定向到登录页面
+                // 没有token，重定向到登录页面前，先保存當前路徑以便登錄後跳轉回來
+                sessionStorage.setItem('redirect_url', to.fullPath)
                 next('/login')
             }
         }

@@ -77,6 +77,8 @@ service.interceptors.response.use(
             if (error.response && error.response.status === 401) {
                 // token过期/无效，跳转到登录页面
                 localStorage.removeItem('token')
+                // 記住當前的 URL 以便登錄後跳轉回去
+                sessionStorage.setItem('redirect_url', window.location.pathname + window.location.search + window.location.hash)
                 // 重定向到登录页面
                 window.location.href = '/login'
                 ElMessage.error('請先登錄')

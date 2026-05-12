@@ -431,12 +431,12 @@ export default {
     },
 
   },
-  mounted() {
+  async mounted() {
     // 组件挂载时立即滚动到顶部
     window.scrollTo(0, 0)
     // 加载时获取学生列表，设置默认学生
-    this.loadStudentList()
-    this.loadNoticeDetail()
+    await this.loadStudentList()
+    await this.loadNoticeDetail()
   },
   methods: {
     // MD5加密函数（使用crypto-js库）
@@ -488,8 +488,9 @@ export default {
               }
               
               if (matchedStudent) {
-                // 匹配成功，使用匹配到的学生ID
+                // 匹配成功，使用匹配到的学生ID和姓名
                 localStorage.setItem('currentStudentUserId', matchedStudent.studentUserId);
+                localStorage.setItem('currentStudentName', matchedStudent.studentName);
               } else {
                 // 匹配失败，设置错误信息并停止加载
                 this.errorMessage = '无效的访问链接，无法识别学生信息';
@@ -504,10 +505,12 @@ export default {
                 if (!isValid) {
                   // 如果缓存的学生ID无效，使用第一个学生
                   localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
+                  localStorage.setItem('currentStudentName', relations[0].studentName);
                 }
               } else {
                 // 没有缓存，使用第一个学生作为默认
                 localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
+                localStorage.setItem('currentStudentName', relations[0].studentName);
               }
             }
           } else {

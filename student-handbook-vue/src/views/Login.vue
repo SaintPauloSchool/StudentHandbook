@@ -83,8 +83,11 @@ export default {
         window.history.replaceState({}, document.title, newUrl);
 
         ElMessage.success('登錄成功');
-        // 跳转到首页
-        this.$router.push('/');
+        // 获取之前保存的重定向地址
+        const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
+        sessionStorage.removeItem('redirect_url');
+        // 跳转
+        this.$router.push(redirectUrl);
         return true; // ← 告知調用方已處理，無需繼續登錄流程
       }
       return false;
@@ -115,8 +118,11 @@ export default {
             // 由于request.js中的响应拦截器已经处理了token的保存
             // 这里不再需要手动保存token
             ElMessage.success('登錄成功');
-            // 跳转到首页
-            this.$router.push('/');
+            // 获取之前保存的重定向地址
+            const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
+            sessionStorage.removeItem('redirect_url');
+            // 跳转
+            this.$router.push(redirectUrl);
           } else {
             ElMessage.error(response.data.msg || '登錄失敗');
           }
