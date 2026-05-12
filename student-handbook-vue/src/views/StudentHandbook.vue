@@ -532,13 +532,13 @@ export default {
 
 
 .home-btn {
-  margin-right: 0; /* 移除固定間距，使用gap控制 */
+  margin-right: 0; /* 右側間距，使用gap控制 */
   padding: 12px 18px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); /* 橙色漸層 */
-  color: #92400e; /* 深橙色文字 */
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
   border: none;
-  box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
   transition: all 0.3s ease;
   white-space: nowrap;
   font-weight: 600;
@@ -546,9 +546,9 @@ export default {
 }
 
 .home-btn:hover {
-  background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
 }
 
 .user-switch-btn {

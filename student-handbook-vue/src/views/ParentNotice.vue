@@ -371,10 +371,10 @@ export default {
   gap: 6px;
   padding: 12px 18px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-  color: #92400e;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
   border: none;
-  box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
   transition: all 0.3s ease;
   font-weight: 600;
   font-size: 15px;
@@ -383,9 +383,9 @@ export default {
 }
 
 .back-button:hover {
-  background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
 }
 
 .back-icon {
