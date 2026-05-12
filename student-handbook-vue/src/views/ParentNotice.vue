@@ -382,10 +382,17 @@ export default {
   white-space: nowrap;
 }
 
-.back-button:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+@media (hover: hover) {
+  .back-button:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  }
+}
+
+.back-button:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .back-icon {
@@ -410,10 +417,17 @@ export default {
   white-space: nowrap;
 }
 
-.refresh-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+@media (hover: hover) {
+  .refresh-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  }
+}
+
+.refresh-button:active:not(:disabled) {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .refresh-button:disabled {
@@ -450,16 +464,23 @@ export default {
   border: none;
   box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
   transition: all 0.3s ease;
+  white-space: nowrap;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.user-switch-btn:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+@media (hover: hover) {
+  .user-switch-btn:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  }
+}
+
+.user-switch-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .user-icon {

@@ -1667,10 +1667,17 @@ export default {
   white-space: nowrap;
 }
 
-.back-button:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+@media (hover: hover) {
+  .back-button:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  }
+}
+
+.back-button:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .back-icon {

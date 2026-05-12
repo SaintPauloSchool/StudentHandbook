@@ -367,10 +367,12 @@ export default {
   cursor: pointer;
 }
 
-.switch-student-btn:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+@media (hover: hover) {
+  .switch-student-btn:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  }
 }
 
 .switch-student-btn:active {
