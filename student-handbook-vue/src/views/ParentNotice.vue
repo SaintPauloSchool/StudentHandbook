@@ -12,7 +12,6 @@
           刷新
         </button>
         <button class="user-switch-btn" @click="toggleUserMenu">
-          <el-icon class="user-icon"><User /></el-icon>
           切換學生
         </button>
       </div>

@@ -16,9 +16,6 @@
 
           <!-- 用戶切換按鈕 -->
           <el-button class="user-switch-btn" type="primary" plain @click="toggleUserMenu">
-            <template #icon>
-              <el-icon><User /></el-icon>
-            </template>
             切換學生
           </el-button>
         </div>
