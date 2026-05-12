@@ -42,6 +42,9 @@ public class WeChatWorkOAuthController extends BaseController {
     @Value("${spring.profiles.active}")
     private String activeProfile;
 
+    @Value("${sp.frontend.url}")
+    private String frontendUrl;
+
     /**
      * 企业微信授权回调处理
      * 此接口专门用于处理企业微信应用的网页授权回调
@@ -68,7 +71,8 @@ public class WeChatWorkOAuthController extends BaseController {
                 // 預設模擬登錄的身份為家長，因此 userType 傳入 1
                 String token = tokenService.createToken(devParentUserId, 1);
                 logger.info("开发环境模拟登录，生成token: {}", token);
-                response.sendRedirect("/?token=" + token + "&userType=1");
+                // 重定向回 dev 前端（帶完整 host:port，避免跳到 prod 的 port 80）
+                response.sendRedirect(frontendUrl + "/?token=" + token + "&userType=1");
                 return;
             }
 
@@ -83,7 +87,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 if (savedState == null || !savedState.equals(state)) {
                     logger.warn("state参数验证失败，可能遭遇CSRF攻击");
                     // 返回错误页面
-                    response.sendRedirect("/login?error=invalid_state");
+                    response.sendRedirect(frontendUrl + "/login?error=invalid_state");
                     return;
                 }
             }
@@ -128,7 +132,7 @@ public class WeChatWorkOAuthController extends BaseController {
             // 检查是否获取到有效的用户信息
             if (userId == null) {
                 logger.error("无法获取有效的用户信息，授权失败");
-                response.sendRedirect("/login?error=user_info_failed&message=" +
+                response.sendRedirect(frontendUrl + "/login?error=user_info_failed&message=" +
                         URLEncoder.encode("无法获取用户信息，请联系学校管理员", "UTF-8"));
                 return;
             }
@@ -144,7 +148,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 if (!departmentParentBindingService.checkHasBoundStudents(userId)) {
                     logger.warn("家长用户 {} 不存在有效的学生关联，授权失败", userId);
                     // 重定向到错误页面
-                    response.sendRedirect("/login?error=authorization_failed&message=" +
+                    response.sendRedirect(frontendUrl + "/login?error=authorization_failed&message=" +
                             URLEncoder.encode("家长账户未关联任何学生，请联系学校管理员确认", "UTF-8"));
                     return;
                 }
@@ -156,12 +160,12 @@ public class WeChatWorkOAuthController extends BaseController {
                     userType == 0 ? "学生" : (userType == 1 ? "家长" : "员工"), token);
 
             // 重定向到前端页面并带上 userType，方便前端立刻决定显示哪些按钮
-            response.sendRedirect("/?token=" + token + "&userType=" + userType);
+            response.sendRedirect(frontendUrl + "/?token=" + token + "&userType=" + userType);
         } catch (Exception e) {
             logger.error("处理企业微信家校授权回调时发生错误", e);
             try {
                 // 重定向到错误页面
-                response.sendRedirect("/login?error=internal_error&message=" +
+                response.sendRedirect(frontendUrl + "/login?error=internal_error&message=" +
                         URLEncoder.encode(e.getMessage(), "UTF-8"));
             } catch (IOException ioException) {
                 logger.error("重定向失败", ioException);

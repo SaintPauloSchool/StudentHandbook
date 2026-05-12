@@ -77,40 +77,8 @@
       <p class="loading-text">加載中...</p>
     </div>
 
-    <!-- 學生選擇對話框 -->
-    <div v-if="studentSelectionDialogVisible" class="custom-modal-overlay" @click="closeStudentSelectionDialog">
-      <div class="custom-student-dialog" @click.stop>
-        <div class="modal-header">
-          <h3>請選擇要切換的學生</h3>
-          <button class="close-btn" @click="closeStudentSelectionDialog">×</button>
-        </div>
-        <div class="student-selection-content">
-          <div class="student-list">
-            <div class="student-options-group">
-              <div
-                  v-for="relation in studentRelations"
-                  :key="relation.studentUserId"
-                  class="student-item-radio"
-                  :class="{ 'selected': selectedStudentUserId === relation.studentUserId }"
-                  @click="selectStudent(relation.studentUserId, relation.studentName)"
-              >
-                <span class="student-name">{{ relation.studentName }}</span>
-              </div>
-            </div>
-            <!-- 学生列表为空时的提示 -->
-            <div v-if="studentRelations.length === 0" class="empty-student-list">
-              <p class="no-student-text">暂无学生数据</p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <el-button @click="studentSelectionDialogVisible = false" size="large" class="dialog-cancel-btn">取消
-          </el-button>
-          <el-button type="primary" @click="confirmStudentSwitchTemp" size="large" class="dialog-confirm-btn">確認
-          </el-button>
-        </div>
-      </div>
-    </div>
+    <!-- 共用切換學生彈窗元件 -->
+    <StudentSwitchDialog v-model="studentDialogVisible" @switched="onStudentSwitched" />
   </div>
 </template>
 
@@ -120,6 +88,7 @@ import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, HomeFilled, Refresh } from '@element-plus/icons-vue'
 import settings from '@/config/settings' // 导入全局配置设置
+import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 
 export default {
   name: 'ParentNotice',
@@ -127,7 +96,8 @@ export default {
     User,
     Clock,
     HomeFilled,
-    Refresh
+    Refresh,
+    StudentSwitchDialog
   },
   data() {
     return {
@@ -142,17 +112,15 @@ export default {
       isInitialMount: false, // 是否初次挂载
       
       // 學生選擇相關
-      studentSelectionDialogVisible: false, // 控制學生選擇對話框顯示
-      selectedStudent: '', // 已選擇的學生姓名（用于显示）
-      selectedStudentUserId: '', // 已選擇的學生ID（用于数据传输）
-      studentRelations: [] // 存儲家長與學生關係的完整數據
+      studentDialogVisible: false,
+      selectedStudentUserId: ''
     }
   },
   mounted() {
     this.isInitialMount = true
     this.loadNoticeList()
-    // 加载时获取学生列表，设置默认学生
-    this.loadStudentList()
+    // 加载时获取选中的学生
+    this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
   },
   activated() {
     if (this.isInitialMount) {
@@ -184,65 +152,6 @@ export default {
     }
   },
   methods: {
-    // 加载学生列表，设置默认学生
-    async loadStudentList() {
-      try {
-        // 检查是否启用Token验证
-        if (settings.enableTokenAuth) {
-          // 从前端存储获取token
-          const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-          if (!token) {
-            console.warn('未找到token，无法获取学生列表');
-            return;
-          }
-        }
-
-        // 调用后端API获取当前token关联的学生列表
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
-
-        if (response.data.code === 200) {
-          const relations = response.data.data;
-
-          if (relations && relations.length > 0) {
-            // 存储完整的关系数据
-            this.studentRelations = relations;
-            
-            // 检查localStorage中是否已有选中的学生
-            const savedStudentUserId = localStorage.getItem('currentStudentUserId');
-            if (savedStudentUserId) {
-              // 验证保存的学生ID是否在当前关系中
-              const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
-              if (isValid) {
-                this.selectedStudentUserId = savedStudentUserId;
-                const savedRelation = relations.find(r => r.studentUserId === savedStudentUserId);
-                this.selectedStudent = savedRelation ? savedRelation.studentName : '';
-                console.log('使用缓存的学生ID:', savedStudentUserId);
-              } else {
-                // 如果缓存的学生ID无效，使用第一个学生
-                this.selectedStudentUserId = relations[0].studentUserId;
-                this.selectedStudent = relations[0].studentName;
-                localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
-                console.log('缓存的学生ID无效，使用第一个学生:', this.selectedStudentUserId);
-              }
-            } else {
-              // 没有缓存，使用第一个学生作为默认
-              this.selectedStudentUserId = relations[0].studentUserId;
-              this.selectedStudent = relations[0].studentName;
-              localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
-              console.log('设置默认学生:', this.selectedStudentUserId);
-            }
-          } else {
-            console.warn('當前帳號未關聯任何學生');
-          }
-        } else {
-          console.error('获取学生列表失败:', response.data.msg);
-        }
-      } catch (error) {
-        console.error('獲取學生列表失敗:', error);
-      }
-    },
-
     // 返回上一页
     goBack() {
       this.$router.push('/')
@@ -412,131 +321,20 @@ export default {
     },
 
     // 切換用戶菜單顯示狀態
-    async toggleUserMenu() {
-      try {
-        // 检查是否启用Token验证
-        if (settings.enableTokenAuth) {
-          // 从前端存储获取token
-          const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-          if (!token) {
-            ElMessage.error('請先登錄獲取訪問令牌');
-            return;
-          }
-        }
-
-        // 调用后端API获取当前token关联的学生列表
-        // token会在axios拦截器中自动添加到请求头
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
-
-        if (response.data.code === 200) {
-          const relations = response.data.data;
-
-          if (relations && relations.length > 0) {
-            // 存储完整的关系数据，包含studentName和studentUserId
-            this.studentRelations = relations;
-            
-            // 检查是否有已选中的学生（从localStorage读取）
-            const savedStudentUserId = localStorage.getItem('currentStudentUserId');
-            if (savedStudentUserId) {
-              // 验证保存的学生ID是否在当前关系中
-              const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
-              if (isValid) {
-                // 使用缓存的学生ID
-                const savedRelation = relations.find(r => r.studentUserId === savedStudentUserId);
-                this.selectedStudentUserId = savedStudentUserId;
-                this.selectedStudent = savedRelation ? savedRelation.studentName : '';
-              } else {
-                // 如果缓存的学生ID无效，使用第一个学生
-                this.selectedStudentUserId = relations[0].studentUserId;
-                this.selectedStudent = relations[0].studentName;
-              }
-            } else {
-              // 没有缓存，使用第一个学生
-              this.selectedStudentUserId = relations[0].studentUserId;
-              this.selectedStudent = relations[0].studentName;
-            }
-            
-            this.studentSelectionDialogVisible = true;
-          } else {
-            ElMessage.info('當前帳號未關聯任何學生');
-          }
-        } else {
-          ElMessage.error(response.data.msg || '獲取學生列表失敗');
-        }
-      } catch (error) {
-        console.error('獲取學生列表失敗:', error);
-        ElMessage.error('獲取學生列表失敗: ' + (error.message || '網絡錯誤'));
-      }
+    toggleUserMenu() {
+      this.studentDialogVisible = true;
     },
 
-    // 关闭学生选择对话框
-    closeStudentSelectionDialog() {
-      this.studentSelectionDialogVisible = false;
-    },
-
-    // 选择学生
-    selectStudent(studentUserId, studentName) {
+    // 學生切換成功的回調
+    onStudentSwitched({ studentUserId }) {
       this.selectedStudentUserId = studentUserId;
-      this.selectedStudent = studentName;
-    },
-
-    // 確認切換學生
-    async confirmStudentSwitchTemp() {
-      if (!this.selectedStudentUserId) {
-        ElMessage.warning('請選擇一個學生');
-        return;
-      }
-
-      try {
-        // 驗證必要數據
-        if (!this.studentRelations?.length || !this.selectedStudent || !this.selectedStudentUserId) {
-          ElMessage.error('學生信息不完整或未加載');
-          return;
-        }
-
-        // 驗證學生關聯關係
-        const isValidStudent = this.studentRelations.some(relation => 
-          relation.studentName === this.selectedStudent && 
-          relation.studentUserId === this.selectedStudentUserId
-        );
-
-        if (!isValidStudent) {
-          ElMessage.error('家長未關聯該學生，無法切換');
-          return;
-        }
-
-        // 調用後端API
-        const response = await service.post(API_ENDPOINTS.SWITCH_STUDENT, {
-          studentName: this.selectedStudent,
-          studentUserId: this.selectedStudentUserId
-        });
-
-        if (response.data.code === 200) {
-          ElMessage.success({
-            message: '已成功切換到學生',
-            duration: 1000
-          });
-          this.studentSelectionDialogVisible = false;
-
-          // 保存当前选中的学生ID到localStorage，供其他页面使用
-          localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
-
-          // 刷新通知列表
-          await this.loadNoticeList(true);
-          
-          // 通知父组件或全局更新未读数量（通过事件总线或vuex）
-          // 这里简单起见，直接触发一个自定义事件
-          window.dispatchEvent(new CustomEvent('studentChanged', { 
-            detail: { studentUserId: this.selectedStudentUserId } 
-          }));
-        } else {
-          ElMessage.error(response.data.msg || '切換學生失敗');
-        }
-      } catch (error) {
-        console.error('切換學生失敗:', error);
-        ElMessage.error('切換學生失敗: ' + (error.message || '未知錯誤'));
-      }
+      // 刷新通知列表
+      this.loadNoticeList(true);
+      
+      // 通知父组件或全局更新未读数量
+      window.dispatchEvent(new CustomEvent('studentChanged', { 
+        detail: { studentUserId: this.selectedStudentUserId } 
+      }));
     }
   }
 }

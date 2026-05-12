@@ -47,7 +47,11 @@ export default {
     }
 
     // 检查URL参数中的token（来自微信授权回调）
-    this.checkTokenFromUrl();
+    // 如果 URL 中已帶有 token，保存後直接跳首頁，不再繼續執行登錄流程
+    if (this.checkTokenFromUrl()) {
+      return;
+    }
+
     // 检查URL参数中的授权code
     this.checkWeChatAuthCode();
 
@@ -61,7 +65,7 @@ export default {
     }
   },
   methods: {
-    // 检查URL参数中的token
+    // 检查URL参数中的token，找到則保存並返回 true（通知 mounted 提前結束）
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
@@ -81,7 +85,9 @@ export default {
         ElMessage.success('登錄成功');
         // 跳转到首页
         this.$router.push('/');
+        return true; // ← 告知調用方已處理，無需繼續登錄流程
       }
+      return false;
     },
 
     // 检查URL参数中是否有微信授权code
@@ -110,7 +116,7 @@ export default {
             // 这里不再需要手动保存token
             ElMessage.success('登錄成功');
             // 跳转到首页
-            this.$router.push('/sp-api/');
+            this.$router.push('/');
           } else {
             ElMessage.error(response.data.msg || '登錄失敗');
           }
@@ -152,8 +158,9 @@ export default {
     // 自动微信登录
     async autoWechatLogin() {
       // 如果是開發環境，直接調用模擬的 callback，透過 code=dev 讓後端返回配置的 token
-      if (import.meta.env.MODE === 'development') {
-        console.log('在開發環境中，直接跳轉到模擬登錄');
+      if (import.meta.env.MODE !== 'production') {
+        // 非生產環境（本地 vite dev 或 build:dev 部署到測試服）都走 mock 登錄，跳過微信驗證
+        console.log('非生產環境，直接跳轉到模擬登錄');
         this.loginLoading = true;
         window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=dev';
         return;

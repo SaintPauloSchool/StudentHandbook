@@ -1,5 +1,15 @@
 <template>
   <div class="home-container" v-loading.fullscreen.lock="isNavigatingToCampus" element-loading-text="正在驗證並跳轉至校園系統...">
+
+    <!-- 頂部學生資訊欄：固定在頁面最上方，左姓名右切換 -->
+    <div class="student-top-bar" v-if="(userType === 0 || userType === 1) && currentStudentName">
+      <div class="student-name-area">
+        <span class="student-avatar-icon">👤</span>
+        <span class="student-name-text">{{ currentStudentName }}</span>
+      </div>
+      <button class="switch-student-btn" @click="openStudentSwitchDialog">切換學生</button>
+    </div>
+
     <div class="welcome-section">
       <div class="logo-badge">
         <img src="../logo/sp.jpg" alt="School Logo" class="school-logo-img">
@@ -36,26 +46,33 @@
         </button>
       </div>
     </div>
+
+    <!-- 共用切換學生彈窗元件 -->
+    <StudentSwitchDialog v-model="studentDialogVisible" @switched="onStudentSwitched" />
   </div>
 </template>
 
 <script>
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
-import settings from '@/config/settings' // 导入全局配置设置
-import { API_ENDPOINTS, baseURL } from '@/config/api.js' // 导入API端点配置
+import settings from '@/config/settings'
+import { API_ENDPOINTS, baseURL } from '@/config/api.js'
+import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 
 export default {
   name: 'Home',
+  components: { StudentSwitchDialog },
   data() {
     const cachedUserType = localStorage.getItem('userType');
     return {
-      unreadCount: 0, // 未读通知数量
-      isNavigatingToCampus: false, // 是否正在跳轉至校園系統
-      userType: cachedUserType !== null ? parseInt(cachedUserType) : null // 0: 學生, 1: 家長, 2: 員工
+      unreadCount: 0,
+      isNavigatingToCampus: false,
+      userType: cachedUserType !== null ? parseInt(cachedUserType) : null,
+      currentStudentName: localStorage.getItem('currentStudentName') || '', // 當前學生姓名
+      studentDialogVisible: false // 切換彈窗是否顯示
     }
   },
-  mounted() {
+  async mounted() {
     // 检查URL参数中是否有token（来自微信授权回调）
     this.checkTokenFromUrl();
     
@@ -65,7 +82,10 @@ export default {
       this.checkToken();
     }
 
-    // 获取未读通知数量
+    // ① 先確保默認學生 ID 已存入 localStorage（首次登入時 localStorage 中尚無記錄）
+    await this.ensureDefaultStudent();
+
+    // ② 有了正確的 studentUserId 後，再拉未讀數，確保數字對應正確的學生
     this.fetchUnreadCount();
 
     // 獲取使用者資訊（包含 userType）
@@ -117,6 +137,38 @@ export default {
         } else {
           ElMessage.success('登錄成功');
         }
+      }
+    },
+
+    // ① 首次登入時，確保默認學生已嵌入 localStorage，並同步顯示姓名
+    async ensureDefaultStudent() {
+      // 如果已經有緬存的學生 ID，直接同步姓名後返回
+      if (localStorage.getItem('currentStudentUserId')) {
+        this.currentStudentName = localStorage.getItem('currentStudentName') || '';
+        this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || '';
+        // 若只有 ID 沒有姓名，仍需拉一次列表補全
+        if (this.currentStudentName) return;
+      }
+
+      try {
+        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
+        if (response.data.code === 200) {
+          const relations = response.data.data;
+          if (relations && relations.length > 0) {
+            this.studentRelations = relations;
+            const savedId = localStorage.getItem('currentStudentUserId');
+            const matched = savedId ? relations.find(r => r.studentUserId === savedId) : null;
+            const defaultRel = matched || relations[0];
+            // 設定默認學生
+            this.currentStudentName = defaultRel.studentName;
+            this.selectedStudentUserId = defaultRel.studentUserId;
+            localStorage.setItem('currentStudentUserId', defaultRel.studentUserId);
+            localStorage.setItem('currentStudentName', defaultRel.studentName);
+            console.log('首頁初始化：設置默認學生', defaultRel.studentName);
+          }
+        }
+      } catch (error) {
+        console.warn('首頁初始化：無法取得學生列表（可能是員工身份）', error.message);
       }
     },
 
@@ -213,8 +265,8 @@ export default {
       // 把目標存在 sessionStorage，授權完成後前端可以根據這個判斷是否需要打開校園系統
       sessionStorage.setItem('pendingCampusRedirect', 'true');
 
-      if (import.meta.env.MODE === 'development') {
-        // 開發環境：直接走 dev callback，不走真實微信授權
+      if (import.meta.env.MODE !== 'production') {
+        // 非生產環境走 dev mock 登錄
         window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=dev';
         return;
       }
@@ -226,9 +278,21 @@ export default {
       window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
     },
     
-    // 处理学生切换事件
-    handleStudentChanged(event) {
-      console.log('学生已切换，重新获取未读通知数量');
+    // 處理學生切換事件（其他頁面發出的）
+    handleStudentChanged() {
+      this.currentStudentName = localStorage.getItem('currentStudentName') || '';
+      console.log('學生已切換，重新獲取未讀通知數量');
+      this.fetchUnreadCount();
+    },
+
+    // 開啟切換學生彈窗（直接打開，由 StudentSwitchDialog 元件自行拉列表）
+    openStudentSwitchDialog() {
+      this.studentDialogVisible = true;
+    },
+
+    // StudentSwitchDialog 切換成功後的回調
+    onStudentSwitched({ studentName }) {
+      this.currentStudentName = studentName;
       this.fetchUnreadCount();
     },
   }
@@ -243,11 +307,217 @@ export default {
   align-items: center;
   min-height: 100vh;
   width: 100%;
-  background: #f8fafc; /* Very light, clean background for full screen */
-  padding: 40px 24px;
+  background: #f8fafc;
+  padding: 56px 24px 40px; /* top 留給固定頂部欄的空間 */
   box-sizing: border-box;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
+
+/* ── 頂部學生資訊欄（固定在頁面最上方） ─────────────── */
+.student-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-bottom: 1.5px solid rgba(64, 158, 255, 0.18);
+  box-shadow: 0 2px 12px rgba(26, 115, 232, 0.08);
+  padding: 0 20px;
+  height: 48px;
+  box-sizing: border-box;
+}
+
+.student-name-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.student-avatar-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.student-name-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.switch-student-btn {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: linear-gradient(135deg, #409eff, #1a73e8);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.switch-student-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+/* ── 切換學生彈窗 ─────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.student-switch-dialog {
+  background: white;
+  border-radius: 20px;
+  width: 88%;
+  max-width: 340px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: dialogScaleIn 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes dialogScaleIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  padding: 18px 20px;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dialog-close-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.dialog-close-btn:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+.dialog-body {
+  padding: 16px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.student-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+  border: 2px solid transparent;
+  background: #f8fafc;
+}
+
+.student-option:last-child { margin-bottom: 0; }
+
+.student-option:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.student-option--active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.option-avatar { font-size: 22px; }
+
+.option-name {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.option-check {
+  color: #2563eb;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.no-student {
+  text-align: center;
+  color: #94a3b8;
+  padding: 24px 0;
+  font-size: 15px;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-cancel, .btn-confirm {
+  flex: 1;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.btn-cancel:active { background: #e2e8f0; }
+
+.btn-confirm {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-confirm:active { opacity: 0.9; transform: scale(0.98); }
+
 
 .welcome-section {
   text-align: center;
