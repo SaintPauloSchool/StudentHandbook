@@ -353,170 +353,30 @@ export default {
 }
 
 .switch-student-btn {
-  flex-shrink: 0;
-  padding: 7px 14px;
-  background: linear-gradient(135deg, #409eff, #1a73e8);
-  color: white;
+  margin-right: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
   border: none;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  transition: all 0.3s ease;
   white-space: nowrap;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.switch-student-btn:hover {
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
 }
 
 .switch-student-btn:active {
   transform: scale(0.96);
   opacity: 0.9;
 }
-
-/* ── 切換學生彈窗 ─────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(4px);
-}
-
-.student-switch-dialog {
-  background: white;
-  border-radius: 20px;
-  width: 88%;
-  max-width: 340px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  animation: dialogScaleIn 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@keyframes dialogScaleIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
-}
-
-.dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  padding: 18px 20px;
-}
-
-.dialog-header h3 {
-  margin: 0;
-  color: white;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.dialog-close-btn {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  color: white;
-  font-size: 20px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-.dialog-close-btn:hover {
-  background: rgba(255,255,255,0.35);
-}
-
-.dialog-body {
-  padding: 16px;
-  max-height: 50vh;
-  overflow-y: auto;
-}
-
-.student-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 8px;
-  border: 2px solid transparent;
-  background: #f8fafc;
-}
-
-.student-option:last-child { margin-bottom: 0; }
-
-.student-option:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-}
-
-.student-option--active {
-  background: #eff6ff;
-  border-color: #3b82f6;
-}
-
-.option-avatar { font-size: 22px; }
-
-.option-name {
-  flex: 1;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.option-check {
-  color: #2563eb;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.no-student {
-  text-align: center;
-  color: #94a3b8;
-  padding: 24px 0;
-  font-size: 15px;
-}
-
-.dialog-footer {
-  display: flex;
-  gap: 12px;
-  padding: 16px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.btn-cancel, .btn-confirm {
-  flex: 1;
-  padding: 13px;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-cancel {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.btn-cancel:active { background: #e2e8f0; }
-
-.btn-confirm {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-.btn-confirm:active { opacity: 0.9; transform: scale(0.98); }
 
 
 .welcome-section {

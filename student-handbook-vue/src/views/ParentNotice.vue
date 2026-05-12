@@ -113,14 +113,13 @@ export default {
       
       // 學生選擇相關
       studentDialogVisible: false,
-      selectedStudentUserId: ''
+      selectedStudentUserId: localStorage.getItem('currentStudentUserId') || ''
     }
   },
   mounted() {
     this.isInitialMount = true
-    this.loadNoticeList()
-    // 加载时获取选中的学生
     this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
+    this.loadNoticeList()
   },
   activated() {
     if (this.isInitialMount) {
@@ -132,6 +131,7 @@ export default {
     
     if (!fromPath.startsWith('/notice/')) {
       // 從首頁或其他地方進入：刷新列表並回到頂部
+      this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
       this.savedScrollTop = 0
       this.$nextTick(() => {
         if (this.$refs.scrollContainer) {

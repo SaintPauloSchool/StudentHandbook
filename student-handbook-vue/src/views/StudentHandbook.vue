@@ -142,8 +142,7 @@ export default {
   mounted() {
     this.checkIsMobile()
     this.activeButton = 'today'; // 初始化時設置當天按鈕為活躍狀態
-    // 加载时获取学生列表，设置默认学生
-    this.loadStudentList()
+    this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
     this.fetchTodayHandbookList()
     window.addEventListener('resize', this.checkIsMobile)
     // 添加滾動事件監聽器
@@ -155,65 +154,6 @@ export default {
     window.removeEventListener('scroll', this.handleScroll)
   },
   methods: {
-    // 加载学生列表，设置默认学生
-    async loadStudentList() {
-      try {
-        // 检查是否启用Token验证
-        if (settings.enableTokenAuth) {
-          // 从前端存储获取token
-          const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-          if (!token) {
-            console.warn('未找到token，无法获取学生列表');
-            return;
-          }
-        }
-
-        // 调用后端API获取当前token关联的学生列表
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
-
-        if (response.data.code === 200) {
-          const relations = response.data.data;
-
-          if (relations && relations.length > 0) {
-            // 存储完整的关系数据
-            this.studentRelations = relations;
-            
-            // 检查localStorage中是否已有选中的学生
-            const savedStudentUserId = localStorage.getItem('currentStudentUserId');
-            if (savedStudentUserId) {
-              // 验证保存的学生ID是否在当前关系中
-              const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
-              if (isValid) {
-                this.selectedStudentUserId = savedStudentUserId;
-                const savedRelation = relations.find(r => r.studentUserId === savedStudentUserId);
-                this.selectedStudent = savedRelation ? savedRelation.studentName : '';
-                console.log('使用缓存的学生ID:', savedStudentUserId);
-              } else {
-                // 如果缓存的学生ID无效，使用第一个学生
-                this.selectedStudentUserId = relations[0].studentUserId;
-                this.selectedStudent = relations[0].studentName;
-                localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
-                console.log('缓存的学生ID无效，使用第一个学生:', this.selectedStudentUserId);
-              }
-            } else {
-              // 没有缓存，使用第一个学生作为默认
-              this.selectedStudentUserId = relations[0].studentUserId;
-              this.selectedStudent = relations[0].studentName;
-              localStorage.setItem('currentStudentUserId', this.selectedStudentUserId);
-              console.log('设置默认学生:', this.selectedStudentUserId);
-            }
-          } else {
-            console.warn('當前帳號未關聯任何學生');
-          }
-        } else {
-          console.error('获取学生列表失败:', response.data.msg);
-        }
-      } catch (error) {
-        console.error('獲取學生列表失敗:', error);
-      }
-    },
-
     //檢查是否為移動設備
     checkIsMobile() {
       this.isMobile = window.innerWidth < 768
