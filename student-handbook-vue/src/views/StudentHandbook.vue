@@ -545,10 +545,17 @@ export default {
   font-size: 15px;
 }
 
-.home-btn:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+@media (hover: hover) {
+  .home-btn:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  }
+}
+
+.home-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .user-switch-btn {
@@ -565,10 +572,17 @@ export default {
   font-size: 15px;
 }
 
-.user-switch-btn:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+@media (hover: hover) {
+  .user-switch-btn:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(147, 197, 253, 0.3);
+  }
+}
+
+.user-switch-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .navigation-buttons {
