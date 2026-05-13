@@ -14,6 +14,12 @@
             返回首頁
           </el-button>
 
+          <!-- 學生姓名顯示 -->
+          <div class="handbook-student-name" v-if="currentStudentName">
+            <el-icon class="handbook-student-icon" style="flex-shrink: 0;"><User /></el-icon>
+            <span class="handbook-student-text">{{ currentStudentName }}</span>
+          </div>
+
           <!-- 用戶切換按鈕 -->
           <el-button class="user-switch-btn" type="primary" plain @click="toggleUserMenu">
             切換學生
@@ -521,6 +527,35 @@ export default {
   width: 100%;
 }
 
+.handbook-student-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  font-weight: 600;
+  font-size: 14px;
+  user-select: none;
+  max-width: 160px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.handbook-student-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.handbook-student-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .navigation-buttons {
   display: flex;
   justify-content: space-between;
@@ -532,8 +567,8 @@ export default {
 
 
 .home-btn {
-  margin-right: 0; /* 右側間距，使用gap控制 */
-  padding: 12px 18px;
+  margin-right: 0;
+  padding: 8px 12px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
@@ -542,7 +577,7 @@ export default {
   transition: all 0.3s ease;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 @media (hover: hover) {
@@ -559,17 +594,17 @@ export default {
 }
 
 .user-switch-btn {
-  margin-right: 0; /* 移除固定間距，使用gap控制 */
-  padding: 12px 18px;
+  margin-right: 0;
+  padding: 8px 12px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%); /* 按照項目規範的淺藍色漸變 */
-  color: #1e3a8a; /* 按照項目規範的深藍色文字 */
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
   border: none;
   box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
   transition: all 0.3s ease;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 @media (hover: hover) {
@@ -778,17 +813,17 @@ export default {
 
 /* 導航按鈕樣式 */
 .nav-arrow {
-  padding: 12px 18px;
+  padding: 8px 12px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%); /* 按照用戶要求的新漸變配色 */
-  color: #1e40af; /* 深藍色文字 */
+  background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%);
+  color: #1e40af;
   border: none;
   box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2);
-  white-space: nowrap; /* 防止文字換行 */
-  min-width: auto; /* 避免按鈕過大 */
+  white-space: nowrap;
+  min-width: auto;
 }
 
 .nav-arrow:disabled {
@@ -813,6 +848,10 @@ export default {
 
 /* 手機端優化 */
 @media (max-width: 768px) {
+  .header-container {
+    padding: 12px 10px;
+  }
+
   .handbook-container {
     padding: 0 15px 30px;
     gap: 20px;

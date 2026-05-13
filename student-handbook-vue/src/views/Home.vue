@@ -4,7 +4,7 @@
     <!-- 頂部學生資訊欄：固定在頁面最上方，左姓名右切換 -->
     <div class="student-top-bar" v-if="(userType === 0 || userType === 1) && currentStudentName">
       <div class="student-name-area">
-        <span class="student-avatar-icon">👤</span>
+        <el-icon class="student-avatar-icon"><User /></el-icon>
         <span class="student-name-text">{{ currentStudentName }}</span>
       </div>
       <button class="switch-student-btn" @click="openStudentSwitchDialog">切換學生</button>
@@ -58,10 +58,11 @@ import {ElMessage} from 'element-plus'
 import settings from '@/config/settings'
 import { API_ENDPOINTS, baseURL } from '@/config/api.js'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
+import { User } from '@element-plus/icons-vue'
 
 export default {
   name: 'Home',
-  components: { StudentSwitchDialog },
+  components: { StudentSwitchDialog, User },
   data() {
     const cachedUserType = localStorage.getItem('userType');
     return {
@@ -326,7 +327,7 @@ export default {
   background: white;
   border-bottom: 1.5px solid rgba(64, 158, 255, 0.18);
   box-shadow: 0 2px 12px rgba(26, 115, 232, 0.08);
-  padding: 0 20px;
+  padding: 0 10px;
   height: 48px;
   box-sizing: border-box;
 }
@@ -334,19 +335,26 @@ export default {
 .student-name-area {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  user-select: none;
   overflow: hidden;
 }
 
 .student-avatar-icon {
-  font-size: 20px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
 .student-name-text {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a8a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

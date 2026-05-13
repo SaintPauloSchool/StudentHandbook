@@ -6,6 +6,10 @@
         <el-icon class="back-icon"><ArrowLeft /></el-icon>
         返回
       </button>
+      <div class="student-name-display" v-if="currentStudentName">
+        <el-icon class="user-icon" style="flex-shrink: 0;"><User /></el-icon>
+        <span class="student-name-text">{{ currentStudentName }}</span>
+      </div>
     </div>
 
     <!-- 加载状态 -->
@@ -399,7 +403,8 @@ export default {
       showCenterToast: false,
       toastMessage: '',
       errorMessage: '', // 错误信息
-      isFromWechatLink: false // 是否从微信链接进入（带有sid参数）
+      isFromWechatLink: false, // 是否从微信链接进入（带有sid参数）
+      currentStudentName: localStorage.getItem('currentStudentName') || '' // 學生姓名
     }
   },
   computed: {
@@ -491,6 +496,7 @@ export default {
                 // 匹配成功，使用匹配到的学生ID和姓名
                 localStorage.setItem('currentStudentUserId', matchedStudent.studentUserId);
                 localStorage.setItem('currentStudentName', matchedStudent.studentName);
+                this.currentStudentName = matchedStudent.studentName;
               } else {
                 // 匹配失败，设置错误信息并停止加载
                 this.errorMessage = '无效的访问链接，无法识别学生信息';
@@ -506,11 +512,15 @@ export default {
                   // 如果缓存的学生ID无效，使用第一个学生
                   localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
                   localStorage.setItem('currentStudentName', relations[0].studentName);
+                  this.currentStudentName = relations[0].studentName;
+                } else {
+                  this.currentStudentName = localStorage.getItem('currentStudentName');
                 }
               } else {
                 // 没有缓存，使用第一个学生作为默认
                 localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
                 localStorage.setItem('currentStudentName', relations[0].studentName);
+                this.currentStudentName = relations[0].studentName;
               }
             }
           } else {
@@ -1645,17 +1655,46 @@ export default {
 .header {
   display: flex;
   align-items: center;
-  padding: 15px 20px;
+  justify-content: space-between;
+  padding: 15px 15px;
   background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
   position: sticky;
   top: 0;
   z-index: 100;
   width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.student-name-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  font-weight: 600;
+  font-size: 15px;
+  user-select: none;
+  max-width: 160px;
+  min-width: 0;
+  flex-shrink: 1;
+  box-sizing: border-box;
+}
+
+.student-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .back-button {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 6px;
   padding: 12px 18px;
   border-radius: 8px;
@@ -1669,6 +1708,7 @@ export default {
   cursor: pointer;
   white-space: nowrap;
 }
+
 
 @media (hover: hover) {
   .back-button:hover {
@@ -2937,7 +2977,19 @@ export default {
 /* 移动端适配 */
 @media (max-width: 768px) {
   .header {
-    padding: 12px 15px;
+    padding: 12px 10px;
+  }
+
+  .back-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
+  }
+
+  .student-name-display {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
   }
 
   .detail-content {

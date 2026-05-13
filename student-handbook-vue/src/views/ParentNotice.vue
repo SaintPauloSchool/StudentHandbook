@@ -2,17 +2,23 @@
   <div class="notice-container">
     <!-- 顶部导航栏 -->
     <div class="header">
-      <button class="back-button" @click="goBack">
-        <el-icon class="back-icon"><HomeFilled /></el-icon>
-        返回首頁
-      </button>
-      <div class="header-buttons">
+      <div class="header-left">
+        <div class="student-name-display">
+          <el-icon class="user-icon"><User /></el-icon>
+          {{ currentStudentName || '未選擇學生' }}
+        </div>
+        <button class="back-button" @click="goBack">
+          <el-icon class="back-icon"><HomeFilled /></el-icon>
+          返回首頁
+        </button>
+      </div>
+      <div class="header-right">
+        <button class="user-switch-btn" @click="toggleUserMenu">
+          切換學生
+        </button>
         <button class="refresh-button" @click="refreshList" :disabled="loading">
           <el-icon class="refresh-icon" :class="{ 'rotating': loading }"><Refresh /></el-icon>
           刷新
-        </button>
-        <button class="user-switch-btn" @click="toggleUserMenu">
-          切換學生
         </button>
       </div>
     </div>
@@ -112,12 +118,14 @@ export default {
       
       // 學生選擇相關
       studentDialogVisible: false,
+      currentStudentName: localStorage.getItem('currentStudentName') || '',
       selectedStudentUserId: localStorage.getItem('currentStudentUserId') || ''
     }
   },
   mounted() {
     this.isInitialMount = true
     this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
+    this.currentStudentName = localStorage.getItem('currentStudentName') || ''
     this.loadNoticeList()
   },
   activated() {
@@ -131,6 +139,7 @@ export default {
     if (!fromPath.startsWith('/notice/')) {
       // 從首頁或其他地方進入：刷新列表並回到頂部
       this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
+      this.currentStudentName = localStorage.getItem('currentStudentName') || ''
       this.savedScrollTop = 0
       this.$nextTick(() => {
         if (this.$refs.scrollContainer) {
@@ -325,8 +334,9 @@ export default {
     },
 
     // 學生切換成功的回調
-    onStudentSwitched({ studentUserId }) {
+    onStudentSwitched({ studentUserId, studentName }) {
       this.selectedStudentUserId = studentUserId;
+      this.currentStudentName = studentName || localStorage.getItem('currentStudentName') || '';
       // 刷新通知列表
       this.loadNoticeList(true);
       
@@ -349,7 +359,7 @@ export default {
 /* 顶部导航栏 */
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 15px 20px;
   background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
@@ -359,10 +369,35 @@ export default {
   z-index: 100;
 }
 
-.header-buttons {
+.header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.student-name-display {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
+  color: #1e3a8a;
+  border: none;
+  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .back-button {
@@ -733,22 +768,37 @@ export default {
   }
 
   .back-button {
-    padding: 10px 14px;
+    padding: 8px 12px;
     font-size: 14px;
+    gap: 5px;
   }
 
   .refresh-button {
-    padding: 10px 14px;
+    padding: 8px 12px;
     font-size: 14px;
+    gap: 5px;
   }
 
   .user-switch-btn {
-    padding: 10px 14px;
+    padding: 8px 12px;
     font-size: 14px;
+    gap: 5px;
   }
 
-  .header-buttons {
-    gap: 8px;
+  .student-name-display {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
+  }
+
+  .header-left {
+    gap: 6px;
+    align-items: flex-start;
+  }
+  
+  .header-right {
+    gap: 6px;
+    align-items: flex-end;
   }
 
   .notice-list {
