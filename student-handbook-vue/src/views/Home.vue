@@ -337,24 +337,25 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
-  color: #1e3a8a;
-  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  padding: 5px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #2563eb;
+  border: 1.5px solid rgba(37, 99, 235, 0.35);
   user-select: none;
   overflow: hidden;
 }
 
 .student-avatar-icon {
-  font-size: 16px;
+  font-size: 15px;
   flex-shrink: 0;
+  color: #1e293b;
 }
 
 .student-name-text {
   font-size: 14px;
   font-weight: 600;
-  color: #1e3a8a;
+  color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

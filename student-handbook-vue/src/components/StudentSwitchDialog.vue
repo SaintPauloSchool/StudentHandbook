@@ -105,7 +105,10 @@ export default {
           // 更新 localStorage
           localStorage.setItem('currentStudentUserId', rel.studentUserId)
           localStorage.setItem('currentStudentName', rel.studentName)
-          ElMessage.success('已切換至 ' + rel.studentName)
+          ElMessage.success({
+            message: '已切換至 ' + rel.studentName,
+            duration: 1000
+          })
           this.close()
           // 通知父元件
           this.$emit('switched', { studentUserId: rel.studentUserId, studentName: rel.studentName })

@@ -386,16 +386,14 @@ export default {
 .student-name-display {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 12px 18px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
-  color: #1e3a8a;
-  border: none;
-  box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
+  padding: 5px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #1e293b;
+  border: 1.5px solid rgba(37, 99, 235, 0.35);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   white-space: nowrap;
   user-select: none;
 }
