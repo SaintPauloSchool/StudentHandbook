@@ -1,7 +1,7 @@
 # 项目相关配置
 sp:
   # 文件上传路径（Linux服务器）
-  profile: /usr/local/student-handbook/upload
+  profile: /usr/local/upload
   # 前端访问地址（用于后端登录完成后 redirect 回前端）
   frontend:
     url: http://tals-wcapp.esp.edu.mo

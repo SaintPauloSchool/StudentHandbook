@@ -4,6 +4,8 @@ server:
 
 # 前端访问地址（用于后端登录完成后 redirect 回前端，dev 必须带 port）
 sp:
+  # 文件上传路径（Linux服务器）
+  profile: /usr/local/upload
   frontend:
     url: http://10.32.96.55:8082
 

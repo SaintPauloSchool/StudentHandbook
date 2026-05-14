@@ -209,6 +209,10 @@ public class FileUploadUtils
     {
         int dirLastIndex = OverallSituationConfig.getProfile().length() + 1;
         String currentDir = StringUtils.substring(uploadDir, dirLastIndex);
+        // 去除空格，防止路径中包含隐藏的空格字符
+        if (currentDir != null) {
+            currentDir = currentDir.trim();
+        }
         // 修复双斜杠问题：如果 currentDir 为空，直接返回 /profile/ + fileName
         if (StringUtils.isEmpty(currentDir)) {
             return Constants.RESOURCE_PREFIX + "/" + fileName;

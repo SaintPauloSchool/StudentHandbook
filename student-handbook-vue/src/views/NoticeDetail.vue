@@ -60,7 +60,7 @@
               :key="index"
             >
               <img v-if="isImage(attachment)" :src="getFullAttachmentUrl(attachment)" :alt="getAttachmentName(attachment)" class="attachment-image" @error="handleImageError" />
-              <a v-else :href="getFullAttachmentUrl(attachment)" target="_blank" class="attachment-link" @click="handleAttachmentClick(attachment)">
+              <a v-else href="javascript:void(0)" class="attachment-link" @click.prevent="handleSecureDownload(attachment)">
                 <span class="link-icon">📎</span>
                 <span class="link-text">{{ getAttachmentName(attachment) }}</span>
               </a>
@@ -1283,19 +1283,13 @@ export default {
       // 清理URL中的双斜杠
       url = url.replace(/\/+/g, '/')
       
-      // 开发环境：需要拼接后端服务器地址和context-path
-      // 生产环境：使用当前域名
-      if (import.meta.env.MODE === 'development' || import.meta.env.MODE === 'test') {
-        // 开发环境使用后端服务器地址 + context-path
-        return 'http://localhost:8003/sp-api' + url
-      } else {
-        // 生产环境使用当前域名
-        const origin = window.location.origin
-        if (url.startsWith('/')) {
-          return origin + url
-        }
-        return origin + '/' + url
+      // 统一使用相对路径，通过Nginx代理访问后端
+      // 开发环境（localhost）和生产环境（Nginx代理）都使用相同的路径
+      const origin = window.location.origin
+      if (url.startsWith('/')) {
+        return origin + url
       }
+      return origin + '/' + url
     },
 
     // 获取附件名称
@@ -1323,6 +1317,61 @@ export default {
         return decodeURIComponent(fileName) || '未知文件'
       } catch (e) {
         return '未知文件'
+      }
+    },
+
+    // 處理安全下載附件（帶Token）
+    async handleSecureDownload(attachment) {
+      if (!attachment) return;
+      
+      const fileName = this.getAttachmentName(attachment);
+      let url = typeof attachment === 'object' ? attachment.url : attachment;
+      if (!url) return;
+      
+      // 清理URL中的雙斜線
+      url = url.replace(/\/+/g, '/');
+      
+      this.showToast('準備下載...', 'info');
+      
+      try {
+        // 使用 axios 請求二進制流，這樣會自動帶上 Token
+        const response = await service.get(API_ENDPOINTS.FILE_UPLOAD.replace('/upload', '/download/resource'), {
+          params: { resource: url },
+          responseType: 'blob', // 重要：指定為 blob
+          timeout: 60000 // 文件下載可能較慢，延長超時時間
+        });
+        
+        // 創建一個 Blob 對象
+        const blob = new Blob([response.data]);
+        
+        // 如果後端有返回文件名（從 header 取 Content-Disposition），可以使用後端的文件名
+        let downloadName = fileName;
+        const disposition = response.headers['content-disposition'];
+        if (disposition && disposition.indexOf('filename=') !== -1) {
+          const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+          if (matches != null && matches[1]) {
+            downloadName = decodeURIComponent(matches[1].replace(/['"]/g, ''));
+          }
+        }
+        
+        // 創建下載鏈接並觸發點擊
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = blobUrl;
+        link.download = downloadName;
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // 清理
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        
+        this.showToast('開始下載', 'success');
+      } catch (error) {
+        console.error('下載失敗:', error);
+        this.showToast('下載失敗，請確保您有權限或稍後再試', 'error');
       }
     },
 
