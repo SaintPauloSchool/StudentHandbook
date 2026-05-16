@@ -48,7 +48,7 @@ public class ParentStudentRelationSyncTask {
      * 每天凌晨0点30分执行部门家长数据同步
      *
      */
-    //@Scheduled(cron = "0 30 0 * * ?")
+    @Scheduled(cron = "0 30 0 * * ?")
     public void syncParentStudentRelationData() {
         // 使用AtomicBoolean确保同一时间只有一个实例在执行
         if (!isExecuting.compareAndSet(false, true)) {
