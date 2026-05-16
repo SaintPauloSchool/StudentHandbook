@@ -7,7 +7,8 @@ sp:
   # 文件上传路径（Linux服务器）
   profile: /usr/local/upload
   frontend:
-    url: http://10.32.96.55:8082
+    url: http://localhost:3000/
+    #url: http://10.32.96.55:8082
 
 spring:
   datasource:
