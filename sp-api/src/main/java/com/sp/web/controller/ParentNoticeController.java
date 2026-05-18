@@ -134,8 +134,8 @@ public class ParentNoticeController extends BaseController {
             NotificationAnswer userAnswer = notificationAnswerService.getUserAnswer(notificationId, studentUserId);
 
             if (userAnswer != null) {
-                // 使用userId(家长ID)和studentUserId获取作答人信息
-                String answererInfo = parentStudentRelationService.getAnswererInfo(userId, studentUserId);
+                // 使用回答那條數據的userId(家长ID)和studentUserId获取作答人信息
+                String answererInfo = parentStudentRelationService.getAnswererInfo(userAnswer.getUserId(), studentUserId);
                 result.put("userAnswer", userAnswer);
                 result.put("answererInfo", answererInfo);
                 result.put("hasSubmitted", true);
