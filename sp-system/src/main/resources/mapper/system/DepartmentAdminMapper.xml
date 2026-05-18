@@ -18,7 +18,7 @@
         INSERT INTO sys_department_admin (department_id, userid, type, subject, create_time, update_time)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.departmentId}, #{item.userid}, #{item.type}, #{item.subject}, NOW(), NOW())
+            (#{item.departmentId}, #{item.userid}, #{item.type}, #{item.subject}, #{item.createTime}, #{item.updateTime})
         </foreach>
     </insert>
 
@@ -36,7 +36,7 @@
         UPDATE sys_department_admin
         SET type = #{type},
             subject = #{subject},
-            update_time = NOW()
+            update_time = #{updateTime}
         WHERE department_id = #{departmentId}
         AND userid = #{userid}
     </update>

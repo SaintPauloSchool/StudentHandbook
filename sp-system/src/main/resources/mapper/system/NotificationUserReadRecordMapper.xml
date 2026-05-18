@@ -36,7 +36,7 @@
     <update id="markAsRead">
         UPDATE notification_user_read_record
         SET is_read   = '1',
-            read_time = NOW()
+            read_time = #{readTime}
         WHERE read_id = #{readId}
           AND is_read = '0'
     </update>
@@ -45,7 +45,7 @@
     <update id="markAsReplied">
         UPDATE notification_user_read_record
         SET reply_status = '1',
-            reply_time   = NOW()
+            reply_time   = #{replyTime}
         WHERE read_id = #{readId}
           AND reply_status = '0'
     </update>

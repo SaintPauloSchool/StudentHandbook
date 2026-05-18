@@ -4,6 +4,7 @@ import com.sp.system.entity.NotificationUserReadRecord;
 import com.sp.system.entity.vo.NotificationWithReadStatusVO;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -27,17 +28,19 @@ public interface NotificationUserReadRecordMapper {
      * 将指定记录标记为已读
      *
      * @param readId 阅读记录ID
+     * @param readTime 阅读时间
      * @return 影响行数
      */
-    int markAsRead(@Param("readId") Long readId);
+    int markAsRead(@Param("readId") Long readId, @Param("readTime") LocalDateTime readTime);
 
     /**
      * 将指定记录标记为已回复
      *
      * @param readId 阅读记录ID
+     * @param replyTime 回复时间
      * @return 影响行数
      */
-    int markAsReplied(@Param("readId") Long readId);
+    int markAsReplied(@Param("readId") Long readId, @Param("replyTime") LocalDateTime replyTime);
 
     /**
      * 分页查询已发布通知列表（仅返回发送给当前用户的通知，附带阅读状态）
