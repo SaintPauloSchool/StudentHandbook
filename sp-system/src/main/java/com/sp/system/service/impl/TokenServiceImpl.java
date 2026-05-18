@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
 /**
@@ -39,7 +38,7 @@ public class TokenServiceImpl implements TokenService {
     @Transactional
     public String createToken(String userId, Integer userType) {
         // 先检查该userId是否存在未过期的token
-        Token existingToken = this.tokenMapper.selectValidTokenByUserId(userId);
+        Token existingToken = this.tokenMapper.selectValidTokenByUserId(userId, LocalDateTime.now());
         // 如果存在未过期的token，返回现有的token
         if (existingToken != null) {
             logger.info("用户userId： {} ， 返回token: {}", userId, existingToken.getToken());

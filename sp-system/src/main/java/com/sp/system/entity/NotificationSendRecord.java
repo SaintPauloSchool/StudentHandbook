@@ -1,6 +1,6 @@
 package com.sp.system.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 发送通知记录主表实体类
@@ -20,7 +20,7 @@ public class NotificationSendRecord {
     private String senderName;
 
     /** 发送时间 */
-    private Date sendTime;
+    private LocalDateTime sendTime;
 
     /** 发送状态（0待发送 1发送中 2发送成功 3发送失败 4部分成功） */
     private String sendStatus;
@@ -38,13 +38,13 @@ public class NotificationSendRecord {
     private String createBy;
 
     /** 创建时间 */
-    private Date createTime;
+    private LocalDateTime createTime;
 
     /** 更新者 */
     private String updateBy;
 
     /** 更新时间 */
-    private Date updateTime;
+    private LocalDateTime updateTime;
 
     /** 备注 */
     private String remark;
@@ -81,11 +81,11 @@ public class NotificationSendRecord {
         this.senderName = senderName;
     }
 
-    public Date getSendTime() {
+    public LocalDateTime getSendTime() {
         return sendTime;
     }
 
-    public void setSendTime(Date sendTime) {
+    public void setSendTime(LocalDateTime sendTime) {
         this.sendTime = sendTime;
     }
 
@@ -129,11 +129,11 @@ public class NotificationSendRecord {
         this.createBy = createBy;
     }
 
-    public Date getCreateTime() {
+    public LocalDateTime getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
 
@@ -145,11 +145,11 @@ public class NotificationSendRecord {
         this.updateBy = updateBy;
     }
 
-    public Date getUpdateTime() {
+    public LocalDateTime getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(Date updateTime) {
+    public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
     }
 

@@ -36,7 +36,7 @@
     <select id="selectValidTokenByUserId" parameterType="string" resultMap="TokenResult">
         select id, user_id, user_type, token, expire_time, create_time, update_time
         from sys_token
-        where user_id = #{userId} and expire_time > NOW()
+        where user_id = #{userId} and expire_time > #{currentTime}
     </select>
 
 </mapper>

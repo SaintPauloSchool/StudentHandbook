@@ -1,6 +1,6 @@
 package com.sp.system.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 通知问题表实体类
@@ -18,7 +18,7 @@ public class NotificationQuestion {
     private String fillBlanks;          // 填空题的填空列表 (JSON 格式)
     private String correctAnswers;      // 填空题的正确答案 (JSON 格式)
     private String content;             // 题目内容
-    private Date createTime;            // 创建时间
+    private LocalDateTime createTime;            // 创建时间
 
     public Long getQuestionId() {
         return questionId;
@@ -116,11 +116,11 @@ public class NotificationQuestion {
         this.content = content;
     }
 
-    public Date getCreateTime() {
+    public LocalDateTime getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
 }

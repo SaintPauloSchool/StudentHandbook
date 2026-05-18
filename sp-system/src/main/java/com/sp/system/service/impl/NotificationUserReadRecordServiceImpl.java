@@ -7,6 +7,7 @@ import com.sp.system.service.INotificationUserReadRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -56,7 +57,7 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
                 notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
         // 若存在且为未读则更新
         if (record != null && "0".equals(record.getIsRead())) {
-            notificationUserReadRecordMapper.markAsRead(record.getReadId());
+            notificationUserReadRecordMapper.markAsRead(record.getReadId(), LocalDateTime.now());
         }
     }
 
@@ -72,7 +73,7 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
                 notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
         // 若存在且为未回复则更新
         if (record != null && "0".equals(record.getReplyStatus())) {
-            notificationUserReadRecordMapper.markAsReplied(record.getReadId());
+            notificationUserReadRecordMapper.markAsReplied(record.getReadId(), LocalDateTime.now());
         }
     }
 }

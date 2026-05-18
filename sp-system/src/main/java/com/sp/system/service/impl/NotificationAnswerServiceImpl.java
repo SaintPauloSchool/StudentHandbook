@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,7 +65,7 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
             NotificationAnswer answer = convertToNotificationAnswer(answerData, userId, userType, studentUserId);
             
             // 保存
-            List<NotificationAnswer> answers = new java.util.ArrayList<>();
+            List<NotificationAnswer> answers = new ArrayList<>();
             answers.add(answer);
             int result = notificationAnswerMapper.batchInsertAnswers(answers);
             logger.info("成功提交答案记录，学生ID: {}", studentUserId);
@@ -109,6 +111,9 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
         
         // 设置学生用户ID
         answer.setStudentUserId(studentUserId);
+        
+        // 设置创建时间
+        answer.setCreateTime(LocalDateTime.now());
         
         return answer;
     }

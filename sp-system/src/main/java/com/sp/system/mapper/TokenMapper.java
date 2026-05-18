@@ -3,6 +3,8 @@ package com.sp.system.mapper;
 import com.sp.system.entity.Token;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
+
 /**
  * TokenMapper接口
  *
@@ -44,7 +46,8 @@ public interface TokenMapper {
      * 根据用户ID查找未过期的Token
      * 
      * @param userId 用户ID
+     * @param currentTime 当前时间
      * @return Token信息
      */
-    Token selectValidTokenByUserId(@Param("userId") String userId);
+    Token selectValidTokenByUserId(@Param("userId") String userId, @Param("currentTime") LocalDateTime currentTime);
 }

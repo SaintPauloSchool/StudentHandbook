@@ -1,6 +1,6 @@
 package com.sp.system.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 通知回答表实体类
@@ -13,7 +13,7 @@ public class NotificationAnswer {
     private String userId;            // 用户 ID（parentUserId）
     private String userType;          // 用户类型（1 学生 2 家长 3 教师）
     private String studentUserId;     // 学生用户ID（关联sys_parent_student_relation）
-    private Date createTime;          // 创建时间
+    private LocalDateTime createTime;          // 创建时间
 
     public Long getAnswerId() {
         return answerId;
@@ -71,11 +71,11 @@ public class NotificationAnswer {
         this.studentUserId = studentUserId;
     }
 
-    public Date getCreateTime() {
+    public LocalDateTime getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
 }
