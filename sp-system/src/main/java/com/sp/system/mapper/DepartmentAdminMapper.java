@@ -11,9 +11,24 @@ import java.util.List;
 public interface DepartmentAdminMapper {
 
     /**
-     * 批量插入部门管理员信息（忽略重复）
+     * 批量插入部门管理员信息
      * @param admins 部门管理员列表
      */
     void batchInsertDepartmentAdmins(@Param("list") List<DepartmentAdmin> admins);
+
+    /**
+     * 根据 department_id 和 userid 查询部门管理员是否存在
+     * @param departmentId 部门ID
+     * @param userid 用户ID
+     * @return 部门管理员对象，不存在则返回 null
+     */
+    DepartmentAdmin selectByDepartmentIdAndUserid(@Param("departmentId") Long departmentId, 
+                                                    @Param("userid") String userid);
+
+    /**
+     * 根据 department_id 和 userid 更新部门管理员信息
+     * @param admin 部门管理员对象
+     */
+    void updateByDepartmentIdAndUserid(DepartmentAdmin admin);
 
 }

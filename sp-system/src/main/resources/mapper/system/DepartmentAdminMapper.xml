@@ -13,17 +13,32 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <!-- 批量插入部门管理员（忽略重复） -->
+    <!-- 批量插入部门管理员 -->
     <insert id="batchInsertDepartmentAdmins" parameterType="java.util.List">
         INSERT INTO sys_department_admin (department_id, userid, type, subject, create_time, update_time)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.departmentId}, #{item.userid}, #{item.type}, #{item.subject}, NOW(), NOW())
         </foreach>
-        ON DUPLICATE KEY UPDATE
-        type = VALUES(type),
-        subject = VALUES(subject),
-        update_time = NOW()
     </insert>
+
+    <!-- 根据 department_id 和 userid 查询部门管理员 -->
+    <select id="selectByDepartmentIdAndUserid" resultMap="DepartmentAdminResultMap">
+        SELECT id, department_id, userid, type, subject, create_time, update_time
+        FROM sys_department_admin
+        WHERE department_id = #{departmentId}
+        AND userid = #{userid}
+        LIMIT 1
+    </select>
+
+    <!-- 根据 department_id 和 userid 更新部门管理员信息 -->
+    <update id="updateByDepartmentIdAndUserid" parameterType="com.sp.system.entity.DepartmentAdmin">
+        UPDATE sys_department_admin
+        SET type = #{type},
+            subject = #{subject},
+            update_time = NOW()
+        WHERE department_id = #{departmentId}
+        AND userid = #{userid}
+    </update>
 
 </mapper>
