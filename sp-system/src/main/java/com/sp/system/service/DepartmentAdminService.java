@@ -10,7 +10,7 @@ import java.util.List;
 public interface DepartmentAdminService {
 
     /**
-     * 批量保存部门管理员信息
+     * 批量保存部门管理员信息（处理新增和更新）
      * @param admins 部门管理员列表
      */
     void batchSaveDepartmentAdmins(List<DepartmentAdmin> admins);
