@@ -1,6 +1,6 @@
 package com.sp.system.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 用户通知阅读状态表实体类
@@ -23,19 +23,19 @@ public class NotificationUserReadRecord {
     private String isRead;
 
     /** 阅读时间 */
-    private Date readTime;
+    private LocalDateTime readTime;
 
     /** 回复状态（0未回复 1已回复） */
     private String replyStatus;
 
     /** 回复时间 */
-    private Date replyTime;
+    private LocalDateTime replyTime;
 
     /** 企業微信發送狀態（0發送失敗 1發送成功） */
     private String sendStatus;
 
     /** 创建时间 */
-    private Date createTime;
+    private LocalDateTime createTime;
 
     public Long getReadId() {
         return readId;
@@ -77,11 +77,11 @@ public class NotificationUserReadRecord {
         this.isRead = isRead;
     }
 
-    public Date getReadTime() {
+    public LocalDateTime getReadTime() {
         return readTime;
     }
 
-    public void setReadTime(Date readTime) {
+    public void setReadTime(LocalDateTime readTime) {
         this.readTime = readTime;
     }
 
@@ -93,11 +93,11 @@ public class NotificationUserReadRecord {
         this.replyStatus = replyStatus;
     }
 
-    public Date getReplyTime() {
+    public LocalDateTime getReplyTime() {
         return replyTime;
     }
 
-    public void setReplyTime(Date replyTime) {
+    public void setReplyTime(LocalDateTime replyTime) {
         this.replyTime = replyTime;
     }
 
@@ -109,11 +109,11 @@ public class NotificationUserReadRecord {
         this.sendStatus = sendStatus;
     }
 
-    public Date getCreateTime() {
+    public LocalDateTime getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
 }

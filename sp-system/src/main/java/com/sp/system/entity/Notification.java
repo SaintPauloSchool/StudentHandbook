@@ -1,6 +1,6 @@
 package com.sp.system.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 通知主表实体类
@@ -14,11 +14,11 @@ public class Notification {
     private String jumpUrl;             // 跳转链接
     private String attachmentUrls;      // 附件/图片 URL 列表 (JSON 格式)
     private String status;              // 状态（0 草稿 1 已发布 2 已撤回）
-    private Date replyDeadline;         // 回复截止时间
+    private LocalDateTime replyDeadline;         // 回复截止时间
     private String createBy;            // 创建者
-    private Date createTime;            // 创建时间
+    private LocalDateTime createTime;            // 创建时间
     private String updateBy;            // 更新者
-    private Date updateTime;            // 更新时间
+    private LocalDateTime updateTime;            // 更新时间
     private String remark;              // 备注
 
     public Long getNotificationId() {
@@ -85,11 +85,11 @@ public class Notification {
         this.status = status;
     }
 
-    public Date getReplyDeadline() {
+    public LocalDateTime getReplyDeadline() {
         return replyDeadline;
     }
 
-    public void setReplyDeadline(Date replyDeadline) {
+    public void setReplyDeadline(LocalDateTime replyDeadline) {
         this.replyDeadline = replyDeadline;
     }
 
@@ -101,11 +101,11 @@ public class Notification {
         this.createBy = createBy;
     }
 
-    public Date getCreateTime() {
+    public LocalDateTime getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
 
@@ -117,11 +117,11 @@ public class Notification {
         this.updateBy = updateBy;
     }
 
-    public Date getUpdateTime() {
+    public LocalDateTime getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(Date updateTime) {
+    public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
     }
 

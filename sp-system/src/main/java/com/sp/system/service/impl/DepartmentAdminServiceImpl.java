@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,9 +51,12 @@ public class DepartmentAdminServiceImpl implements DepartmentAdminService {
             if (existing != null) {
                 // 已存在，需要更新
                 admin.setId(existing.getId());
+                admin.setUpdateTime(LocalDateTime.now());
                 toUpdate.add(admin);
             } else {
                 // 不存在，需要新增
+                admin.setCreateTime(LocalDateTime.now());
+                admin.setUpdateTime(LocalDateTime.now());
                 toInsert.add(admin);
             }
         }
