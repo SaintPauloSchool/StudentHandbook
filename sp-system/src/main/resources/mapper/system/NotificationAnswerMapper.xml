@@ -14,9 +14,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime" column="create_time"/>
     </resultMap>
 
-    <!-- 批量插入答案 -->
+    <!-- 批量插入答案（INSERT IGNORE 防止並發重複提交）-->
     <insert id="batchInsertAnswers" parameterType="java.util.List">
-        INSERT INTO notification_answer (
+        INSERT IGNORE INTO notification_answer (
             notification_id, question_id, answer_data,
             user_id, user_type, student_user_id, create_time
         ) VALUES
