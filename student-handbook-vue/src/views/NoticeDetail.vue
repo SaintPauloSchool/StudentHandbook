@@ -192,6 +192,7 @@
                             type="file" 
                             :ref="'fileInput_' + getActiveNode(question).node.id" 
                             style="display: none" 
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/bmp"
                             @change="handleFileUpload($event, question.questionId, getActiveNode(question).node.id)"
                          />
                          
@@ -200,8 +201,8 @@
                             <div class="upload-icon-wrapper">
                               <el-icon class="upload-icon"><UploadFilled /></el-icon>
                             </div>
-                            <span class="upload-hint">點擊上傳圖片或文件</span>
-                            <span class="upload-sub-hint">支援 JPG, PNG, PDF 格式</span>
+                            <span class="upload-hint">點擊上傳圖片</span>
+                            <span class="upload-sub-hint">支援 JPG、PNG、GIF、BMP 格式，最大 5MB</span>
                          </div>
                          
                          <!-- 已上傳預覽 -->

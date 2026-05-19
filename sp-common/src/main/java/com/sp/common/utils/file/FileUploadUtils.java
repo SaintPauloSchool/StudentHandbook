@@ -23,9 +23,9 @@ import com.sp.common.utils.uuid.Seq;
 public class FileUploadUtils
 {
     /**
-     * 默认大小 50M
+     * 默认大小 5M
      */
-    public static final long DEFAULT_MAX_SIZE = 50 * 1024 * 1024L;
+    public static final long DEFAULT_MAX_SIZE = 5 * 1024 * 1024L;
 
     /**
      * 默认的文件名最大长度 100
@@ -67,7 +67,26 @@ public class FileUploadUtils
     }
 
     /**
-     * 使用自定义文件名上传文件
+     * 仅允许图片格式上传（bmp, gif, jpg, jpeg, png）
+     *
+     * @param file 上传的文件
+     * @return 文件名称
+     * @throws Exception
+     */
+    public static final String uploadImage(MultipartFile file) throws IOException
+    {
+        try
+        {
+            return upload(getDefaultBaseDir(), file, MimeTypeUtils.IMAGE_EXTENSION);
+        }
+        catch (Exception e)
+        {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 使用自定义文件名上传文件（仅允许图片）
      *
      * @param file 上传的文件
      * @param customFileName 自定义文件名（不含扩展名）
@@ -78,7 +97,7 @@ public class FileUploadUtils
     {
         try
         {
-            return uploadWithCustomName(getDefaultBaseDir(), file, customFileName, MimeTypeUtils.DEFAULT_ALLOWED_EXTENSION);
+            return uploadWithCustomName(getDefaultBaseDir(), file, customFileName, MimeTypeUtils.IMAGE_EXTENSION);
         }
         catch (Exception e)
         {

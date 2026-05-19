@@ -64,11 +64,11 @@ public class FileUploadController extends BaseController {
                 if (StringUtils.isNotEmpty(renamedFileName)) {
                     filePath = FileUploadUtils.uploadWithCustomName(file, renamedFileName);
                 } else {
-                    filePath = FileUploadUtils.upload(file);
+                    filePath = FileUploadUtils.uploadImage(file);
                 }
             } else {
                 logger.warn("无法从token获取家长ID，使用默认文件名上传");
-                filePath = FileUploadUtils.upload(file);
+                filePath = FileUploadUtils.uploadImage(file);
             }
             
             logger.info("文件上传成功: {}", filePath);
