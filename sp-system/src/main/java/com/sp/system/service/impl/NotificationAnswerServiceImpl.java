@@ -49,25 +49,22 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
         }
 
         try {
-            // 检查学生是否已经回答过这个问题
-            boolean exists = checkStudentAnswerExists(
-                answerData.getNotificationId(), 
-                answerData.getQuestionId(), 
-                studentUserId
-            );
-            if (exists) {
-                logger.warn("学生 {} 已回答过通知 {} 的问题 {}", 
+            // 转换答案数据
+            NotificationAnswer answer = convertToNotificationAnswer(answerData, userId, userType, studentUserId);
+
+            List<NotificationAnswer> answers = new ArrayList<>();
+            answers.add(answer);
+
+            // INSERT IGNORE：若 DB 唯一約束衝突（並發重複提交），受影響行數為 0
+            // 避免先 SELECT 再 INSERT 的競態條件（TOCTOU race condition）
+            int result = notificationAnswerMapper.batchInsertAnswers(answers);
+
+            if (result == 0) {
+                logger.warn("学生 {} 已回答过通知 {} 的问题 {}（并发重复提交被忽略）",
                     studentUserId, answerData.getNotificationId(), answerData.getQuestionId());
                 throw new DuplicateSubmissionException("家长已回答过此问题，请勿重复提交");
             }
-            
-            // 转换答案数据
-            NotificationAnswer answer = convertToNotificationAnswer(answerData, userId, userType, studentUserId);
-            
-            // 保存
-            List<NotificationAnswer> answers = new ArrayList<>();
-            answers.add(answer);
-            int result = notificationAnswerMapper.batchInsertAnswers(answers);
+
             logger.info("成功提交答案记录，学生ID: {}", studentUserId);
             return result;
         } catch (RuntimeException e) {
@@ -77,6 +74,7 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
             throw new RuntimeException("提交答案失败: " + e.getMessage());
         }
     }
+
     
     /**
      * 将前端传来的答案数据转换为实体对象
