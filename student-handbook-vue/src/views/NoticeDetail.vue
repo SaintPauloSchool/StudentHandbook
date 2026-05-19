@@ -1,4 +1,4 @@
- <template>
+<template>
   <div class="notice-detail-container">
     <!-- 顶部导航栏 -->
     <div class="header">
@@ -49,15 +49,15 @@
       <!-- 通知正文 -->
       <div class="notice-body">
         <div class="content-text" v-html="formattedContent"></div>
-        
+
         <!-- 附件/图片 -->
         <div class="attachments" v-if="hasAttachments">
           <h4 class="attachments-title">附件</h4>
           <div class="attachment-list">
-            <div 
-              class="attachment-item" 
-              v-for="(attachment, index) in attachmentList" 
-              :key="index"
+            <div
+                class="attachment-item"
+                v-for="(attachment, index) in attachmentList"
+                :key="index"
             >
               <img v-if="isImage(attachment)" :src="getFullAttachmentUrl(attachment)" :alt="getAttachmentName(attachment)" class="attachment-image" @error="handleImageError" />
               <a v-else href="javascript:void(0)" class="attachment-link" @click.prevent="handleSecureDownload(attachment)">
@@ -81,10 +81,10 @@
         <!-- 直接顯示內容 -->
         <div class="questions-content-wrapper">
           <!-- 问题表单 -->
-          <div 
-            class="question-item" 
-            v-for="question in questions" 
-            :key="question.questionId"
+          <div
+              class="question-item"
+              v-for="question in questions"
+              :key="question.questionId"
           >
             <!-- 若為邏輯表單 (題型 5) -->
             <div class="logic-form-wrapper logic-stepper-view" v-if="question.questionType === '5' && getLogicFormData(question)">
@@ -92,147 +92,148 @@
                 <h4 class="form-title">{{ getLogicFormData(question).title }}</h4>
                 <p class="form-desc" v-if="getLogicFormData(question).description">{{ getLogicFormData(question).description }}</p>
               </div>
-              
+
               <!-- 動態渲染當前啟動的題目 -->
               <div class="stepper-body" v-if="getLogicFormState(question) && getLogicFormState(question).activeNodeId">
-                
+
                 <!-- 过期提示 - 仅在逻辑表单内显示 -->
                 <div class="expired-notice" v-if="isExpired && !hasSubmitted" style="margin: 20px 0;">
                   <div class="expired-icon">⏰</div>
                   <p class="expired-title">回覆時間已過</p>
                   <p class="expired-text">當前回覆時間已過，無法作答</p>
                 </div>
-                
+
                 <!-- 答题区域 - 未过期时显示 -->
                 <template v-if="!isExpired">
-                <!-- 进度条（仅逻辑表单显示） -->
-                <div class="progress-wrapper stepper-progress" v-if="question.questionType === '5'">
-                  <div class="progress-info">
-                    <span class="progress-text">作答進度</span>
-                    <span class="progress-percent">{{ getQuestionProgress(question.questionId) }}%</span>
+                  <!-- 进度条（仅逻辑表单显示） -->
+                  <div class="progress-wrapper stepper-progress" v-if="question.questionType === '5'">
+                    <div class="progress-info">
+                      <span class="progress-text">作答進度</span>
+                      <span class="progress-percent">{{ getQuestionProgress(question.questionId) }}%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar" :style="{ width: getQuestionProgress(question.questionId) + '%' }"></div>
+                    </div>
                   </div>
-                  <div class="progress-bar-container">
-                    <div class="progress-bar" :style="{ width: getQuestionProgress(question.questionId) + '%' }"></div>
+
+                  <!-- 问题类型标签 - 只在未提交时显示 -->
+                  <div class="question-type-label" v-if="!hasSubmitted">
+                    <span v-if="String(getActiveNode(question).node.type) === '1'">單選題</span>
+                    <span v-else-if="String(getActiveNode(question).node.type) === '2'">多選題</span>
+                    <span v-else-if="String(getActiveNode(question).node.type) === '3'">填空題</span>
+                    <span v-else-if="String(getActiveNode(question).node.type) === '4'">附件上傳</span>
                   </div>
-                </div>
 
-                <!-- 问题类型标签 - 只在未提交时显示 -->
-                <div class="question-type-label" v-if="!hasSubmitted">
-                  <span v-if="String(getActiveNode(question).node.type) === '1'">單選題</span>
-                  <span v-else-if="String(getActiveNode(question).node.type) === '2'">多選題</span>
-                  <span v-else-if="String(getActiveNode(question).node.type) === '3'">填空題</span>
-                  <span v-else-if="String(getActiveNode(question).node.type) === '4'">附件上傳</span>
-                </div>
-
-                <div class="active-node-container transition-wrapper fade-in" v-if="!getLogicFormState(question).isComplete">
-                   <div class="question-header logic-question-header">
+                  <div class="active-node-container transition-wrapper fade-in" v-if="!getLogicFormState(question).isComplete">
+                    <div class="question-header logic-question-header">
                      <span class="question-number-wrapper">
                        <span class="question-number">{{ getActiveNode(question).displayNum }}</span>
                        <span class="required-mark" v-if="getActiveNode(question).node.required">*</span>
                      </span>
-                     <span class="question-number-suffix">.</span>
-                     <span class="question-title">{{ getActiveNode(question).node.title }}</span>
-                   </div>
-                   
-                   <!-- 單選/多選 -->
-                   <div class="logic-options" v-if="['1', '2'].includes(String(getActiveNode(question).node.type))">
-                     <div 
-                       class="logic-option-item"
-                       :class="{ 'is-selected': isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx) }"
-                       v-for="(opt, optIdx) in getActiveNode(question).node.options"
-                       :key="optIdx"
-                       @click="handleLogicOptionClick(question, getActiveNode(question).node, optIdx)"
-                     >
+                      <span class="question-number-suffix">.</span>
+                      <span class="question-title">{{ getActiveNode(question).node.title }}</span>
+                    </div>
+
+                    <!-- 單選/多選 -->
+                    <div class="logic-options" v-if="['1', '2'].includes(String(getActiveNode(question).node.type))">
+                      <div
+                          class="logic-option-item"
+                          :class="{ 'is-selected': isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx) }"
+                          v-for="(opt, optIdx) in getActiveNode(question).node.options"
+                          :key="optIdx"
+                          @click="handleLogicOptionClick(question, getActiveNode(question).node, optIdx)"
+                      >
                        <span class="option-content">
                          <span class="opt-label">{{ String.fromCharCode(65 + optIdx) }}</span>
                          <span class="opt-text">{{ opt }}</span>
                        </span>
-                       <el-icon class="check-icon" v-if="isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx)"><Select /></el-icon>
-                     </div>
-                   </div>
+                        <el-icon class="check-icon" v-if="isLogicOptionSelected(question.questionId, getActiveNode(question).node.id, optIdx)"><Select /></el-icon>
+                      </div>
+                    </div>
 
-                   <!-- 填空題 -->
-                   <div class="logic-inputs" v-if="String(getActiveNode(question).node.type) === '3'">
+                    <!-- 填空題 -->
+                    <div class="logic-inputs" v-if="String(getActiveNode(question).node.type) === '3'">
                       <div class="logic-content-html" v-if="getActiveNode(question).node.content" v-html="formatFillBlankContent(getActiveNode(question).node.content)"></div>
-                      
+
                       <!-- 根據需填空的數量渲染對應的輸入框 -->
                       <div class="logic-fill-blanks" v-if="getFillBlanksCount(getActiveNode(question).node.content) > 0">
-                        <div 
-                           class="fill-blank-item" 
-                           v-for="n in getFillBlanksCount(getActiveNode(question).node.content)" 
-                           :key="n"
+                        <div
+                            class="fill-blank-item"
+                            v-for="n in getFillBlanksCount(getActiveNode(question).node.content)"
+                            :key="n"
                         >
-                           <label class="blank-label">填寫空格 {{ n }}</label>
-                           <input 
-                              type="text" 
-                              class="logic-input-text" 
+                          <label class="blank-label">填寫空格 {{ n }}</label>
+                          <input
+                              type="text"
+                              class="logic-input-text"
                               :value="getLogicFillBlankAnswer(question.questionId, getActiveNode(question).node.id, n - 1)"
                               @input="updateLogicFillBlankAnswer(question.questionId, getActiveNode(question).node.id, n - 1, $event.target.value)"
                               placeholder="請輸入對應的內容..."
-                           />
+                          />
                         </div>
                       </div>
-                      
-                      <!-- 如果找不到占位符格式，降级為單一輸入框 -->
-                      <textarea 
-                         v-else
-                         class="logic-textarea" 
-                         v-model="getLogicFormState(question).answers[getActiveNode(question).node.id]"
-                         placeholder="請輸入您的答案..."
-                         rows="3"
-                      ></textarea>
-                   </div>
-                   
-                   <!-- 附件上傳 -->
-                   <div class="logic-upload" v-if="String(getActiveNode(question).node.type) === '4'">
-                      <div class="logic-content-html" v-if="getActiveNode(question).node.content" v-html="getActiveNode(question).node.content"></div>
-                      
-                      <div class="custom-upload-area" @click="triggerUpload(question.questionId, getActiveNode(question).node.id)">
-                         <input 
-                            type="file" 
-                            :ref="'fileInput_' + getActiveNode(question).node.id" 
-                            style="display: none" 
-                            @change="handleFileUpload($event, question.questionId, getActiveNode(question).node.id)"
-                         />
-                         
-                         <!-- 未上傳時的佔位符 -->
-                         <div class="upload-placeholder" v-if="!getLogicFormState(question).answers[getActiveNode(question).node.id]">
-                            <div class="upload-icon-wrapper">
-                              <el-icon class="upload-icon"><UploadFilled /></el-icon>
-                            </div>
-                            <span class="upload-hint">點擊上傳圖片或文件</span>
-                            <span class="upload-sub-hint">支援 JPG, PNG, PDF 格式</span>
-                         </div>
-                         
-                         <!-- 已上傳預覽 -->
-                         <div class="upload-file-preview" v-else>
-                            <div class="file-info">
-                               <el-icon class="file-icon"><Document /></el-icon>
-                               <span class="file-name">{{ getLogicFormState(question).answers[getActiveNode(question).node.id].name }}</span>
-                            </div>
-                            <span class="file-success"><el-icon><Check /></el-icon> 已上傳</span>
-                         </div>
-                      </div>
-                   </div>
-                   
-                   <!-- 顯示下一題按鈕 -->
-                   <div class="logic-action-bar" v-if="!getLogicFormState(question).isComplete">
-                     <button class="back-step-btn" v-if="getLogicFormState(question).historyStack.length > 0" @click="handleLogicBack(question.questionId)">
-                       <el-icon><ArrowLeft /></el-icon> 返回上一題
-                     </button>
-                     <button class="next-step-btn" @click="handleLogicNext(question)">
-                       下一題 <el-icon><ArrowRight /></el-icon>
-                     </button>
-                   </div>
-                </div>
 
-                <!-- 完成狀態提示 -->
-                <div class="logic-complete-state fade-in" v-if="getLogicFormState(question).isComplete && !hasSubmitted">
-                   <div class="complete-icon">🎉</div>
-                   <p class="complete-text">問題表單作答完成</p>
-                </div>
+                      <!-- 如果找不到占位符格式，降级為單一輸入框 -->
+                      <textarea
+                          v-else
+                          class="logic-textarea"
+                          v-model="getLogicFormState(question).answers[getActiveNode(question).node.id]"
+                          placeholder="請輸入您的答案..."
+                          rows="3"
+                      ></textarea>
+                    </div>
+
+                    <!-- 附件上傳 -->
+                    <div class="logic-upload" v-if="String(getActiveNode(question).node.type) === '4'">
+                      <div class="logic-content-html" v-if="getActiveNode(question).node.content" v-html="getActiveNode(question).node.content"></div>
+
+                      <div class="custom-upload-area" @click="triggerUpload(question.questionId, getActiveNode(question).node.id)">
+                        <input
+                            type="file"
+                            :ref="'fileInput_' + getActiveNode(question).node.id"
+                            style="display: none"
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/bmp"
+                            @change="handleFileUpload($event, question.questionId, getActiveNode(question).node.id)"
+                        />
+
+                        <!-- 未上傳時的佔位符 -->
+                        <div class="upload-placeholder" v-if="!getLogicFormState(question).answers[getActiveNode(question).node.id]">
+                          <div class="upload-icon-wrapper">
+                            <el-icon class="upload-icon"><UploadFilled /></el-icon>
+                          </div>
+                          <span class="upload-hint">點擊上傳圖片</span>
+                          <span class="upload-sub-hint">支援 JPG、PNG、GIF、BMP 格式，最大 5MB</span>
+                        </div>
+
+                        <!-- 已上傳預覽 -->
+                        <div class="upload-file-preview" v-else>
+                          <div class="file-info">
+                            <el-icon class="file-icon"><Document /></el-icon>
+                            <span class="file-name">{{ getLogicFormState(question).answers[getActiveNode(question).node.id].name }}</span>
+                          </div>
+                          <span class="file-success"><el-icon><Check /></el-icon> 已上傳</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 顯示下一題按鈕 -->
+                    <div class="logic-action-bar" v-if="!getLogicFormState(question).isComplete">
+                      <button class="back-step-btn" v-if="getLogicFormState(question).historyStack.length > 0" @click="handleLogicBack(question.questionId)">
+                        <el-icon><ArrowLeft /></el-icon> 返回上一題
+                      </button>
+                      <button class="next-step-btn" @click="handleLogicNext(question)">
+                        下一題 <el-icon><ArrowRight /></el-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 完成狀態提示 -->
+                  <div class="logic-complete-state fade-in" v-if="getLogicFormState(question).isComplete && !hasSubmitted">
+                    <div class="complete-icon">🎉</div>
+                    <p class="complete-text">問題表單作答完成</p>
+                  </div>
                 </template>
-                
+
                 <!-- 已提交后显示所有节点和答案 -->
                 <div class="submitted-answers" v-if="hasSubmitted">
                   <div class="answer-review-title">
@@ -240,10 +241,10 @@
                     <span class="answerer-info" v-if="answererInfo">（{{ answererInfo }}作答）</span>
                   </div>
                   <div class="all-nodes-review">
-                    <div 
-                      v-for="(nodeAnswer, index) in getReviewAnswers(question)" 
-                      :key="nodeAnswer.nodeId" 
-                      class="node-answer-item"
+                    <div
+                        v-for="(nodeAnswer, index) in getReviewAnswers(question)"
+                        :key="nodeAnswer.nodeId"
+                        class="node-answer-item"
                     >
                       <div class="node-answer-header">
                         <span class="node-num">{{ index + 1 }}</span>
@@ -261,91 +262,91 @@
               </div>
             </div>
 
-          <div class="normal-question-wrapper" v-else>
-            <div class="question-header">
+            <div class="normal-question-wrapper" v-else>
+              <div class="question-header">
               <span class="question-number-wrapper">
                 <span class="question-number">{{ question.sortOrder }}</span>
                 <span class="required-mark" v-if="question.isRequired === '1'">*</span>
               </span>
-              <span class="question-number-suffix">.</span>
-              <span class="question-title">{{ question.questionTitle }}</span>
-            </div>
-          
-          <!-- 渲染 content 裡的 JSON 或富文本 -->
-          <div class="question-content" v-if="question.content">
-            <div v-if="parseContentJson(question.content)" class="content-json-wrapper">
-              <template v-for="(item, idx) in parseContentJson(question.content)" :key="idx">
-                <span v-if="item.type === 'text' || item.type === 'string'" class="json-text">{{ item.value || item.text || item.content || item }}</span>
-                <input v-else-if="item.type === 'input' || item.type === 'blank'" type="text" class="json-input" :placeholder="item.placeholder || '請輸入'" />
-                <textarea v-else-if="item.type === 'textarea'" class="json-textarea" :placeholder="item.placeholder || '請輸入'"></textarea>
-                <img v-else-if="item.type === 'image'" :src="item.url || item.value" class="json-image" />
-                <span v-else class="json-text">{{ item.value || item.text || item }}</span>
-              </template>
-            </div>
-            <div v-else class="content-html" v-html="question.content"></div>
-          </div>
-          
-          <!-- 单选题 -->
-          <div class="question-options" v-if="question.questionType === '1'">
-            <div 
-              class="option-item" 
-              v-for="(option, idx) in parseOptions(question.options)" 
-              :key="idx"
-            >
-              <input type="radio" :name="'q_' + question.questionId" :value="option" class="option-radio" />
-              <label class="option-label">{{ option }}</label>
-            </div>
-          </div>
-
-          <!-- 多选题 -->
-          <div class="question-options" v-else-if="question.questionType === '2'">
-            <div 
-              class="option-item" 
-              v-for="(option, idx) in parseOptions(question.options)" 
-              :key="idx"
-            >
-              <input type="checkbox" :name="'q_' + question.questionId" :value="option" class="option-checkbox" />
-              <label class="option-label">{{ option }}</label>
-            </div>
-          </div>
-
-          <!-- 填空题 -->
-          <div class="question-input" v-else-if="question.questionType === '3'">
-            <div v-if="parseContentJson(question.fillBlanks)" class="fill-blanks-container">
-              <div v-for="(blank, idx) in parseContentJson(question.fillBlanks)" :key="idx" class="blank-box">
-                <span class="blank-label">{{ blank.label || ('填寫項 ' + (idx + 1)) }}:</span>
-                <input type="text" class="text-input" :placeholder="blank.placeholder || '請輸入您的答案'" />
+                <span class="question-number-suffix">.</span>
+                <span class="question-title">{{ question.questionTitle }}</span>
               </div>
-            </div>
-            <!-- 如果 content 已經渲染了空格（部分需求可能把空格放在 content 裡），這裡可依據情況保留預設輸入，但一般建議 fallback -->
-            <input v-else-if="!parseContentJson(question.content)" type="text" class="text-input" placeholder="請輸入您的答案" />
+
+              <!-- 渲染 content 裡的 JSON 或富文本 -->
+              <div class="question-content" v-if="question.content">
+                <div v-if="parseContentJson(question.content)" class="content-json-wrapper">
+                  <template v-for="(item, idx) in parseContentJson(question.content)" :key="idx">
+                    <span v-if="item.type === 'text' || item.type === 'string'" class="json-text">{{ item.value || item.text || item.content || item }}</span>
+                    <input v-else-if="item.type === 'input' || item.type === 'blank'" type="text" class="json-input" :placeholder="item.placeholder || '請輸入'" />
+                    <textarea v-else-if="item.type === 'textarea'" class="json-textarea" :placeholder="item.placeholder || '請輸入'"></textarea>
+                    <img v-else-if="item.type === 'image'" :src="item.url || item.value" class="json-image" />
+                    <span v-else class="json-text">{{ item.value || item.text || item }}</span>
+                  </template>
+                </div>
+                <div v-else class="content-html" v-html="question.content"></div>
+              </div>
+
+              <!-- 单选题 -->
+              <div class="question-options" v-if="question.questionType === '1'">
+                <div
+                    class="option-item"
+                    v-for="(option, idx) in parseOptions(question.options)"
+                    :key="idx"
+                >
+                  <input type="radio" :name="'q_' + question.questionId" :value="option" class="option-radio" />
+                  <label class="option-label">{{ option }}</label>
+                </div>
+              </div>
+
+              <!-- 多选题 -->
+              <div class="question-options" v-else-if="question.questionType === '2'">
+                <div
+                    class="option-item"
+                    v-for="(option, idx) in parseOptions(question.options)"
+                    :key="idx"
+                >
+                  <input type="checkbox" :name="'q_' + question.questionId" :value="option" class="option-checkbox" />
+                  <label class="option-label">{{ option }}</label>
+                </div>
+              </div>
+
+              <!-- 填空题 -->
+              <div class="question-input" v-else-if="question.questionType === '3'">
+                <div v-if="parseContentJson(question.fillBlanks)" class="fill-blanks-container">
+                  <div v-for="(blank, idx) in parseContentJson(question.fillBlanks)" :key="idx" class="blank-box">
+                    <span class="blank-label">{{ blank.label || ('填寫項 ' + (idx + 1)) }}:</span>
+                    <input type="text" class="text-input" :placeholder="blank.placeholder || '請輸入您的答案'" />
+                  </div>
+                </div>
+                <!-- 如果 content 已經渲染了空格（部分需求可能把空格放在 content 裡），這裡可依據情況保留預設輸入，但一般建議 fallback -->
+                <input v-else-if="!parseContentJson(question.content)" type="text" class="text-input" placeholder="請輸入您的答案" />
+              </div>
+
+              <!-- 附件上传 -->
+              <div class="question-upload" v-else-if="question.questionType === '4'">
+                <button class="upload-button">📤 上傳附件</button>
+              </div>
+            </div> <!-- 結束 normal-question-wrapper -->
           </div>
 
-          <!-- 附件上传 -->
-          <div class="question-upload" v-else-if="question.questionType === '4'">
-            <button class="upload-button">📤 上傳附件</button>
-          </div>
-          </div> <!-- 結束 normal-question-wrapper -->
-        </div>
-          
-        <!-- 提交按钮 - 未过期且未提交时显示 -->
-        <div class="submit-section" v-if="!hasSubmitted && !isExpired">
-          <button class="submit-button" @click="submitAnswers" :disabled="submitting">
-            <span v-if="!submitting">提交回答</span>
-            <span v-else class="submitting-text">
+          <!-- 提交按钮 - 未过期且未提交时显示 -->
+          <div class="submit-section" v-if="!hasSubmitted && !isExpired">
+            <button class="submit-button" @click="submitAnswers" :disabled="submitting">
+              <span v-if="!submitting">提交回答</span>
+              <span v-else class="submitting-text">
               <span class="loading-spinner"></span>
               正在提交...
             </span>
-          </button>
-        </div>
-        
-        <!-- 已提交提示 - 已提交时显示（无论是否过期） -->
-        <div class="submitted-hint" v-if="hasSubmitted">
-          <div class="hint-icon">✓</div>
-          <p class="hint-text">您已完成作答</p>
-        </div>
-      </div> <!-- 結束 questions-content-wrapper -->
-    </div>
+            </button>
+          </div>
+
+          <!-- 已提交提示 - 已提交时显示（无论是否过期） -->
+          <div class="submitted-hint" v-if="hasSubmitted">
+            <div class="hint-icon">✓</div>
+            <p class="hint-text">您已完成作答</p>
+          </div>
+        </div> <!-- 結束 questions-content-wrapper -->
+      </div>
 
     </div>
 
@@ -413,8 +414,8 @@ export default {
       // 若內容帶有 \n 或 \\n，將其轉為 HTML 的 <br> 以確保前端正常換行顯示
       // 防止後端傳來的是字面量 "\\n" 或是未被解析的換行符
       return String(this.notice.content)
-        .replace(/\\n/g, '\n')
-        .replace(/\n/g, '<br/>')
+          .replace(/\\n/g, '\n')
+          .replace(/\n/g, '<br/>')
     },
     hasAttachments() {
       return this.notice && this.notice.attachmentUrls && this.attachmentList.length > 0
@@ -448,7 +449,7 @@ export default {
     md5Encrypt(text) {
       return CryptoJS.MD5(text).toString();
     },
-    
+
     // 加载学生列表，设置默认学生
     async loadStudentList() {
       try {
@@ -472,26 +473,26 @@ export default {
           if (relations && relations.length > 0) {
             // 检查URL中是否有加密的学生ID（sid参数）
             const urlSid = this.$route.query.sid;
-            
+
             if (urlSid) {
               // 标记为从微信链接进入
               this.isFromWechatLink = true;
-              
+
               // 遍历学生列表，对每个学生ID进行MD5加密并匹配
               let matchedStudent = null;
               const encryptionSalt = settings.studentIdEncryptionSalt; // 从配置中获取加密盐值
-              
+
               for (const relation of relations) {
                 const studentUserId = relation.studentUserId;
                 // 对学生ID进行MD5加密：studentUserId + salt
                 const encryptedId = this.md5Encrypt(studentUserId + encryptionSalt);
-                
+
                 if (encryptedId === urlSid) {
                   matchedStudent = relation;
                   break;
                 }
               }
-              
+
               if (matchedStudent) {
                 // 匹配成功，使用匹配到的学生ID和姓名
                 localStorage.setItem('currentStudentUserId', matchedStudent.studentUserId);
@@ -562,19 +563,19 @@ export default {
       try {
         // 从localStorage获取当前选中的学生ID
         const studentUserId = localStorage.getItem('currentStudentUserId')
-        
+
         // 如果没有学生ID，显示错误
         if (!studentUserId) {
           this.errorMessage = '无法获取学生信息，请重新登录'
           this.loading = false
           return
         }
-        
+
         const params = {}
         if (studentUserId) {
           params.studentUserId = studentUserId
         }
-        
+
         const response = await service.get(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}`, {
           params: params
         })
@@ -616,12 +617,12 @@ export default {
       try {
         // 从localStorage获取当前选中的学生ID
         const studentUserId = localStorage.getItem('currentStudentUserId')
-        
+
         const params = {}
         if (studentUserId) {
           params.studentUserId = studentUserId
         }
-        
+
         await service.post(`${API_ENDPOINTS.NOTICE_MARK_READ}/${notificationId}/read`, null, {
           params: params
         })
@@ -630,23 +631,23 @@ export default {
         console.warn('标记已读失败（已忽略）:', e)
       }
     },
-    
+
     // 检查是否已过期
     checkIfExpired() {
       if (!this.notice) {
         this.isExpired = false
         return
       }
-      
+
       // 获取截止时间（后端返回的是驼峰命名 replyDeadline）
       const deadlineStr = this.notice.replyDeadline
-      
+
       if (!deadlineStr) {
         // 如果没有截止时间，默认不过期
         this.isExpired = false
         return
       }
-      
+
       try {
         const deadline = new Date(deadlineStr)
         const now = new Date()
@@ -656,11 +657,11 @@ export default {
         this.isExpired = false
       }
     },
-    
+
     // 初始化用户已提交的答案（单个对象）
     initUserAnswer() {
       if (!this.userAnswer) return
-      
+
       // 遍历所有问题，初始化逻辑表单状态
       this.questions.forEach(question => {
         if (question.questionType === '5' && this.userAnswer.questionId === question.questionId) {
@@ -668,14 +669,14 @@ export default {
         }
       })
     },
-    
+
     // 从单个答案对象初始化逻辑表单
     initLogicFormAnswerFromObject(question, answer) {
       const logicData = this.getLogicFormData(question)
       if (!logicData) return
-      
+
       const state = this.getLogicFormState(question)
-      
+
       try {
         const answerData = JSON.parse(answer.answerData)
         if (Array.isArray(answerData)) {
@@ -683,19 +684,19 @@ export default {
           answerData.forEach(nodeAnswer => {
             const nodeId = String(nodeAnswer.nodeId)
             let answerValue = null
-            
+
             // 解析answerContent
             try {
               answerValue = JSON.parse(nodeAnswer.answerContent)
               // 如果是填空题的新格式（包含blankId和value的对象数组），转换为简单数组
-              if (Array.isArray(answerValue) && answerValue.length > 0 && 
+              if (Array.isArray(answerValue) && answerValue.length > 0 &&
                   typeof answerValue[0] === 'object' && answerValue[0].hasOwnProperty('blankId')) {
                 answerValue = answerValue.map(item => item.value)
               }
             } catch (e) {
               answerValue = nodeAnswer.answerContent
             }
-            
+
             // 如果是附件类型，从attachmentUrls恢复文件信息
             if (String(nodeAnswer.nodeType) === '4' && nodeAnswer.attachmentUrls) {
               try {
@@ -712,30 +713,30 @@ export default {
                 console.error('解析附件URL失败:', e)
               }
             }
-            
+
             state.answers[nodeId] = answerValue
           })
         }
       } catch (e) {
         console.error('解析答案数据失败:', e)
       }
-      
+
       // 标记为已完成
       state.isComplete = true
-      
+
       // 设置activeNodeId为第一个root节点
       if (logicData.roots && logicData.roots.length > 0) {
         state.activeNodeId = logicData.roots[0].node.id
       }
     },
-    
+
     // 初始化逻辑表单的答案
     initLogicFormAnswers(question, answers) {
       const logicData = this.getLogicFormData(question)
       if (!logicData) return
-      
+
       const state = this.getLogicFormState(question)
-      
+
       // 将答案填充到state.answers中
       answers.forEach(answer => {
         try {
@@ -745,19 +746,19 @@ export default {
             answerData.forEach(nodeAnswer => {
               const nodeId = String(nodeAnswer.nodeId)
               let answerValue = null
-              
+
               // 解析answerContent
               try {
                 answerValue = JSON.parse(nodeAnswer.answerContent)
                 // 如果是填空题的新格式（包含blankId和value的对象数组），转换为简单数组
-                if (Array.isArray(answerValue) && answerValue.length > 0 && 
+                if (Array.isArray(answerValue) && answerValue.length > 0 &&
                     typeof answerValue[0] === 'object' && answerValue[0].hasOwnProperty('blankId')) {
                   answerValue = answerValue.map(item => item.value)
                 }
               } catch (e) {
                 answerValue = nodeAnswer.answerContent
               }
-              
+
               // 如果是附件类型，从attachmentUrls恢复文件信息
               if (String(nodeAnswer.nodeType) === '4' && nodeAnswer.attachmentUrls) {
                 try {
@@ -774,7 +775,7 @@ export default {
                   console.error('解析附件URL失败:', e)
                 }
               }
-              
+
               state.answers[nodeId] = answerValue
             })
           }
@@ -782,20 +783,20 @@ export default {
           console.error('解析答案数据失败:', e)
         }
       })
-      
+
       // 标记为已完成
       state.isComplete = true
-      
+
       // 设置activeNodeId为第一个root节点
       if (logicData.roots && logicData.roots.length > 0) {
         state.activeNodeId = logicData.roots[0].node.id
       }
     },
-    
+
     // 获取审查模式下的答案列表（从单个对象解析）
     getReviewAnswers(question) {
       if (!this.userAnswer) return []
-      
+
       try {
         const data = JSON.parse(this.userAnswer.answerData)
         return Array.isArray(data) ? data : []
@@ -804,7 +805,7 @@ export default {
         return []
       }
     },
-    
+
     // 格式化答案内容显示
     formatAnswerContent(content) {
       if (!content) return '未作答'
@@ -815,7 +816,7 @@ export default {
         if (typeof content === 'string') {
           parsed = JSON.parse(content)
         }
-        
+
         if (Array.isArray(parsed)) {
           // 检查是否是新的填空题格式（包含blankId和value的对象数组）
           const firstNonNullItem = parsed.find(item => item !== null && item !== undefined)
@@ -902,7 +903,7 @@ export default {
           let allNodes = parsed.questions.map(q => ({ node: q, parents: [], displayNum: '', isRoot: true }));
           let nodeById = {};
           allNodes.forEach(n => nodeById[n.node.id] = n);
-          
+
           // 找出 parent 分支 (只要有被明確 jumpTarget 指向的就不是 root)
           parsed.questions.forEach(q => {
             (q.logicRuleList || []).forEach(rule => {
@@ -946,7 +947,7 @@ export default {
           this.logicFormDataCache[question.questionId] = result;
           return result;
         }
-      } catch(e) { 
+      } catch(e) {
         console.error('Logic Form Parse Error', e);
       }
       return null;
@@ -963,10 +964,10 @@ export default {
           rootId = logicData.roots[0].node.id;
         }
         this.logicFormStates[questionId] = {
-           activeNodeId: rootId,
-           historyStack: [],
-           answers: {},
-           isComplete: false
+          activeNodeId: rootId,
+          historyStack: [],
+          answers: {},
+          isComplete: false
         };
       }
       return this.logicFormStates[questionId];
@@ -978,7 +979,7 @@ export default {
       // 將 {{fillblank-n}} 替換為有編號的底線，方便用戶對應作答
       let index = 1;
       return content.replace(/\{\{fillblank-\d+\}\}/g, () => {
-         return `<span style="border-bottom: 1px solid #333; display: inline-block; width: 40px; margin: 0 5px; text-align: center; font-size: 12px; color: #64748b;">(${index++})</span>`;
+        return `<span style="border-bottom: 1px solid #333; display: inline-block; width: 40px; margin: 0 5px; text-align: center; font-size: 12px; color: #64748b;">(${index++})</span>`;
       });
     },
 
@@ -987,7 +988,7 @@ export default {
       if (!content) return '';
       // 將 {{fillblank-n}} 或 fillblank-n 替換為帶有下划线的格式
       return content.replace(/\{?\{?fillblank-(\d+)\}?\}?/g, (match, num) => {
-         return `<span style="display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px;"><span>( ${num} )</span><span style="border-bottom: 2px solid #94a3b8; width: 50px; margin-top: 2px;"></span></span>`;
+        return `<span style="display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px;"><span>( ${num} )</span><span style="border-bottom: 2px solid #94a3b8; width: 50px; margin-top: 2px;"></span></span>`;
       });
     },
 
@@ -1011,7 +1012,7 @@ export default {
       const state = this.logicFormStates[questionId];
       if (!state) return;
       if (!Array.isArray(state.answers[nodeId])) {
-         state.answers[nodeId] = [];
+        state.answers[nodeId] = [];
       }
       state.answers[nodeId][index] = value;
     },
@@ -1027,14 +1028,14 @@ export default {
       const nodeWrapper = allNodes.find(n => n.node.id === nodeId);
       if (!nodeWrapper) return false;
       if (nodeWrapper.isRoot) return true;
-      
+
       for (let p of nodeWrapper.parents) {
-         if (this.checkNodeVisibilityRecursively(p.id, allNodes, answers)) {
-            const parentAns = answers[p.id];
-            if (Array.isArray(parentAns) && parentAns.includes(p.optIdx)) {
-               return true;
-            }
-         }
+        if (this.checkNodeVisibilityRecursively(p.id, allNodes, answers)) {
+          const parentAns = answers[p.id];
+          if (Array.isArray(parentAns) && parentAns.includes(p.optIdx)) {
+            return true;
+          }
+        }
       }
       return false;
     },
@@ -1060,36 +1061,36 @@ export default {
       const state = this.getLogicFormState(question);
       let ans = state.answers[node.id] || [];
       if (String(node.type) === '1') {
-         // 單選
-         ans = [optIdx];
-         state.answers[node.id] = ans;
-         // 單選可自動進入下一題，提供極致流暢體驗
-         setTimeout(() => {
-           this.handleLogicNext(question);
-         }, 300);
+        // 單選
+        ans = [optIdx];
+        state.answers[node.id] = ans;
+        // 單選可自動進入下一題，提供極致流暢體驗
+        setTimeout(() => {
+          this.handleLogicNext(question);
+        }, 300);
       } else if (String(node.type) === '2') {
-         // 多選
-         const minOptions = node.minOptions || 0;
-         const maxOptions = node.maxOptions || null;
-         
-         // 如果已選中，則取消選擇
-         if (ans.includes(optIdx)) {
-           // 檢查是否達到最小選擇數量
-           if (minOptions > 0 && ans.length <= minOptions) {
-             this.showToast(`至少需要選擇 ${minOptions} 個選項`);
-             return;
-           }
-           ans = ans.filter(i => i !== optIdx);
-         } else {
-           // 如果未選中，則添加選擇
-           // 檢查是否達到最大選擇數量
-           if (maxOptions !== null && ans.length >= maxOptions) {
-             this.showToast(`最多只能選擇 ${maxOptions} 個選項`);
-             return;
-           }
-           ans.push(optIdx);
-         }
-         state.answers[node.id] = ans;
+        // 多選
+        const minOptions = node.minOptions || 0;
+        const maxOptions = node.maxOptions || null;
+
+        // 如果已選中，則取消選擇
+        if (ans.includes(optIdx)) {
+          // 檢查是否達到最小選擇數量
+          if (minOptions > 0 && ans.length <= minOptions) {
+            this.showToast(`至少需要選擇 ${minOptions} 個選項`);
+            return;
+          }
+          ans = ans.filter(i => i !== optIdx);
+        } else {
+          // 如果未選中，則添加選擇
+          // 檢查是否達到最大選擇數量
+          if (maxOptions !== null && ans.length >= maxOptions) {
+            this.showToast(`最多只能選擇 ${maxOptions} 個選項`);
+            return;
+          }
+          ans.push(optIdx);
+        }
+        state.answers[node.id] = ans;
       }
     },
 
@@ -1107,30 +1108,30 @@ export default {
     async handleFileUpload(event, questionId, nodeId) {
       const file = event.target.files[0];
       if (!file) return;
-      
+
       try {
         // 显示上传中状态
         this.showToast('正在上傳文件...', 'info');
-        
+
         // 创建 FormData
         const formData = new FormData();
         formData.append('file', file);
-        
+
         // 获取当前选中的学生ID（从localStorage或sessionStorage）
         const studentUserId = localStorage.getItem('currentStudentUserId') || sessionStorage.getItem('currentStudentUserId');
         console.log('当前学生ID:', studentUserId);
-        
+
         if (!studentUserId) {
           this.showToast('請先切換學生後再上傳文件', 'warning');
           event.target.value = '';
           return;
         }
-        
+
         formData.append('studentUserId', studentUserId);
-        
+
         // 调用上传接口（不要手动设置 headers，让 axios 拦截器自动处理）
         const response = await service.post(API_ENDPOINTS.FILE_UPLOAD, formData);
-        
+
         if (response.data.code === 200) {
           // 上传成功，保存文件URL
           const result = response.data.data;
@@ -1167,87 +1168,87 @@ export default {
       const currentNode = this.getActiveNode(question);
       if (!currentNode) return;
       const nodeData = currentNode.node;
-      
+
       const answerData = state.answers[nodeData.id];
       let hasAnswer = false;
-      
+
       if (String(nodeData.type) === '3') {
-         const blanksCount = this.getFillBlanksCount(nodeData.content);
-         if (blanksCount > 0) {
-            if (Array.isArray(answerData)) {
-               let filledCount = 0;
-               for (let i = 0; i < blanksCount; i++) {
-                  if (answerData[i] && String(answerData[i]).trim() !== '') {
-                     filledCount++;
-                  }
-               }
-               hasAnswer = filledCount === blanksCount;
+        const blanksCount = this.getFillBlanksCount(nodeData.content);
+        if (blanksCount > 0) {
+          if (Array.isArray(answerData)) {
+            let filledCount = 0;
+            for (let i = 0; i < blanksCount; i++) {
+              if (answerData[i] && String(answerData[i]).trim() !== '') {
+                filledCount++;
+              }
             }
-         } else {
-            hasAnswer = !!(answerData && String(answerData).trim() !== '');
-         }
+            hasAnswer = filledCount === blanksCount;
+          }
+        } else {
+          hasAnswer = !!(answerData && String(answerData).trim() !== '');
+        }
       } else if (String(nodeData.type) === '4') {
-         hasAnswer = !!answerData; // File 對象存在即代表已填答
+        hasAnswer = !!answerData; // File 對象存在即代表已填答
       } else if (String(nodeData.type) === '2') {
-         // 多选题：验证选项数量限制
-         const answerIndices = answerData || [];
-         const minOptions = nodeData.minOptions || 0;
-         const maxOptions = nodeData.maxOptions || null;
-         
-         // 验证最小选项数
-         if (minOptions > 0 && answerIndices.length < minOptions) {
-           this.showToast(`「${nodeData.title}」至少需要選擇 ${minOptions} 個選項`);
-           return;
-         }
-         
-         // 验证最大选项数
-         if (maxOptions !== null && answerIndices.length > maxOptions) {
-           this.showToast(`「${nodeData.title}」最多只能選擇 ${maxOptions} 個選項`);
-           return;
-         }
-         
-         hasAnswer = answerIndices.length >= minOptions;
+        // 多选题：验证选项数量限制
+        const answerIndices = answerData || [];
+        const minOptions = nodeData.minOptions || 0;
+        const maxOptions = nodeData.maxOptions || null;
+
+        // 验证最小选项数
+        if (minOptions > 0 && answerIndices.length < minOptions) {
+          this.showToast(`「${nodeData.title}」至少需要選擇 ${minOptions} 個選項`);
+          return;
+        }
+
+        // 验证最大选项数
+        if (maxOptions !== null && answerIndices.length > maxOptions) {
+          this.showToast(`「${nodeData.title}」最多只能選擇 ${maxOptions} 個選項`);
+          return;
+        }
+
+        hasAnswer = answerIndices.length >= minOptions;
       } else {
-         const answerIndices = answerData || [];
-         hasAnswer = answerIndices.length > 0;
+        const answerIndices = answerData || [];
+        hasAnswer = answerIndices.length > 0;
       }
-      
+
       if (nodeData.required && !hasAnswer) {
         this.showToast('此題目是必答的！');
         return;
       }
-      
+
       const logicData = this.getLogicFormData(question);
       const allNodes = logicData.allNodes;
-      
+
       // 檢查是否明確要求中止跳轉 (JumpTarget = 'end')
       if (nodeData.logicRuleList && nodeData.logicRuleList.length > 0 && Array.isArray(answerData) && !['3'].includes(String(nodeData.type))) {
         for (let rule of nodeData.logicRuleList) {
-           if (answerData.includes(rule.optionIndex) && rule.jumpTarget === 'end') {
-              state.isComplete = true;
-              return;
-           }
+          if (answerData.includes(rule.optionIndex) && rule.jumpTarget === 'end') {
+            state.isComplete = true;
+            return;
+          }
         }
       }
-      
+
       // DFS 順序遍歷：找出物理陣列中「出現在此節點之後」，且「當前可見的」第一個節點
       let nextId = null;
       const currentIdx = allNodes.findIndex(n => n.node.id === nodeData.id);
-      
+
       for (let i = currentIdx + 1; i < allNodes.length; i++) {
-         const candidateId = allNodes[i].node.id;
-         if (this.isNodeVisible(candidateId, question)) {
-            nextId = candidateId;
-            break;
-         }
+        const candidateId = allNodes[i].node.id;
+        if (this.isNodeVisible(candidateId, question)) {
+          nextId = candidateId;
+          break;
+        }
       }
-      
+
       // 如果後面已經沒有可見節點了，就視為作答完畢
       if (!nextId) {
-         state.isComplete = true;
-         return;
+        state.isComplete = true;
+        return;
       }
-      
+
       state.historyStack.push(nodeData.id);
       state.activeNodeId = nextId;
     },
@@ -1257,32 +1258,32 @@ export default {
       const state = this.logicFormStates[questionId];
       if (!state) return;
       if (state.isComplete) {
-         state.isComplete = false; // 取消完成狀態，直接顯示上一題
+        state.isComplete = false; // 取消完成狀態，直接顯示上一題
       } else {
-         if (state.historyStack.length > 0) {
-            const prevId = state.historyStack.pop();
-            state.activeNodeId = prevId;
-         }
+        if (state.historyStack.length > 0) {
+          const prevId = state.historyStack.pop();
+          state.activeNodeId = prevId;
+        }
       }
     },
 
     // 获取完整的附件URL
     getFullAttachmentUrl(attachment) {
       if (!attachment) return ''
-      
+
       // 如果是对象，提取url属性
       let url = typeof attachment === 'object' ? attachment.url : attachment
-      
+
       if (!url || typeof url !== 'string') return ''
-      
+
       // 如果已经是完整URL（以http或https开头），直接返回
       if (url.startsWith('http://') || url.startsWith('https://')) {
         return url
       }
-      
+
       // 清理URL中的双斜杠
       url = url.replace(/\/+/g, '/')
-      
+
       // 统一使用相对路径，通过Nginx代理访问后端
       // 开发环境（localhost）和生产环境（Nginx代理）都使用相同的路径
       const origin = window.location.origin
@@ -1295,12 +1296,12 @@ export default {
     // 获取附件名称
     getAttachmentName(attachment) {
       if (!attachment) return '未知文件'
-      
+
       // 如果是对象，提取name属性
       if (typeof attachment === 'object') {
         return attachment.name || this.getFileNameFromUrl(attachment.url)
       }
-      
+
       // 如果是字符串，从URL提取文件名
       return this.getFileNameFromUrl(attachment)
     },
@@ -1323,16 +1324,16 @@ export default {
     // 處理安全下載附件（帶Token）
     async handleSecureDownload(attachment) {
       if (!attachment) return;
-      
+
       const fileName = this.getAttachmentName(attachment);
       let url = typeof attachment === 'object' ? attachment.url : attachment;
       if (!url) return;
-      
+
       // 清理URL中的雙斜線
       url = url.replace(/\/+/g, '/');
-      
+
       this.showToast('準備下載...', 'info');
-      
+
       try {
         // 使用 axios 請求二進制流，這樣會自動帶上 Token
         const response = await service.get(API_ENDPOINTS.FILE_UPLOAD.replace('/upload', '/download/resource'), {
@@ -1340,10 +1341,10 @@ export default {
           responseType: 'blob', // 重要：指定為 blob
           timeout: 60000 // 文件下載可能較慢，延長超時時間
         });
-        
+
         // 創建一個 Blob 對象
         const blob = new Blob([response.data]);
-        
+
         // 如果後端有返回文件名（從 header 取 Content-Disposition），可以使用後端的文件名
         let downloadName = fileName;
         const disposition = response.headers['content-disposition'];
@@ -1353,21 +1354,21 @@ export default {
             downloadName = decodeURIComponent(matches[1].replace(/['"]/g, ''));
           }
         }
-        
+
         // 創建下載鏈接並觸發點擊
         const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.style.display = 'none';
         link.href = blobUrl;
         link.download = downloadName;
-        
+
         document.body.appendChild(link);
         link.click();
-        
+
         // 清理
         document.body.removeChild(link);
         window.URL.revokeObjectURL(blobUrl);
-        
+
         this.showToast('開始下載', 'success');
       } catch (error) {
         console.error('下載失敗:', error);
@@ -1378,10 +1379,10 @@ export default {
     // 判断是否为图片
     isImage(attachment) {
       if (!attachment) return false
-      
+
       // 如果是对象，提取url属性
       let url = typeof attachment === 'object' ? attachment.url : attachment
-      
+
       if (!url || typeof url !== 'string') return false
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
       return imageExtensions.some(ext => url.toLowerCase().endsWith(ext))
@@ -1399,7 +1400,7 @@ export default {
 
         // 收集所有答案
         const answers = this.collectAllAnswers();
-        
+
         if (answers.length === 0) {
           this.showToast('請至少回答一個問題');
           return;
@@ -1463,7 +1464,7 @@ export default {
               message: `問題「${question.questionTitle}」尚未完成作答`
             };
           }
-          
+
           // 验证多选题的选项数量限制
           const validation = this.validateLogicFormOptions(question, state);
           if (!validation.valid) {
@@ -1477,24 +1478,24 @@ export default {
       }
       return { valid: true };
     },
-    
+
     // 验证逻辑表单的选项数量限制
     validateLogicFormOptions(question, state) {
       const logicData = this.getLogicFormData(question);
       if (!logicData) return { valid: true };
-      
+
       // 遍历所有节点，验证多选题的 minOptions 和 maxOptions
       for (const nodeInfo of logicData.allNodes) {
         const node = nodeInfo.node;
         if (String(node.type) !== '2') continue; // 只验证多选题
-        
+
         const answerValue = state.answers[node.id];
         if (!answerValue || !Array.isArray(answerValue)) continue;
-        
+
         const selectedCount = answerValue.length;
         const minOptions = node.minOptions || 0;
         const maxOptions = node.maxOptions || null;
-        
+
         // 验证最小选项数
         if (minOptions > 0 && selectedCount < minOptions) {
           return {
@@ -1502,7 +1503,7 @@ export default {
             message: `「${node.title}」至少需要選擇 ${minOptions} 個選項`
           };
         }
-        
+
         // 验证最大选项数
         if (maxOptions !== null && selectedCount > maxOptions) {
           return {
@@ -1511,7 +1512,7 @@ export default {
           };
         }
       }
-      
+
       return { valid: true };
     },
 
@@ -1524,7 +1525,7 @@ export default {
         // 处理逻辑表单 (题型 5)
         if (question.questionType === '5') {
           const logicAnswers = this.collectLogicFormAnswers(question, notificationId);
-          
+
           // 将同一问题的多个节点答案合并
           if (logicAnswers.length > 0) {
             // 如果该问题还没有答案，初始化
@@ -1588,12 +1589,12 @@ export default {
           // 获取fillBlanks配置
           const fillBlanks = node.fillBlanks || [];
           const blanksCount = fillBlanks.length > 0 ? fillBlanks.length : this.getFillBlanksCount(node.content);
-          
+
           // 确保答案数组存在
           if (!Array.isArray(answerValue)) {
             answerValue = [];
           }
-          
+
           // 将答案转换为包含blankId和value的对象数组
           const fillBlankAnswers = [];
           for (let i = 0; i < blanksCount; i++) {
@@ -1646,13 +1647,13 @@ export default {
     getQuestionProgress(questionId) {
       const state = this.logicFormStates[questionId];
       if (!state) return 0;
-      
+
       // 如果已经完成，直接返回100%
       if (state.isComplete) return 100;
-      
+
       const logicData = this.logicFormDataCache[questionId];
       if (!logicData || !logicData.allNodes) return 0;
-      
+
       // 统计已回答的节点数
       let answeredCount = 0;
       Object.keys(state.answers).forEach(nodeId => {
@@ -1670,7 +1671,7 @@ export default {
           }
         }
       });
-      
+
       const totalNodes = logicData.allNodes.length;
       return totalNodes === 0 ? 0 : Math.round((answeredCount / totalNodes) * 100);
     },
