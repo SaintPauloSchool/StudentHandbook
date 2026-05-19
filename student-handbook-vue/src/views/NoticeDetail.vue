@@ -1138,8 +1138,8 @@ export default {
       }
 
       try {
-        // 显示上传中状态
-        this.showToast('正在上傳文件...', 'info');
+        // 顯示上傳中狀態（持續顯示，不自動關閉）
+        this.showToast('正在上傳文件...', 'info', 0);
 
         // 创建 FormData
         const formData = new FormData();
@@ -1711,13 +1711,28 @@ export default {
     },
 
     // 显示居中提示
-    showToast(message, type = 'info') {
+    showToast(message, type = 'info', duration = 1500) {
       this.toastMessage = message;
       this.toastType = type;
       this.showCenterToast = true;
-      setTimeout(() => {
-        this.showCenterToast = false;
-      }, 1500);
+      // 清除上一個計時器，避免疊加
+      if (this._toastTimer) {
+        clearTimeout(this._toastTimer);
+        this._toastTimer = null;
+      }
+      // duration = 0 表示持續顯示，不自動關閉
+      if (duration > 0) {
+        this._toastTimer = setTimeout(() => {
+          this.showCenterToast = false;
+        }, duration);
+      }
+    },
+    hideToast() {
+      if (this._toastTimer) {
+        clearTimeout(this._toastTimer);
+        this._toastTimer = null;
+      }
+      this.showCenterToast = false;
     }
   }
 }
