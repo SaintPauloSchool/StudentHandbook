@@ -1109,6 +1109,34 @@ export default {
       const file = event.target.files[0];
       if (!file) return;
 
+      // ── 前端驗證：格式 ──
+      const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+      const allowedMimeTypes  = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp'];
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      const isHeic  = fileExt === 'heic' || fileExt === 'heif' ||
+                      file.type === 'image/heic' || file.type === 'image/heif';
+
+      if (isHeic) {
+        this.showToast('不支援 HEIF/HEIC 格式。請在 iPhone「設定 → 相機 → 格式」中選擇「相容性最高」後重新拍照上傳', 'warning');
+        event.target.value = '';
+        return;
+      }
+
+      if (!allowedExtensions.includes(fileExt) || !allowedMimeTypes.includes(file.type)) {
+        this.showToast(`不支援「.${fileExt}」格式，請上傳 JPG、PNG、GIF 或 BMP 圖片`, 'error');
+        event.target.value = '';
+        return;
+      }
+
+      // ── 前端驗證：大小（5MB）──
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+        this.showToast(`圖片大小 ${sizeMB}MB 超過限制，請上傳 5MB 以內的圖片`, 'error');
+        event.target.value = '';
+        return;
+      }
+
       try {
         // 显示上传中状态
         this.showToast('正在上傳文件...', 'info');
@@ -1160,6 +1188,7 @@ export default {
         event.target.value = '';
       }
     },
+
 
     // 下一題
     handleLogicNext(question) {
