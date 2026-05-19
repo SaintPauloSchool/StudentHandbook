@@ -27,7 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/common/upload")
 public class FileUploadController extends BaseController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
 
     @Autowired
@@ -45,8 +45,8 @@ public class FileUploadController extends BaseController {
     @Log(title = "文件上传", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult uploadFile(@RequestParam("file") MultipartFile file,
-                                  @RequestParam(value = "studentUserId", required = false) String studentUserId,
-                                  HttpServletRequest request) {
+                                 @RequestParam(value = "studentUserId", required = false) String studentUserId,
+                                 HttpServletRequest request) {
         try {
             // 从token获取家长ID
             String token = request.getHeader("Authorization");
@@ -54,10 +54,10 @@ public class FileUploadController extends BaseController {
                 token = token.substring(7);
             }
             String parentUserId = tokenService.getUserIdByToken(token);
-            
+
             String filePath;
             String renamedFileName = null;
-            
+
             if (StringUtils.isNotEmpty(parentUserId)) {
                 // 构建自定义文件名，传入studentUserId
                 renamedFileName = fileUploadHandler.buildCustomFileName(parentUserId, studentUserId);
@@ -70,9 +70,9 @@ public class FileUploadController extends BaseController {
                 logger.warn("无法从token获取家长ID，使用默认文件名上传");
                 filePath = FileUploadUtils.uploadImage(file);
             }
-            
+
             logger.info("文件上传成功: {}", filePath);
-            
+
             // 返回文件访问URL和重命名后的文件名
             Map<String, Object> result = new HashMap<>();
             result.put("url", filePath);

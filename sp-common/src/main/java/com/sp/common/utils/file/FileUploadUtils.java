@@ -143,7 +143,7 @@ public class FileUploadUtils
     {
         return upload(baseDir, file, allowedExtension, false);
     }
-    
+
     /**
      * 文件上传
      *
@@ -196,7 +196,7 @@ public class FileUploadUtils
      * 使用自定义文件名上传
      */
     public static final String uploadWithCustomName(String baseDir, MultipartFile file, String customFileName,
-                                                     String[] allowedExtension)
+                                                    String[] allowedExtension)
             throws FileSizeLimitExceededException, IOException, FileNameLengthLimitExceededException,
             InvalidExtensionException
     {
@@ -308,7 +308,7 @@ public class FileUploadUtils
 
     /**
      * 获取文件名的后缀
-     * 
+     *
      * @param file 表单文件
      * @return 后缀名
      */
