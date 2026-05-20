@@ -37,6 +37,15 @@
         <span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
       </div>
 
+      <div class="button-wrapper" v-if="userType === 0 || userType === 1 || userType === null">
+        <button class="feature-button info-button" @click="goToCalendar">
+          <div class="button-content">
+            <span class="button-icon">📅</span>
+            <span class="button-text">行事曆</span>
+          </div>
+        </button>
+      </div>
+
       <div class="button-wrapper" v-if="userType === 2 || userType === null">
         <button class="feature-button warning-button" @click="goToCampusSystem">
           <div class="button-content">
@@ -229,6 +238,10 @@ export default {
     goToParentNotice() {
       // 跳转到家校通知页面
       this.$router.push('/notice');
+    },
+    goToCalendar() {
+      // 跳轉到行事曆頁面
+      this.$router.push('/calendar');
     },
     async goToCampusSystem() {
       // 跳轉到校園系統（在新分頁開啟），並帶上 token
@@ -534,6 +547,12 @@ export default {
   background: linear-gradient(135deg, #67c23a 0%, #4caf50 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(76, 175, 80, 0.25);
+}
+
+.info-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
 }
 
 .warning-button {

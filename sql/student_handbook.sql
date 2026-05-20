@@ -416,3 +416,20 @@ CREATE TABLE sys_admin (
 
 -- 插入示例管理员数据（需要根据实际user_id调整）
 -- INSERT INTO sys_admin VALUES(1, 'admin_user_id', '系统管理员', '0', NOW(), NOW(), '超级管理员');
+-- ----------------------------
+-- 行事曆事件表
+-- ----------------------------
+DROP TABLE IF EXISTS calendar_event;
+CREATE TABLE IF NOT EXISTS `calendar_event` (
+                                                `event_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '事件ID',
+    `event_date` date NOT NULL COMMENT '事件日期',
+    `title` varchar(255) NOT NULL COMMENT '事件標題',
+    `target_type` int(11) NOT NULL DEFAULT '0' COMMENT '對象類型（0: 全校, 1: 幼稚園, 2: 小學, 3: 中學）',
+    `create_by` varchar(64) DEFAULT '' COMMENT '創建者',
+    `create_time` datetime DEFAULT NULL COMMENT '創建時間',
+    `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+    `update_time` datetime DEFAULT NULL COMMENT '更新時間',
+    `remark` varchar(500) DEFAULT NULL COMMENT '備註',
+    PRIMARY KEY (`event_id`),
+    KEY `idx_event_date` (`event_date`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='行事曆事件表';
