@@ -60,8 +60,8 @@
           </div>
           <div class="col-event">
             <div v-if="day.events.length > 0" class="events-container">
-              <div v-for="(ev, idx) in day.events" :key="idx" class="event-item">
-                <span class="event-dot"></span>
+              <div v-for="(ev, idx) in day.events" :key="idx" :class="['event-item', `event-type-${ev.targetType}`]">
+                <span :class="['event-dot', `dot-type-${ev.targetType}`]"></span>
                 {{ ev.title }}（{{ getEventTypeName(ev.targetType) }}）
               </div>
             </div>
@@ -236,11 +236,13 @@ export default {
 .calendar-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   background-color: #f5f9ff;
   padding: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* 顶部导航栏 */
@@ -428,7 +430,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 16px 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
   transition: background-color 0.2s;
 }
 
@@ -463,6 +465,7 @@ export default {
 /* 有事件的行用淺藍色高亮 */
 .calendar-row.has-event {
   background-color: #eff6ff; /* 淺藍色背景 */
+  border-bottom-color: #dbeafe; /* 加深分隔線，避免連成一塊 */
 }
 
 .calendar-row.has-event:hover {
@@ -497,20 +500,66 @@ export default {
   display: flex;
   align-items: center;
   font-size: 15px;
-  color: #1e3a8a;
   font-weight: 500;
-  background: white;
   padding: 8px 12px;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  /* 預設樣式 */
+  background: white;
+  color: #1e3a8a;
+}
+
+/* 0: 全校 - 淡藍色 */
+.event-type-0 {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* 1: 幼稚園 - 淡粉橘色 */
+.event-type-1 {
+  background-color: #ffedd5;
+  color: #9a3412;
+}
+
+/* 2: 小學 - 淡綠色 */
+.event-type-2 {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* 3: 中學 - 淡黃色 */
+.event-type-3 {
+  background-color: #fef9c3;
+  color: #854d0e;
 }
 
 .event-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #3b82f6;
   margin-right: 8px;
   flex-shrink: 0;
+  /* 預設樣式 */
+  background-color: #3b82f6;
+}
+
+/* 0: 全校點 */
+.dot-type-0 {
+  background-color: #2563eb;
+}
+
+/* 1: 幼稚園點 */
+.dot-type-1 {
+  background-color: #f97316;
+}
+
+/* 2: 小學點 */
+.dot-type-2 {
+  background-color: #22c55e;
+}
+
+/* 3: 中學點 */
+.dot-type-3 {
+  background-color: #eab308;
 }
 </style>
