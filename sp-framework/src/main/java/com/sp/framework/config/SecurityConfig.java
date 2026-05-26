@@ -52,6 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/system/handbook/**",
                         "/system/notice/**",
                         "/system/token/**",
+                        "/system/calendar/**",
                         "/common/upload",
                         "/common/download/**",
                         "/wechat/callback/**",

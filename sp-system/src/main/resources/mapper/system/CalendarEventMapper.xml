@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sp.system.mapper.CalendarEventMapper">
+
+    <resultMap type="com.sp.system.entity.CalendarEvent" id="CalendarEventResult">
+        <id     property="eventId"       column="event_id"      />
+        <result property="eventDate"     column="event_date"    />
+        <result property="title"         column="title"         />
+        <result property="targetType"    column="target_type"   />
+        <result property="createBy"      column="create_by"     />
+        <result property="createTime"    column="create_time"   />
+        <result property="updateBy"      column="update_by"     />
+        <result property="updateTime"    column="update_time"   />
+        <result property="remark"        column="remark"        />
+    </resultMap>
+
+    <sql id="selectCalendarEventVo">
+        select event_id, event_date, title, target_type, create_by, create_time, update_by, update_time, remark 
+        from calendar_event
+    </sql>
+
+    <select id="selectEventsByMonth" parameterType="String" resultMap="CalendarEventResult">
+        <include refid="selectCalendarEventVo"/>
+        <where>
+            <if test="yearMonth != null and yearMonth != ''">
+                AND DATE_FORMAT(event_date, '%Y-%m') = #{yearMonth}
+            </if>
+        </where>
+        order by event_date asc
+    </select>
+</mapper>
