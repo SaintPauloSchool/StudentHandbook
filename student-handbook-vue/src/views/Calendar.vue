@@ -377,6 +377,7 @@ export default {
   display: flex;
   flex-direction: column;
   margin: 0 20px 20px;
+  min-height: 0; /* 確保 flex 子項目可以正確縮小，讓內部滾動生效 */
 }
 
 .calendar-header {
@@ -412,6 +413,10 @@ export default {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 20px;
+  /* 修復手機滑動衝突 */
+  -webkit-overflow-scrolling: touch; /* iOS 慣性滾動 */
+  overscroll-behavior: contain;      /* 防止滾動事件穿透到外層頁面 */
+  touch-action: pan-y;               /* 告知瀏覽器只處理垂直滑動，不觸發頁面滾動 */
 }
 
 /* 自定義滾動條 */
