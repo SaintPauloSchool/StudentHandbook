@@ -41,7 +41,7 @@ public class DepartmentSyncTask {
     /**
      * 每天凌晨12点执行部门数据同步
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    //@Scheduled(cron = "0 0 0 * * ?")
     public void syncDepartmentData() {
         // 使用AtomicBoolean确保同一时间只有一个实例在执行
         if (!isExecuting.compareAndSet(false, true)) {
