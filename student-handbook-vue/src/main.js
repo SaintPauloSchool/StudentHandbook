@@ -6,12 +6,15 @@ import settings from '@/config/settings' // 导入全局配置设置
 // Element Plus imports
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import zhTw from 'element-plus/es/locale/lang/zh-tw'
 
 // 创建Vue应用实例
 const app = createApp(App)
 
 // 使用Element Plus
-app.use(ElementPlus)
+app.use(ElementPlus, {
+  locale: zhTw,
+})
 
 // 配置路由守卫，确保访问受保护页面时已登录
 router.beforeEach((to, from, next) => {

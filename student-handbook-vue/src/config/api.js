@@ -12,7 +12,8 @@ const apiEndpoints = {
     NOTICE_MARK_READ: '/system/notice',  // POST /{id}/read
     NOTICE_UNREAD_COUNT: '/system/notice/unreadCount',  // GET 获取未读通知数量
     VALIDATE_TOKEN: '/system/token/validate',             // GET 校验当前 token 是否有效
-    FILE_UPLOAD: '/common/upload'                         // POST 文件上传
+    FILE_UPLOAD: '/common/upload',                         // POST 文件上传
+    CALENDAR_LIST: '/system/calendar/list'                // 获取行事历列表
 };
 
 // 获取基础URL - 统一使用 /sp-api 前缀，匹配 Nginx 与 Vite 的 proxy 设定
