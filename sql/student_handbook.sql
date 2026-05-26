@@ -280,7 +280,7 @@ CREATE TABLE class_section (
                                class_section_dsedj VARCHAR(8)      NOT NULL,
                                class_section_sp    VARCHAR(8)      NOT NULL,
                                PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='課程班級';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='課程班級';
 
 INSERT INTO class_section VALUES
                               (1,'I 1_A_家長','K1A'),(2,'I 1_B_家長','K1B'),(3,'I 1_C_家長','K1C'),(4,'I 1_D_家長','K1D'),(5,'I 1_E_家長','K1E'),(6,'I 1_F_家長','K1F'),
@@ -357,7 +357,7 @@ CREATE TABLE `sys_token` (
                              PRIMARY KEY (`id`),
                              UNIQUE KEY `token_value` (`token`),
                              KEY `idx_user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=934 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Token表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Token表';
 -- ----------------------------
 -- 系統學校部門表
 -- ----------------------------
