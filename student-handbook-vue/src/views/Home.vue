@@ -147,12 +147,14 @@ export default {
           let targetUrl = settings.campusSystemUrl;
           if (state && state.startsWith('campus_notice_')) {
             const noticeId = state.replace('campus_notice_', '');
-            // 確保 URL 結尾有斜線或者處理拼接
-            const baseUrl = settings.campusSystemUrl.endsWith('/') ? settings.campusSystemUrl : settings.campusSystemUrl + '/';
-            targetUrl = `${baseUrl}${noticeId}`;
+            if (noticeId !== 'root') {
+              // 確保 URL 結尾有斜線或者處理拼接
+              const baseUrl = settings.campusSystemUrl.endsWith('/') ? settings.campusSystemUrl : settings.campusSystemUrl + '/';
+              targetUrl = `${baseUrl}${noticeId}`;
+            }
           }
 
-          const campusUrl = `${targetUrl}?token=${encodeURIComponent(token)}`;
+          const campusUrl = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
           console.log('重新授權完成，自動跳轉到校園系統:', campusUrl);
 
           // 如果是直接點擊通知進來的，直接替換當前頁面；否則是原本的打開新分頁
