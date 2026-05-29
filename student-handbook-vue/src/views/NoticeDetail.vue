@@ -74,6 +74,7 @@
             <el-icon class="jump-link-icon"><Link /></el-icon>
             點擊前往外部連結
           </a>
+          <div class="jump-link-url">{{ notice.jumpUrl }}</div>
         </div>
       </div>
 
@@ -2128,7 +2129,9 @@ export default {
 .jump-link-wrapper {
   margin-top: 25px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 .jump-link-btn {
@@ -2160,6 +2163,15 @@ export default {
 
 .jump-link-icon {
   font-size: 18px;
+}
+
+.jump-link-url {
+  font-size: 12px;
+  color: #64748b;
+  word-break: break-all;
+  text-align: center;
+  padding: 0 8px;
+  line-height: 1.5;
 }
 
 /* 问题部分重构 */
