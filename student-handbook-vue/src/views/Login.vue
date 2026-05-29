@@ -163,12 +163,19 @@ export default {
 
     // 自动微信登录
     async autoWechatLogin() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let state = 'default';
+      const redirectToCampus = urlParams.get('redirect_to_campus');
+      if (redirectToCampus) {
+          state = 'campus_notice_' + redirectToCampus;
+      }
+      
       // 如果是開發環境，直接調用模擬的 callback，透過 code=dev 讓後端返回配置的 token
       if (import.meta.env.MODE !== 'production') {
         // 非生產環境（本地 vite dev 或 build:dev 部署到測試服）都走 mock 登錄，跳過微信驗證
         console.log('非生產環境，直接跳轉到模擬登錄');
         this.loginLoading = true;
-        window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=dev';
+        window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=' + encodeURIComponent(state);
         return;
       }
 
@@ -179,7 +186,7 @@ export default {
         console.log('在微信环境中，自动触发微信授权');
 
         // 尝试通过OAuth2方式获取用户信息
-        await this.getWeChatUserInfoByOAuth();
+        await this.getWeChatUserInfoByOAuth(state);
       } else {
         console.log('非微信环境，显示提示信息');
         ElMessage.warning('请在微信或企业微信环境中打开应用');
@@ -187,18 +194,19 @@ export default {
     },
 
     // 通过OAuth2方式获取微信用户信息
-    async getWeChatUserInfoByOAuth() {
+    async getWeChatUserInfoByOAuth(state) {
       try {
         console.log('构建微信授权链接');
         // 从配置文件中读取企业微信相关参数
         const redirectUri = encodeURIComponent(settings.wechat.redirectUri);
         const corpId = settings.wechat.corpId;
         const agentId = settings.wechat.agentId;
+        const safeState = state || 'default';
 
-        // 构造适合手机端的企业微信OAuth2授权链接，使用默认状态
+        // 构造适合手机端的企业微信OAuth2授权链接，使用动态状态
         console.log('跳转到微信授权页面: https://open.weixin.qq.com/connect/oauth2/authorize');
         // 重定向到授权页面
-        window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
+        window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=${safeState}#wechat_redirect`;
       } catch (error) {
         console.error('发起微信授权失败: ' + error.message);
       }
