@@ -85,7 +85,7 @@ export default {
   async mounted() {
     // 检查URL参数中是否有token（来自微信授权回调）
     this.checkTokenFromUrl();
-    
+
     // 根据配置决定是否执行Token验证
     if (settings.enableTokenAuth) {
       // 检查是否存在token，如果没有则重定向到登录页面
@@ -100,7 +100,7 @@ export default {
 
     // 獲取使用者資訊（包含 userType）
     this.fetchUserInfo();
-    
+
     // 监听学生切换事件
     window.addEventListener('studentChanged', this.handleStudentChanged);
   },
@@ -115,12 +115,13 @@ export default {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       const urlUserType = urlParams.get('userType');
+      const state = urlParams.get('state');
 
       if (token) {
         // 保存token到本地存储，同时记录过期时间 (7天)
         localStorage.setItem('token', token);
         localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
-        
+
         // 如果URL中有傳遞 userType，直接保存並使用，避免按鈕閃爍
         if (urlUserType !== null) {
           this.userType = parseInt(urlUserType);
@@ -133,17 +134,33 @@ export default {
         // 清除URL中的参数，避免在地址栏显示敏感信息
         urlParams.delete('token');
         urlParams.delete('userType');
+        if (state) urlParams.delete('state');
         const newUrl = window.location.pathname +
             (urlParams.toString() ? '?' + urlParams.toString() : '') +
             window.location.hash;
         window.history.replaceState({}, document.title, newUrl);
 
         // 若之前是因為 token 過期後重新授權，授權完成後自動打開校園系統
-        if (sessionStorage.getItem('pendingCampusRedirect') === 'true') {
+        if (sessionStorage.getItem('pendingCampusRedirect') === 'true' || (state && state.startsWith('campus_notice_'))) {
           sessionStorage.removeItem('pendingCampusRedirect');
-          const campusUrl = `${settings.campusSystemUrl}?token=${encodeURIComponent(token)}`;
+
+          let targetUrl = settings.campusSystemUrl;
+          if (state && state.startsWith('campus_notice_')) {
+            const noticeId = state.replace('campus_notice_', '');
+            // 確保 URL 結尾有斜線或者處理拼接
+            const baseUrl = settings.campusSystemUrl.endsWith('/') ? settings.campusSystemUrl : settings.campusSystemUrl + '/';
+            targetUrl = `${baseUrl}${noticeId}`;
+          }
+
+          const campusUrl = `${targetUrl}?token=${encodeURIComponent(token)}`;
           console.log('重新授權完成，自動跳轉到校園系統:', campusUrl);
-          window.open(campusUrl, '_blank');
+
+          // 如果是直接點擊通知進來的，直接替換當前頁面；否則是原本的打開新分頁
+          if (state && state.startsWith('campus_notice_')) {
+            window.location.replace(campusUrl);
+          } else {
+            window.open(campusUrl, '_blank');
+          }
         } else {
           ElMessage.success('登錄成功');
         }
@@ -190,18 +207,18 @@ export default {
         this.$router.push('/login');
       }
     },
-    
+
     // 获取未读通知数量
     async fetchUnreadCount() {
       try {
         // 从localStorage获取当前选中的学生ID
         const studentUserId = localStorage.getItem('currentStudentUserId');
-        
+
         const params = {};
         if (studentUserId) {
           params.studentUserId = studentUserId;
         }
-        
+
         const response = await service.get(API_ENDPOINTS.NOTICE_UNREAD_COUNT, {
           params: params
         });
@@ -214,12 +231,12 @@ export default {
         console.error('获取未读通知数量失败:', error);
       }
     },
-    
+
     // 獲取使用者資訊
     async fetchUserInfo() {
       const token = localStorage.getItem('token');
       if (!token) return;
-      
+
       try {
         const response = await service.get(API_ENDPOINTS.VALIDATE_TOKEN);
         if (response.data.code === 200 && response.data.data) {
@@ -246,13 +263,13 @@ export default {
     async goToCampusSystem() {
       // 跳轉到校園系統（在新分頁開啟），並帶上 token
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         // 本地沒有 token，直接走微信重新授權
         this.reAuthAndOpenCampus();
         return;
       }
-      
+
       this.isNavigatingToCampus = true;
       try {
         // 呼叫後端驗證 token 是否在資料庫中真的有效（防止被手動改過期或被撤銷）
@@ -291,7 +308,7 @@ export default {
       const agentId = settings.wechat.agentId;
       window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
     },
-    
+
     // 處理學生切換事件（其他頁面發出的）
     handleStudentChanged() {
       this.currentStudentName = localStorage.getItem('currentStudentName') || '';

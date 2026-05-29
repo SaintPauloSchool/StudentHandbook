@@ -76,12 +76,12 @@ public class WeChatWorkOAuthController extends BaseController {
                 return;
             }
 
-            // 对于微信用户测试功能，我们允许特定的state值
             boolean isWechatTest = "wechat_test".equals(state);
             boolean isDefault = "default".equals(state);
+            boolean isCampusNotice = state != null && state.startsWith("campus_notice_");
 
-            if (!isWechatTest && !isDefault) {
-                // 验证state参数，防止CSRF攻击（除了微信测试情况和默认情况）
+            if (!isWechatTest && !isDefault && !isCampusNotice) {
+                // 验证state参数，防止CSRF攻击（除了微信测试情况、默认情况、和校园系统抄送通知）
                 String savedState = (String) session.getAttribute("wechat_oauth_state");
 
                 if (savedState == null || !savedState.equals(state)) {
@@ -137,8 +137,8 @@ public class WeChatWorkOAuthController extends BaseController {
                 return;
             }
 
-            // 清除临时session数据（如果不是测试情况和默认情况）
-            if (!isWechatTest && !isDefault) {
+            // 清除临时session数据（如果不是测试情况、默认情况和校园通知情况）
+            if (!isWechatTest && !isDefault && !isCampusNotice) {
                 session.removeAttribute("wechat_oauth_state");
             }
 
@@ -156,11 +156,15 @@ public class WeChatWorkOAuthController extends BaseController {
 
             // 生成Token
             String token = tokenService.createToken(userId, userType);
-            logger.info("用户 {} (类型: {}) 登录成功，生成token: {}", userId, 
+            logger.info("用户 {} (类型: {}) 登录成功，生成token: {}", userId,
                     userType == 0 ? "学生" : (userType == 1 ? "家长" : "员工"), token);
 
-            // 重定向到前端页面并带上 userType，方便前端立刻决定显示哪些按钮
-            response.sendRedirect(frontendUrl + "/?token=" + token + "&userType=" + userType);
+            // 重定向到前端页面并带上 userType，方便前端立刻决定显示哪些按钮。同時帶上 state 以便處理通知跳轉
+            String redirectUrl = frontendUrl + "/?token=" + token + "&userType=" + userType;
+            if (state != null && !state.isEmpty()) {
+                redirectUrl += "&state=" + URLEncoder.encode(state, "UTF-8");
+            }
+            response.sendRedirect(redirectUrl);
         } catch (Exception e) {
             logger.error("处理企业微信家校授权回调时发生错误", e);
             try {
