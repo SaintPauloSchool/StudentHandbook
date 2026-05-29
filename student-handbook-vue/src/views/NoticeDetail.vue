@@ -67,6 +67,14 @@
             </div>
           </div>
         </div>
+
+        <!-- 外部跳轉連結 -->
+        <div class="jump-link-wrapper" v-if="notice.jumpUrl">
+          <a :href="notice.jumpUrl" target="_blank" class="jump-link-btn">
+            <el-icon class="jump-link-icon"><Link /></el-icon>
+            點擊前往外部連結
+          </a>
+        </div>
       </div>
 
       <!-- 问题列表（如果有） -->
@@ -369,7 +377,7 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
-import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled } from '@element-plus/icons-vue'
+import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled, Link } from '@element-plus/icons-vue'
 import settings from '@/config/settings' // 导入全局配置设置
 import CryptoJS from 'crypto-js' // 导入crypto-js库用于MD5加密
 
@@ -387,7 +395,8 @@ export default {
     Download,
     Close,
     Warning,
-    InfoFilled
+    InfoFilled,
+    Link
   },
   data() {
     return {
@@ -2113,6 +2122,44 @@ export default {
 
 .link-text {
   font-size: 14px;
+}
+
+/* 外部跳轉連結 */
+.jump-link-wrapper {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+}
+
+.jump-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+}
+
+.jump-link-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.jump-link-btn:active {
+  transform: translateY(0);
+}
+
+.jump-link-icon {
+  font-size: 18px;
 }
 
 /* 问题部分重构 */
