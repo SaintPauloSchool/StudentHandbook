@@ -367,12 +367,24 @@
         <p class="toast-message">{{ toastMessage }}</p>
       </div>
     </div>
+
+    <!-- 自訂答題完成提示彈窗 -->
+    <div class="custom-complete-dialog-mask fade-in" v-if="showCompleteDialog">
+      <div class="custom-complete-dialog-content">
+        <div class="dialog-success-icon-wrapper">
+          <span class="dialog-success-icon">🎉</span>
+        </div>
+        <h3 class="dialog-title">問題表單已填寫完畢</h3>
+        <p class="dialog-message">您已完成所有題目的填寫，請點擊下方的「提交回答」按鈕完成作答。</p>
+        <button class="dialog-confirm-btn" @click="closeCompleteDialog">確定</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import service from '@/utils/request.js'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled, Link } from '@element-plus/icons-vue'
 import settings from '@/config/settings' // 导入全局配置设置
@@ -408,6 +420,7 @@ export default {
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
       showCenterToast: false,
+      showCompleteDialog: false, // 是否顯示自訂完成彈窗
       toastMessage: '',
       errorMessage: '', // 错误信息
       isFromWechatLink: false, // 是否从微信链接进入（带有sid参数）
@@ -1732,15 +1745,15 @@ export default {
       return Math.round((answeredCount / totalVisible) * 100);
     },
 
-    // 顯示表單完成彈窗並平滑滾動到提交按鈕
+    // 顯示表單完成彈窗
     showCompletePopup() {
-      ElMessageBox.alert('問題表單已填寫完畢，請點擊下方「提交回答」按鈕完成作答。', '提示', {
-        confirmButtonText: '確定',
-        type: 'success',
-        callback: () => {
-          this.scrollToSubmitButton();
-        }
-      });
+      this.showCompleteDialog = true;
+    },
+
+    // 關閉表單完成彈窗並平滑滾動到提交按鈕
+    closeCompleteDialog() {
+      this.showCompleteDialog = false;
+      this.scrollToSubmitButton();
     },
 
     // 平滑滾動到提交按鈕
@@ -2694,6 +2707,99 @@ export default {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* 自訂答題完成提示彈窗樣式 */
+.custom-complete-dialog-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.custom-complete-dialog-content {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 85%;
+  max-width: 320px;
+  padding: 30px 24px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.dialog-success-icon-wrapper {
+  background: #f0fdf4;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  border: 1px solid #dcfce7;
+}
+
+.dialog-success-icon {
+  font-size: 32px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 12px 0;
+}
+
+.dialog-message {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.dialog-confirm-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 0;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+
+.dialog-confirm-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.4);
+}
+
+.dialog-confirm-btn:active {
+  transform: translateY(1px);
 }
 
 .question-item {
