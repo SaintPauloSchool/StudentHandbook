@@ -65,6 +65,7 @@ public class ResourcesConfig implements WebMvcConfigurer {
                         "/wechat/callback/**",
                         "/wechat/oauth/callback",
                         "/common/upload",
+                        "/common/download/**",
                         "/swagger-ui/**",
                         "/tool/swagger",
                         "/tool/swagger/**"
@@ -82,6 +83,7 @@ public class ResourcesConfig implements WebMvcConfigurer {
                         "/wechat/callback/",
                         "/wechat/callback/**",
                         "/wechat/oauth/callback",
+                        "/common/download/**",
                         "/swagger-ui/**",
                         "/tool/swagger",
                         "/tool/swagger/**"

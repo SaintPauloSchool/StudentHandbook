@@ -1393,6 +1393,15 @@ export default {
       // 清理URL中的雙斜線
       url = url.replace(/\/+/g, '/');
 
+      // Android 設備特殊處理：跳過 Blob 下載，直接使用 URL 進行下載/預覽
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      if (isAndroid) {
+        const directUrl = window.location.origin + API_ENDPOINTS.FILE_UPLOAD.replace('/upload', '/download/resource') + '?resource=' + encodeURIComponent(url);
+        this.showToast('開始下載', 'success');
+        window.location.href = directUrl;
+        return;
+      }
+
       this.showToast('準備下載...', 'info');
 
       try {
