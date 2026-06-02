@@ -133,7 +133,7 @@
                     <span v-else-if="String(getActiveNode(question).node.type) === '4'">附件上傳</span>
                   </div>
 
-                  <div class="active-node-container transition-wrapper fade-in" v-if="!getLogicFormState(question).isComplete">
+                  <div class="active-node-container transition-wrapper fade-in" v-if="!hasSubmitted">
                     <div class="question-header logic-question-header">
                      <span class="question-number-wrapper">
                        <span class="question-number">{{ getActiveNode(question).displayNum }}</span>
@@ -180,6 +180,7 @@
                               placeholder="請輸入對應的內容..."
                           />
                         </div>
+
                       </div>
 
                       <!-- 如果找不到占位符格式，降级為單一輸入框 -->
@@ -226,20 +227,21 @@
                     </div>
 
                     <!-- 顯示下一題按鈕 -->
-                    <div class="logic-action-bar" v-if="!getLogicFormState(question).isComplete">
-                      <button class="back-step-btn" v-if="getLogicFormState(question).historyStack.length > 0" @click="handleLogicBack(question.questionId)">
+                    <div class="logic-action-bar">
+                      <button class="back-step-btn" v-if="getLogicFormState(question).historyStack.length > 0 || getLogicFormState(question).isComplete" @click="handleLogicBack(question.questionId)">
                         <el-icon><ArrowLeft /></el-icon> 返回上一題
                       </button>
-                      <button class="next-step-btn" @click="handleLogicNext(question)">
+                      <button class="next-step-btn" v-if="!getLogicFormState(question).isComplete" @click="handleLogicNext(question)">
                         下一題 <el-icon><ArrowRight /></el-icon>
                       </button>
                     </div>
                   </div>
 
                   <!-- 完成狀態提示 -->
-                  <div class="logic-complete-state fade-in" v-if="getLogicFormState(question).isComplete && !hasSubmitted">
+                  <div class="logic-complete-state fade-in" v-if="getLogicFormState(question).isComplete && !hasSubmitted" style="margin-top: 20px;">
                     <div class="complete-icon">🎉</div>
-                    <p class="complete-text">問題表單作答完成</p>
+                    <p class="complete-text">問題表單已填寫完畢</p>
+                    <p class="complete-sub-text">請點擊下方「提交回答」按鈕以完成作答</p>
                   </div>
                 </template>
 
@@ -1203,7 +1205,6 @@ export default {
     // 下一題
     handleLogicNext(question) {
       const state = this.getLogicFormState(question);
-      if (state.isComplete) return;
       const currentNode = this.getActiveNode(question);
       if (!currentNode) return;
       const nodeData = currentNode.node;
@@ -1261,13 +1262,19 @@ export default {
       const allNodes = logicData.allNodes;
 
       // 檢查是否明確要求中止跳轉 (JumpTarget = 'end')
+      let jumpToEnd = false;
       if (nodeData.logicRuleList && nodeData.logicRuleList.length > 0 && Array.isArray(answerData) && !['3'].includes(String(nodeData.type))) {
         for (let rule of nodeData.logicRuleList) {
           if (answerData.includes(rule.optionIndex) && rule.jumpTarget === 'end') {
-            state.isComplete = true;
-            return;
+            jumpToEnd = true;
+            break;
           }
         }
+      }
+
+      if (jumpToEnd) {
+        state.isComplete = true;
+        return;
       }
 
       // DFS 順序遍歷：找出物理陣列中「出現在此節點之後」，且「當前可見的」第一個節點
@@ -1288,6 +1295,7 @@ export default {
         return;
       }
 
+      state.isComplete = false;
       state.historyStack.push(nodeData.id);
       state.activeNodeId = nextId;
     },
@@ -1296,13 +1304,10 @@ export default {
     handleLogicBack(questionId) {
       const state = this.logicFormStates[questionId];
       if (!state) return;
-      if (state.isComplete) {
-        state.isComplete = false; // 取消完成狀態，直接顯示上一題
-      } else {
-        if (state.historyStack.length > 0) {
-          const prevId = state.historyStack.pop();
-          state.activeNodeId = prevId;
-        }
+      state.isComplete = false; // 取消完成狀態，直接顯示上一題
+      if (state.historyStack.length > 0) {
+        const prevId = state.historyStack.pop();
+        state.activeNodeId = prevId;
       }
     },
 
@@ -1690,12 +1695,21 @@ export default {
       // 如果已经完成，直接返回100%
       if (state.isComplete) return 100;
 
+      const question = this.questions.find(q => q.questionId === questionId);
+      if (!question) return 0;
+
       const logicData = this.logicFormDataCache[questionId];
       if (!logicData || !logicData.allNodes) return 0;
 
-      // 统计已回答的节点数
+      // 篩選出目前所有可見的節點
+      const visibleNodes = logicData.allNodes.filter(n => this.isNodeVisible(n.node.id, question));
+      const totalVisible = visibleNodes.length;
+      if (totalVisible === 0) return 0;
+
+      // 統計已回答且當前可見的節點數
       let answeredCount = 0;
-      Object.keys(state.answers).forEach(nodeId => {
+      visibleNodes.forEach(nodeInfo => {
+        const nodeId = nodeInfo.node.id;
         const answer = state.answers[nodeId];
         if (answer !== null && answer !== undefined) {
           if (Array.isArray(answer)) {
@@ -1711,8 +1725,7 @@ export default {
         }
       });
 
-      const totalNodes = logicData.allNodes.length;
-      return totalNodes === 0 ? 0 : Math.round((answeredCount / totalNodes) * 100);
+      return Math.round((answeredCount / totalVisible) * 100);
     },
 
     // 图片加载错误处理
@@ -2639,6 +2652,14 @@ export default {
   font-size: 18px;
   font-weight: 600;
   color: #166534;
+}
+
+.complete-sub-text {
+  font-size: 14px;
+  color: #15803d;
+  margin-top: 8px;
+  font-weight: normal;
+  text-align: center;
 }
 
 .fade-in {
