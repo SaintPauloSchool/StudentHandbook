@@ -237,12 +237,6 @@
                     </div>
                   </div>
 
-                  <!-- 完成狀態提示 -->
-                  <div class="logic-complete-state fade-in" v-if="getLogicFormState(question).isComplete && !hasSubmitted" style="margin-top: 20px;">
-                    <div class="complete-icon">🎉</div>
-                    <p class="complete-text">問題表單已填寫完畢</p>
-                    <p class="complete-sub-text">請點擊下方「提交回答」按鈕以完成作答</p>
-                  </div>
                 </template>
 
                 <!-- 已提交后显示所有节点和答案 -->
@@ -378,7 +372,7 @@
 
 <script>
 import service from '@/utils/request.js'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled, Link } from '@element-plus/icons-vue'
 import settings from '@/config/settings' // 导入全局配置设置
@@ -1273,7 +1267,12 @@ export default {
       }
 
       if (jumpToEnd) {
-        state.isComplete = true;
+        if (!state.isComplete) {
+          state.isComplete = true;
+          this.showCompletePopup();
+        } else {
+          state.isComplete = true;
+        }
         return;
       }
 
@@ -1291,7 +1290,12 @@ export default {
 
       // 如果後面已經沒有可見節點了，就視為作答完畢
       if (!nextId) {
-        state.isComplete = true;
+        if (!state.isComplete) {
+          state.isComplete = true;
+          this.showCompletePopup();
+        } else {
+          state.isComplete = true;
+        }
         return;
       }
 
@@ -1726,6 +1730,27 @@ export default {
       });
 
       return Math.round((answeredCount / totalVisible) * 100);
+    },
+
+    // 顯示表單完成彈窗並平滑滾動到提交按鈕
+    showCompletePopup() {
+      ElMessageBox.alert('問題表單已填寫完畢，請點擊下方「提交回答」按鈕完成作答。', '提示', {
+        confirmButtonText: '確定',
+        type: 'success',
+        callback: () => {
+          this.scrollToSubmitButton();
+        }
+      });
+    },
+
+    // 平滑滾動到提交按鈕
+    scrollToSubmitButton() {
+      this.$nextTick(() => {
+        const btn = document.querySelector('.submit-button');
+        if (btn) {
+          btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
     },
 
     // 图片加载错误处理
