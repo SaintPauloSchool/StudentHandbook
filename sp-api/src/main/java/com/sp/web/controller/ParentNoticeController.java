@@ -6,6 +6,7 @@ import com.sp.common.core.domain.AjaxResult;
 import com.sp.common.enums.BusinessType;
 import com.sp.common.exception.DuplicateSubmissionException;
 import com.sp.framework.interceptor.TokenInterceptor;
+import com.sp.system.entity.Notification;
 import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.vo.NotificationWithReadStatusVO;
 import com.sp.system.entity.vo.SubmitAnswersVO;
@@ -130,6 +131,11 @@ public class ParentNoticeController extends BaseController {
                 return AjaxResult.error("通知不存在");
             }
 
+            Notification notification = (Notification) result.get("notification");
+            if (!"1".equals(notification.getStatus())) {
+                return AjaxResult.error("通知不存在或已被撤回");
+            }
+
             // 獲取學生信息
             NotificationAnswer userAnswer = notificationAnswerService.getUserAnswer(notificationId, studentUserId);
 
@@ -201,6 +207,16 @@ public class ParentNoticeController extends BaseController {
             String studentUserId = submitAnswersVO.getStudentUserId();
             if (studentUserId == null || studentUserId.isEmpty()) {
                 return AjaxResult.error("請指定學生ID");
+            }
+
+            // 檢查通知是否已發佈且未撤回
+            Map<String, Object> detailResult = notificationService.selectNotificationDetail(notificationId);
+            if (detailResult == null || detailResult.get("notification") == null) {
+                return AjaxResult.error("通知不存在");
+            }
+            Notification notification = (Notification) detailResult.get("notification");
+            if (!"1".equals(notification.getStatus())) {
+                return AjaxResult.error("通知不存在或已被撤回");
             }
 
             String userType = "2"; // 2表示家長

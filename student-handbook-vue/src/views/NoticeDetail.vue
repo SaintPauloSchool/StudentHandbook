@@ -621,11 +621,13 @@ export default {
             window.scrollTo({ top: 0, behavior: 'auto' })
           }, 100)
         } else {
-          ElMessage.error(response.data.msg || '獲取通知詳情失敗')
+          this.errorMessage = response.data.msg || '獲取通知詳情失敗'
+          ElMessage.error(this.errorMessage)
         }
       } catch (error) {
         console.error('獲取通知詳情失敗:', error)
-        ElMessage.error('網絡錯誤，請稍後重試')
+        this.errorMessage = '網絡錯誤，請稍後重試'
+        ElMessage.error(this.errorMessage)
       } finally {
         this.loading = false
       }

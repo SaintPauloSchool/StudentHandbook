@@ -23,6 +23,7 @@
                r.is_read, r.read_time, r.reply_status, r.reply_time, r.send_status, r.create_time
         FROM notification_user_read_record r
         INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
+        INNER JOIN notification n ON n.notification_id = s.notification_id AND n.status = '1'
         WHERE s.notification_id = #{notificationId}
           AND r.user_id = #{userId}
           AND r.send_status = '1'
@@ -119,6 +120,8 @@
     <select id="countUnreadNotificationsForUser" resultType="int">
         SELECT COUNT(*)
         FROM notification_user_read_record r
+        INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
+        INNER JOIN notification n ON n.notification_id = s.notification_id AND n.status = '1'
         WHERE r.user_id = #{userId}
           AND r.send_status = '1'
           AND (r.is_read = '0' OR r.is_read IS NULL)
