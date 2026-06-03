@@ -6,49 +6,49 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 课程日志数据访问层
+ * 課程日誌數據訪問層
  */
 public interface ClassLogMapper {
 
     /**
-     * 根据ID列表批量查询课程日志
-     * @param ids 课程日志ID列表
-     * @return 课程日志列表
+     * 根據ID列表批量查詢課程日誌
+     * @param ids 課程日誌ID列表
+     * @return 課程日誌列表
      */
     List<ClassLog> selectClassLogsByIds(@Param("ids") List<String> ids);
     
     /**
-     * 插入课程日志数据
-     * @param classLog 课程日志信息
-     * @return 影响行数
+     * 插入課程日誌數據
+     * @param classLog 課程日誌信息
+     * @return 影響行數
      */
     int insertClassLog(ClassLog classLog);
     
     /**
-     * 更新课程日志数据
-     * @param classLog 课程日志信息
-     * @return 影响行数
+     * 更新課程日誌數據
+     * @param classLog 課程日誌信息
+     * @return 影響行數
      */
     int updateClassLogById(ClassLog classLog);
 
     /**
-     * 根据学生班级列表查询过去一个月的课程日志
-     * @param studentClass 学生班级列表
-     * @return 课程日志列表
+     * 根據學生班級列表查詢過去一個月的課程日誌
+     * @param studentClass 學生班級列表
+     * @return 課程日誌列表
      */
     List<ClassLog> selectPastMonthClassLogByStudentClass(@Param("studentClass") String studentClass);
 
     /**
-     * 根据学生班级列表查询今天课程日志
-     * @param studentClass 学生班级列表
-     * @return 课程日志列表
+     * 根據學生班級列表查詢今天課程日誌
+     * @param studentClass 學生班級列表
+     * @return 課程日誌列表
      */
     List<ClassLog> selectTodayClassLogByStudentClass(@Param("studentClass") String studentClass);
 
     /**
-     * 根据学生班级列表查询未来七天的课程日志
-     * @param studentClass 学生班级列表
-     * @return 课程日志列表
+     * 根據學生班級列表查詢未來七天的課程日誌
+     * @param studentClass 學生班級列表
+     * @return 課程日誌列表
      */
     List<ClassLog> selectNextSevenDaysClassLogByStudentClass(@Param("studentClass") String studentClass);
 

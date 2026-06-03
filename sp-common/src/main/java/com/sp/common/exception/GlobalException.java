@@ -1,7 +1,7 @@
 package com.sp.common.exception;
 
 /**
- * 全局异常
+ * 全局異常
  *
  */
 public class GlobalException extends RuntimeException
@@ -9,18 +9,18 @@ public class GlobalException extends RuntimeException
     private static final long serialVersionUID = 1L;
 
     /**
-     * 错误提示
+     * 錯誤提示
      */
     private String message;
 
     /**
-     * 错误明细，内部调试错误
+     * 錯誤明細，內部調試錯誤
      *
      */
     private String detailMessage;
 
     /**
-     * 空构造方法，避免反序列化问题
+     * 空構造方法，避免反序列化問題
      */
     public GlobalException()
     {

@@ -1,17 +1,17 @@
 package com.sp.system.entity.vo;
 
 /**
- * 提交答案请求VO
+ * 提交答案請求VO
  */
 public class SubmitAnswersVO {
     
     /**
-     * 答案数据（单个问题）
+     * 答案數據（單個問題）
      */
     private AnswerItemVO answer;
     
     /**
-     * 学生用户ID
+     * 學生用戶ID
      */
     private String studentUserId;
 

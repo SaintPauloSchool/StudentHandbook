@@ -3,22 +3,22 @@ package com.sp.system.entity;
 import java.time.LocalDateTime;
 
 /**
- * 通知问题表实体类
+ * 通知問題表實體類
  */
 public class NotificationQuestion {
-    private Long questionId;            // 问题 ID
+    private Long questionId;            // 問題 ID
     private Long notificationId;        // 通知 ID
-    private Long parentQuestionId;      // 父问题 ID
-    private String questionTitle;       // 问题标题
-    private String questionType;        // 问题类型（1 单选 2 多选 3 填空 4 附件上传 5 逻辑表单）
-    private String options;             // 选项列表 (JSON 格式)
+    private Long parentQuestionId;      // 父問題 ID
+    private String questionTitle;       // 問題標題
+    private String questionType;        // 問題類型（1 單選 2 多選 3 填空 4 附件上傳 5 邏輯表單）
+    private String options;             // 選項列表 (JSON 格式)
     private String isRequired;          // 是否必答（0 否 1 是）
     private Integer sortOrder;          // 排序
-    private String logicRules;          // 跳转逻辑规则 (JSON 格式)
-    private String fillBlanks;          // 填空题的填空列表 (JSON 格式)
-    private String correctAnswers;      // 填空题的正确答案 (JSON 格式)
-    private String content;             // 题目内容
-    private LocalDateTime createTime;            // 创建时间
+    private String logicRules;          // 跳轉邏輯規則 (JSON 格式)
+    private String fillBlanks;          // 填空題的填空列表 (JSON 格式)
+    private String correctAnswers;      // 填空題的正確答案 (JSON 格式)
+    private String content;             // 題目內容
+    private LocalDateTime createTime;            // 創建時間
 
     public Long getQuestionId() {
         return questionId;

@@ -3,7 +3,7 @@ package com.sp.common.exception.user;
 import com.sp.common.exception.base.BaseException;
 
 /**
- * 用户信息异常类
+ * 用戶信息異常類
  *
  */
 public class UserException extends BaseException

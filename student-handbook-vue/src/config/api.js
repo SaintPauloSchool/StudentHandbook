@@ -1,6 +1,6 @@
 // API 配置文件
 
-// 定义通用的API端点路径
+// 定義通用的API端點路徑
 const apiEndpoints = {
     STUDENT_HANDBOOK_PAST_MONTH: '/system/handbook/pastMonth',
     STUDENT_HANDBOOK_TODAY: '/system/handbook/today',
@@ -10,27 +10,27 @@ const apiEndpoints = {
     NOTICE_LIST: '/system/notice/list',
     NOTICE_DETAIL: '/system/notice',
     NOTICE_MARK_READ: '/system/notice',  // POST /{id}/read
-    NOTICE_UNREAD_COUNT: '/system/notice/unreadCount',  // GET 获取未读通知数量
-    VALIDATE_TOKEN: '/system/token/validate',             // GET 校验当前 token 是否有效
-    FILE_UPLOAD: '/common/upload',                         // POST 文件上传
-    CALENDAR_LIST: '/system/calendar/list'                // 获取行事历列表
+    NOTICE_UNREAD_COUNT: '/system/notice/unreadCount',  // GET 獲取未讀通知數量
+    VALIDATE_TOKEN: '/system/token/validate',             // GET 校驗當前 token 是否有效
+    FILE_UPLOAD: '/common/upload',                         // POST 文件上傳
+    CALENDAR_LIST: '/system/calendar/list'                // 獲取行事曆列表
 };
 
-// 获取基础URL - 统一使用 /sp-api 前缀，匹配 Nginx 与 Vite 的 proxy 设定
+// 獲取基礎URL - 統一使用 /sp-api 前綴，匹配 Nginx 與 Vite 的 proxy 設定
 const getBaseURL = () => {
     return '/sp-api';
 };
 
-// 构建完整的API端点URL
+// 構建完整的API端點URL
 const API_ENDPOINTS = {};
 const baseURL = getBaseURL();
 for (const [key, value] of Object.entries(apiEndpoints)) {
-    // 确保value以/开头，baseURL不以/结尾
+    // 確保value以/開頭，baseURL不以/結尾
     const path = value.startsWith('/') ? value : '/' + value;
     API_ENDPOINTS[key] = baseURL + path;
 }
 
-// 导出单独的BASE_URL，便于其他地方使用
+// 導出單獨的BASE_URL，便於其他地方使用
 export { baseURL };
 
 export {API_ENDPOINTS};

@@ -3,17 +3,17 @@ package com.sp.system.entity.vo;
 import com.sp.system.entity.Notification;
 
 /**
- * 通知列表VO（包含当前用户阅读状态）
+ * 通知列表VO（包含當前用戶閱讀狀態）
  */
 public class NotificationWithReadStatusVO extends Notification {
 
-    /** 阅读记录ID（来自 notification_user_read_record） */
+    /** 閱讀記錄ID（來自 notification_user_read_record） */
     private Long readId;
 
-    /** 是否已读（0未读 1已读；若无对应发送记录则为null） */
+    /** 是否已讀（0未讀 1已讀；若無對應發送記錄則爲null） */
     private String isRead;
 
-    /** 发送记录ID */
+    /** 發送記錄ID */
     private Long sendRecordId;
 
     /** 企業微信發送狀態（0發送失敗 1發送成功） */

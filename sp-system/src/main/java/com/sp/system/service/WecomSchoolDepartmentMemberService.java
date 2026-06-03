@@ -5,29 +5,29 @@ import com.sp.system.entity.WecomSchoolDepartmentMember;
 import java.util.List;
 
 /**
- * 企业微信学校部门成员业务逻辑接口
+ * 企業微信學校部門成員業務邏輯接口
  */
 public interface WecomSchoolDepartmentMemberService {
 
     /**
-     * 根据部门 ID 数组获取并保存所有成员数据
-     * @param departmentIdArray 部门 ID 数组
+     * 根據部門 ID 數組獲取並保存所有成員數據
+     * @param departmentIdArray 部門 ID 數組
      * @param accessToken access_token
-     * @return 总共获取到的成员数量
+     * @return 總共獲取到的成員數量
      */
     int fetchAndSaveAllMembers(JSONArray departmentIdArray, String accessToken);
 
     /**
-     * 根据部门 ID 查询成员列表
-     * @param departmentId 部门 ID
-     * @return 成员列表
+     * 根據部門 ID 查詢成員列表
+     * @param departmentId 部門 ID
+     * @return 成員列表
      */
     List<WecomSchoolDepartmentMember> getMembersByDepartmentId(Long departmentId);
 
     /**
-     * 同步部门成员数据（以企业微信数据为准）
-     * @param wechatMembers 企业微信成员列表
-     * @param departmentId 部门 ID
+     * 同步部門成員數據（以企業微信數據為準）
+     * @param wechatMembers 企業微信成員列表
+     * @param departmentId 部門 ID
      */
     void syncMembers(JSONArray wechatMembers, Long departmentId);
 }

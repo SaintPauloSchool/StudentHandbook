@@ -5,25 +5,25 @@ import com.sp.common.core.domain.BaseEntity;
 import java.time.LocalDateTime;
 
 /**
- * Token实体类
+ * Token實體類
  *
  */
 public class Token extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
-    /** 主键ID */
+    /** 主鍵ID */
     private Long id;
 
-    /** 用户ID */
+    /** 用戶ID */
     private String userId;
 
-    /** 用户类型 (1: parent, 0: student, 2: staff) */
+    /** 用戶類型 (1: parent, 0: student, 2: staff) */
     private Integer userType;
 
     /** Token值 */
     private String token;
 
-    /** 过期时间 */
+    /** 過期時間 */
     private LocalDateTime expireTime;
 
     public Long getId() {

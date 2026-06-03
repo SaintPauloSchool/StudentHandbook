@@ -3,12 +3,12 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
-    // 前后端分离后，前端服务在Nginx直接使用根路径作为基础路径
+    // 前後端分離後，前端服務在Nginx直接使用根路徑作爲基礎路徑
     const base = '/';
 
     return {
         plugins: [vue()],
-        // 根据环境设置基础路径
+        // 根據環境設置基礎路徑
         base: base,
         resolve: {
             alias: {
@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => {
             }
         },
         build: {
-            // 关闭 sourcemap，防止源码泄漏
+            // 關閉 sourcemap，防止源碼泄漏
             sourcemap: false,
-            // 确保资源路径正确
+            // 確保資源路徑正確
             assetsDir: 'assets',
             rollupOptions: {
                 output: {
@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
             include: ['element-plus']
         },
         esbuild: {
-            // 生产环境下移除 console.log 和 debugger
+            // 生產環境下移除 console.log 和 debugger
             drop: mode === 'production' ? ['console', 'debugger'] : []
         }
     }

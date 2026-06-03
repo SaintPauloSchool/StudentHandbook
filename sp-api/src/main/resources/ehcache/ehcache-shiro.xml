@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ehcache name="sp" updateCheck="false">
 
-    <!-- 磁盘缓存位置 -->
+    <!-- 磁盤緩存位置 -->
     <diskStore path="java.io.tmpdir"/>
     
-    <!-- maxEntriesLocalHeap:堆内存中最大缓存对象数，0没有限制 -->
-    <!-- maxElementsInMemory： 在内存中缓存的element的最大数目。-->
-    <!-- eternal:elements是否永久有效，如果为true，timeouts将被忽略，element将永不过期 -->
-    <!-- timeToIdleSeconds:失效前的空闲秒数，当eternal为false时，这个属性才有效，0为不限制 -->
-    <!-- timeToLiveSeconds:失效前的存活秒数，创建时间到失效时间的间隔为存活时间，当eternal为false时，这个属性才有效，0为不限制 -->
-    <!-- overflowToDisk： 如果内存中数据超过内存限制，是否要缓存到磁盘上 -->
-    <!-- statistics：是否收集统计信息。如果需要监控缓存使用情况，应该打开这个选项。默认为关闭（统计会影响性能）。设置statistics="true"开启统计 -->
+    <!-- maxEntriesLocalHeap:堆內存中最大緩存對象數，0沒有限制 -->
+    <!-- maxElementsInMemory： 在內存中緩存的element的最大數目。-->
+    <!-- eternal:elements是否永久有效，如果爲true，timeouts將被忽略，element將永不過期 -->
+    <!-- timeToIdleSeconds:失效前的空閒秒數，當eternal爲false時，這個屬性才有效，0爲不限制 -->
+    <!-- timeToLiveSeconds:失效前的存活秒數，創建時間到失效時間的間隔爲存活時間，當eternal爲false時，這個屬性才有效，0爲不限制 -->
+    <!-- overflowToDisk： 如果內存中數據超過內存限制，是否要緩存到磁盤上 -->
+    <!-- statistics：是否收集統計信息。如果需要監控緩存使用情況，應該打開這個選項。默認爲關閉（統計會影響性能）。設置statistics="true"開啓統計 -->
     
-    <!-- 默认缓存 -->
+    <!-- 默認緩存 -->
     <defaultCache
             maxEntriesLocalHeap="1000"
             eternal="false"
@@ -21,7 +21,7 @@
             overflowToDisk="false">
     </defaultCache>
 
-    <!-- 登录记录缓存 锁定10分钟 -->
+    <!-- 登錄記錄緩存 鎖定10分鐘 -->
     <cache name="loginRecordCache"
            maxEntriesLocalHeap="2000"
            eternal="false"
@@ -31,7 +31,7 @@
            statistics="false">
     </cache>
 
-    <!-- 系统活跃用户缓存 -->
+    <!-- 系統活躍用戶緩存 -->
     <cache name="sys-userCache"
            maxEntriesLocalHeap="10000"
            overflowToDisk="false"
@@ -42,7 +42,7 @@
            statistics="false">
     </cache>
     
-    <!-- 系统用户授权缓存  没必要过期 -->
+    <!-- 系統用戶授權緩存  沒必要過期 -->
     <cache name="sys-authCache"
            maxEntriesLocalHeap="10000"
            overflowToDisk="false"
@@ -53,7 +53,7 @@
            memoryStoreEvictionPolicy="LRU"
            statistics="false"/>
     
-    <!-- 系统缓存 -->
+    <!-- 系統緩存 -->
     <cache name="sys-cache"
            maxEntriesLocalHeap="1000"
            eternal="true"
@@ -61,7 +61,7 @@
            statistics="false">
     </cache>
     
-    <!-- 系统参数缓存 -->
+    <!-- 系統參數緩存 -->
     <cache name="sys-config"
            maxEntriesLocalHeap="1000"
            eternal="true"
@@ -69,7 +69,7 @@
            statistics="false">
     </cache>
     
-    <!-- 系统字典缓存 -->
+    <!-- 系統字典緩存 -->
     <cache name="sys-dict"
            maxEntriesLocalHeap="1000"
            eternal="true"
@@ -78,7 +78,7 @@
            diskExpiryThreadIntervalSeconds="600">
     </cache>
     
-    <!-- 系统会话缓存 -->
+    <!-- 系統會話緩存 -->
     <cache name="shiro-activeSessionCache"
            maxEntriesLocalHeap="10000"
            overflowToDisk="false"

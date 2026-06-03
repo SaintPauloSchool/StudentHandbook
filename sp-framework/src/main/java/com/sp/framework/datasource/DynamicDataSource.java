@@ -6,7 +6,7 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import com.sp.common.config.datasource.DynamicDataSourceContextHolder;
 
 /**
- * 动态数据源
+ * 動態數據源
  *
  */
 public class DynamicDataSource extends AbstractRoutingDataSource

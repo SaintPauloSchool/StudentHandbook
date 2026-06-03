@@ -6,13 +6,13 @@ import com.sp.common.core.page.TableSupport;
 import com.sp.common.utils.sql.SqlUtil;
 
 /**
- * 分页工具类
+ * 分頁工具類
  *
  */
 public class PageUtils extends PageHelper
 {
     /**
-     * 设置请求分页数据
+     * 設置請求分頁數據
      */
     public static void startPage()
     {
@@ -25,7 +25,7 @@ public class PageUtils extends PageHelper
     }
 
     /**
-     * 清理分页的线程变量
+     * 清理分頁的線程變量
      */
     public static void clearPage()
     {

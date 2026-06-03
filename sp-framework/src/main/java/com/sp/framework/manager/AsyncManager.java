@@ -7,23 +7,23 @@ import com.sp.common.utils.Threads;
 import com.sp.common.utils.spring.SpringUtils;
 
 /**
- * 异步任务管理器
+ * 異步任務管理器
  *
  */
 public class AsyncManager
 {
     /**
-     * 操作延迟10毫秒
+     * 操作延遲10毫秒
      */
     private final int OPERATE_DELAY_TIME = 10;
 
     /**
-     * 异步操作任务调度线程池
+     * 異步操作任務調度線程池
      */
     private ScheduledExecutorService executor = SpringUtils.getBean("scheduledExecutorService");
 
     /**
-     * 单例模式
+     * 單例模式
      */
     private AsyncManager(){}
 
@@ -35,9 +35,9 @@ public class AsyncManager
     }
 
     /**
-     * 执行任务
+     * 執行任務
      * 
-     * @param task 任务
+     * @param task 任務
      */
     public void execute(TimerTask task)
     {
@@ -45,7 +45,7 @@ public class AsyncManager
     }
 
     /**
-     * 停止任务线程池
+     * 停止任務線程池
      */
     public void shutdown()
     {

@@ -1,7 +1,7 @@
 package com.sp.common.exception;
 
 /**
- * 工具类异常
+ * 工具類異常
  *
  */
 public class UtilException extends RuntimeException

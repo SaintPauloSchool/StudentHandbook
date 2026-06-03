@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
- * 文件上传异常类
+ * 文件上傳異常類
  *
  */
 public class FileUploadException extends Exception

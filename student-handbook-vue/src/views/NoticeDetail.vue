@@ -1,6 +1,6 @@
 <template>
   <div class="notice-detail-container">
-    <!-- 顶部导航栏 -->
+    <!-- 頂部導航欄 -->
     <div class="header">
       <button class="back-button" @click="goBack">
         <el-icon class="back-icon"><ArrowLeft /></el-icon>
@@ -12,22 +12,22 @@
       </div>
     </div>
 
-    <!-- 加载状态 -->
+    <!-- 加載狀態 -->
     <div class="loading-state" v-if="loading">
       <div class="loading-spinner"></div>
       <p class="loading-text">加載中...</p>
     </div>
 
-    <!-- 错误状态 -->
+    <!-- 錯誤狀態 -->
     <div class="error-state" v-else-if="errorMessage">
       <div class="error-icon">❌</div>
       <p class="error-text">{{ errorMessage }}</p>
       <button class="retry-button" @click="goBack">返回</button>
     </div>
 
-    <!-- 通知详情内容 -->
+    <!-- 通知詳情內容 -->
     <div class="detail-content" v-else-if="notice">
-      <!-- 通知头部信息 -->
+      <!-- 通知頭部信息 -->
       <div class="notice-header-section">
         <h2 class="detail-title">{{ notice.title }}</h2>
         <div class="meta-info">
@@ -50,7 +50,7 @@
       <div class="notice-body">
         <div class="content-text" v-html="formattedContent"></div>
 
-        <!-- 附件/图片 -->
+        <!-- 附件/圖片 -->
         <div class="attachments" v-if="hasAttachments">
           <h4 class="attachments-title">附件</h4>
           <div class="attachment-list">
@@ -78,7 +78,7 @@
         </div>
       </div>
 
-      <!-- 问题列表（如果有） -->
+      <!-- 問題列表（如果有） -->
       <div class="questions-section" v-if="questions && questions.length > 0">
         <div class="questions-header">
           <h3 class="section-title">
@@ -89,7 +89,7 @@
 
         <!-- 直接顯示內容 -->
         <div class="questions-content-wrapper">
-          <!-- 问题表单 -->
+          <!-- 問題表單 -->
           <div
               class="question-item"
               v-for="question in questions"
@@ -105,16 +105,16 @@
               <!-- 動態渲染當前啟動的題目 -->
               <div class="stepper-body" v-if="getLogicFormState(question) && getLogicFormState(question).activeNodeId">
 
-                <!-- 过期提示 - 仅在逻辑表单内显示 -->
+                <!-- 過期提示 - 僅在邏輯表單內顯示 -->
                 <div class="expired-notice" v-if="isExpired && !hasSubmitted" style="margin: 20px 0;">
                   <div class="expired-icon">⏰</div>
                   <p class="expired-title">回覆時間已過</p>
                   <p class="expired-text">當前回覆時間已過，無法作答</p>
                 </div>
 
-                <!-- 答题区域 - 未过期时显示 -->
+                <!-- 答題區域 - 未過期時顯示 -->
                 <template v-if="!isExpired">
-                  <!-- 进度条（仅逻辑表单显示） -->
+                  <!-- 進度條（僅邏輯表單顯示） -->
                   <div class="progress-wrapper stepper-progress" v-if="question.questionType === '5'">
                     <div class="progress-info">
                       <span class="progress-text">作答進度</span>
@@ -125,7 +125,7 @@
                     </div>
                   </div>
 
-                  <!-- 问题类型标签 - 只在未提交时显示 -->
+                  <!-- 問題類型標籤 - 只在未提交時顯示 -->
                   <div class="question-type-label" v-if="!hasSubmitted">
                     <span v-if="String(getActiveNode(question).node.type) === '1'">單選題</span>
                     <span v-else-if="String(getActiveNode(question).node.type) === '2'">多選題</span>
@@ -183,7 +183,7 @@
 
                       </div>
 
-                      <!-- 如果找不到占位符格式，降级為單一輸入框 -->
+                      <!-- 如果找不到佔位符格式，降級為單一輸入框 -->
                       <textarea
                           v-else
                           class="logic-textarea"
@@ -239,7 +239,7 @@
 
                 </template>
 
-                <!-- 已提交后显示所有节点和答案 -->
+                <!-- 已提交後顯示所有節點和答案 -->
                 <div class="submitted-answers" v-if="hasSubmitted">
                   <div class="answer-review-title">
                     我的作答
@@ -256,7 +256,7 @@
                         <span class="node-title">{{ nodeAnswer.nodeTitle }}</span>
                       </div>
                       <div class="node-answer-content">
-                        <!-- 填空题：显示题目内容 -->
+                        <!-- 填空題：顯示題目內容 -->
                         <div v-if="String(nodeAnswer.nodeType) === '3' && nodeAnswer.nodeContent" class="node-question-content" v-html="formatFillBlankContentForDisplay(nodeAnswer.nodeContent)">
                         </div>
                         <span class="answer-text">{{ formatAnswerContent(nodeAnswer.answerContent) }}</span>
@@ -291,7 +291,7 @@
                 <div v-else class="content-html" v-html="question.content"></div>
               </div>
 
-              <!-- 单选题 -->
+              <!-- 單選題 -->
               <div class="question-options" v-if="question.questionType === '1'">
                 <div
                     class="option-item"
@@ -303,7 +303,7 @@
                 </div>
               </div>
 
-              <!-- 多选题 -->
+              <!-- 多選題 -->
               <div class="question-options" v-else-if="question.questionType === '2'">
                 <div
                     class="option-item"
@@ -315,7 +315,7 @@
                 </div>
               </div>
 
-              <!-- 填空题 -->
+              <!-- 填空題 -->
               <div class="question-input" v-else-if="question.questionType === '3'">
                 <div v-if="parseContentJson(question.fillBlanks)" class="fill-blanks-container">
                   <div v-for="(blank, idx) in parseContentJson(question.fillBlanks)" :key="idx" class="blank-box">
@@ -327,14 +327,14 @@
                 <input v-else-if="!parseContentJson(question.content)" type="text" class="text-input" placeholder="請輸入您的答案" />
               </div>
 
-              <!-- 附件上传 -->
+              <!-- 附件上傳 -->
               <div class="question-upload" v-else-if="question.questionType === '4'">
                 <button class="upload-button">📤 上傳附件</button>
               </div>
             </div> <!-- 結束 normal-question-wrapper -->
           </div>
 
-          <!-- 提交按钮 - 未过期且未提交时显示 -->
+          <!-- 提交按鈕 - 未過期且未提交時顯示 -->
           <div class="submit-section" v-if="!hasSubmitted && !isExpired">
             <button class="submit-button" @click="submitAnswers" :disabled="submitting">
               <span v-if="!submitting">提交回答</span>
@@ -345,7 +345,7 @@
             </button>
           </div>
 
-          <!-- 已提交提示 - 已提交时显示（无论是否过期） -->
+          <!-- 已提交提示 - 已提交時顯示（無論是否過期） -->
           <div class="submitted-hint" v-if="hasSubmitted">
             <div class="hint-icon">✓</div>
             <p class="hint-text">您已完成作答</p>
@@ -355,7 +355,7 @@
 
     </div>
 
-    <!-- 居中提示弹窗 -->
+    <!-- 居中提示彈窗 -->
     <div class="center-toast" v-if="showCenterToast">
       <div class="toast-content" :class="`toast-${toastType}`">
         <div class="toast-icon-wrapper">
@@ -387,8 +387,8 @@ import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled, Link } from '@element-plus/icons-vue'
-import settings from '@/config/settings' // 导入全局配置设置
-import CryptoJS from 'crypto-js' // 导入crypto-js库用于MD5加密
+import settings from '@/config/settings' // 導入全局配置設置
+import CryptoJS from 'crypto-js' // 導入crypto-js庫用於MD5加密
 
 export default {
   name: 'NoticeDetail',
@@ -412,18 +412,18 @@ export default {
       notice: null,
       questions: [],
       loading: false,
-      submitting: false, // 提交中状态
+      submitting: false, // 提交中狀態
       hasSubmitted: false, // 是否已提交
-      userAnswer: null, // 用户已提交的答案（单个对象）
-      answererInfo: '', // 作答人信息，例如：“吴煜键 - 妈妈”
-      isExpired: false, // 是否已过期
+      userAnswer: null, // 用戶已提交的答案（單個對象）
+      answererInfo: '', // 作答人信息，例如：「吳煜鍵 - 媽媽」
+      isExpired: false, // 是否已過期
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
       showCenterToast: false,
       showCompleteDialog: false, // 是否顯示自訂完成彈窗
       toastMessage: '',
-      errorMessage: '', // 错误信息
-      isFromWechatLink: false, // 是否从微信链接进入（带有sid参数）
+      errorMessage: '', // 錯誤信息
+      isFromWechatLink: false, // 是否從微信鏈接進入（帶有sid參數）
       currentStudentName: localStorage.getItem('currentStudentName') || '' // 學生姓名
     }
   },
@@ -447,7 +447,7 @@ export default {
         const parsed = JSON.parse(this.notice.attachmentUrls)
         return parsed
       } catch (e) {
-        // 如果不是JSON，可能是单个URL字符串
+        // 如果不是JSON，可能是單個URL字符串
         if (typeof this.notice.attachmentUrls === 'string' && this.notice.attachmentUrls.trim()) {
           return [this.notice.attachmentUrls]
         }
@@ -457,53 +457,53 @@ export default {
 
   },
   async mounted() {
-    // 组件挂载时立即滚动到顶部
+    // 組件掛載時立即滾動到頂部
     window.scrollTo(0, 0)
-    // 加载时获取学生列表，设置默认学生
+    // 加載時獲取學生列表，設置默認學生
     await this.loadStudentList()
     await this.loadNoticeDetail()
   },
   methods: {
-    // MD5加密函数（使用crypto-js库）
+    // MD5加密函數（使用crypto-js庫）
     md5Encrypt(text) {
       return CryptoJS.MD5(text).toString();
     },
 
-    // 加载学生列表，设置默认学生
+    // 加載學生列表，設置默認學生
     async loadStudentList() {
       try {
-        // 检查是否启用Token验证
+        // 檢查是否啓用Token驗證
         if (settings.enableTokenAuth) {
-          // 从前端存储获取token
+          // 從前端存儲獲取token
           const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
           if (!token) {
-            console.warn('未找到token，无法获取学生列表');
+            console.warn('未找到token，無法獲取學生列表');
             return;
           }
         }
 
-        // 调用后端API获取当前token关联的学生列表
+        // 調用後端API獲取當前token關聯的學生列表
         const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
 
         if (response.data.code === 200) {
           const relations = response.data.data;
 
           if (relations && relations.length > 0) {
-            // 检查URL中是否有加密的学生ID（sid参数）
+            // 檢查URL中是否有加密的學生ID（sid參數）
             const urlSid = this.$route.query.sid;
 
             if (urlSid) {
-              // 标记为从微信链接进入
+              // 標記爲從微信鏈接進入
               this.isFromWechatLink = true;
 
-              // 遍历学生列表，对每个学生ID进行MD5加密并匹配
+              // 遍歷學生列表，對每個學生ID進行MD5加密並匹配
               let matchedStudent = null;
-              const encryptionSalt = settings.studentIdEncryptionSalt; // 从配置中获取加密盐值
+              const encryptionSalt = settings.studentIdEncryptionSalt; // 從配置中獲取加密鹽值
 
               for (const relation of relations) {
                 const studentUserId = relation.studentUserId;
-                // 对学生ID进行MD5加密：studentUserId + salt
+                // 對學生ID進行MD5加密：studentUserId + salt
                 const encryptedId = this.md5Encrypt(studentUserId + encryptionSalt);
 
                 if (encryptedId === urlSid) {
@@ -513,23 +513,23 @@ export default {
               }
 
               if (matchedStudent) {
-                // 匹配成功，使用匹配到的学生ID和姓名
+                // 匹配成功，使用匹配到的學生ID和姓名
                 localStorage.setItem('currentStudentUserId', matchedStudent.studentUserId);
                 localStorage.setItem('currentStudentName', matchedStudent.studentName);
                 this.currentStudentName = matchedStudent.studentName;
               } else {
-                // 匹配失败，设置错误信息并停止加载
-                this.errorMessage = '无效的访问链接，无法识别学生信息';
+                // 匹配失敗，設置錯誤信息並停止加載
+                this.errorMessage = '無效的訪問鏈接，無法識別學生信息';
                 this.loading = false;
               }
             } else {
-              // 没有sid参数，检查localStorage中是否已有选中的学生
+              // 沒有sid參數，檢查localStorage中是否已有選中的學生
               const savedStudentUserId = localStorage.getItem('currentStudentUserId');
               if (savedStudentUserId) {
-                // 验证保存的学生ID是否在当前关系中
+                // 驗證保存的學生ID是否在當前關係中
                 const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
                 if (!isValid) {
-                  // 如果缓存的学生ID无效，使用第一个学生
+                  // 如果緩存的學生ID無效，使用第一個學生
                   localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
                   localStorage.setItem('currentStudentName', relations[0].studentName);
                   this.currentStudentName = relations[0].studentName;
@@ -537,7 +537,7 @@ export default {
                   this.currentStudentName = localStorage.getItem('currentStudentName');
                 }
               } else {
-                // 没有缓存，使用第一个学生作为默认
+                // 沒有緩存，使用第一個學生作爲默認
                 localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
                 localStorage.setItem('currentStudentName', relations[0].studentName);
                 this.currentStudentName = relations[0].studentName;
@@ -547,20 +547,20 @@ export default {
             console.warn('當前帳號未關聯任何學生');
           }
         } else {
-          console.error('获取学生列表失败:', response.data.msg);
+          console.error('獲取學生列表失敗:', response.data.msg);
         }
       } catch (error) {
         console.error('獲取學生列表失敗:', error);
       }
     },
 
-    // 返回上一页或通知列表
+    // 返回上一頁或通知列表
     goBack() {
-      // 如果从微信链接进入，返回通知列表
+      // 如果從微信鏈接進入，返回通知列表
       if (this.isFromWechatLink) {
         this.$router.push('/notice')
       } else {
-        // 否则返回浏览器历史上一页
+        // 否則返回瀏覽器歷史上一頁
         if (window.history.length > 1) {
           this.$router.back()
         } else {
@@ -569,7 +569,7 @@ export default {
       }
     },
 
-    // 加载通知详情
+    // 加載通知詳情
     async loadNoticeDetail() {
       const notificationId = this.$route.params.id
       if (!notificationId) {
@@ -580,12 +580,12 @@ export default {
 
       this.loading = true
       try {
-        // 从localStorage获取当前选中的学生ID
+        // 從localStorage獲取當前選中的學生ID
         const studentUserId = localStorage.getItem('currentStudentUserId')
 
-        // 如果没有学生ID，显示错误
+        // 如果沒有學生ID，顯示錯誤
         if (!studentUserId) {
-          this.errorMessage = '无法获取学生信息，请重新登录'
+          this.errorMessage = '無法獲取學生信息，請重新登錄'
           this.loading = false
           return
         }
@@ -605,18 +605,18 @@ export default {
           this.answererInfo = response.data.data.answererInfo || ''
           this.hasSubmitted = response.data.data.hasSubmitted || false
 
-          // 检查是否已过期
+          // 檢查是否已過期
           this.checkIfExpired()
 
-          // 如果已提交，初始化答案显示
+          // 如果已提交，初始化答案顯示
           if (this.hasSubmitted && this.userAnswer) {
             this.initUserAnswer()
           }
 
-          // 标记为已读（静默调用，内部已捕获异常，不影响主流程）
+          // 標記爲已讀（靜默調用，內部已捕獲異常，不影響主流程）
           await this.markAsRead(notificationId)
 
-          // 数据加载完成后，确保滚动到页面顶部
+          // 數據加載完成後，確保滾動到頁面頂部
           setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'auto' })
           }, 100)
@@ -631,10 +631,10 @@ export default {
       }
     },
 
-    // 标记通知为已读（静默，不影响主流程）
+    // 標記通知爲已讀（靜默，不影響主流程）
     async markAsRead(notificationId) {
       try {
-        // 从localStorage获取当前选中的学生ID
+        // 從localStorage獲取當前選中的學生ID
         const studentUserId = localStorage.getItem('currentStudentUserId')
 
         const params = {}
@@ -646,23 +646,23 @@ export default {
           params: params
         })
       } catch (e) {
-        // 静默忽略，不影响用户体验
-        console.warn('标记已读失败（已忽略）:', e)
+        // 靜默忽略，不影響用戶體驗
+        console.warn('標記已讀失敗（已忽略）:', e)
       }
     },
 
-    // 检查是否已过期
+    // 檢查是否已過期
     checkIfExpired() {
       if (!this.notice) {
         this.isExpired = false
         return
       }
 
-      // 获取截止时间（后端返回的是驼峰命名 replyDeadline）
+      // 獲取截止時間（後端返回的是駝峯命名 replyDeadline）
       const deadlineStr = this.notice.replyDeadline
 
       if (!deadlineStr) {
-        // 如果没有截止时间，默认不过期
+        // 如果沒有截止時間，默認不過期
         this.isExpired = false
         return
       }
@@ -672,16 +672,16 @@ export default {
         const now = new Date()
         this.isExpired = now > deadline
       } catch (e) {
-        console.error('解析截止时间失败:', e)
+        console.error('解析截止時間失敗:', e)
         this.isExpired = false
       }
     },
 
-    // 初始化用户已提交的答案（单个对象）
+    // 初始化用戶已提交的答案（單個對象）
     initUserAnswer() {
       if (!this.userAnswer) return
 
-      // 遍历所有问题，初始化逻辑表单状态
+      // 遍歷所有問題，初始化邏輯表單狀態
       this.questions.forEach(question => {
         if (question.questionType === '5' && this.userAnswer.questionId === question.questionId) {
           this.initLogicFormAnswerFromObject(question, this.userAnswer)
@@ -689,7 +689,7 @@ export default {
       })
     },
 
-    // 从单个答案对象初始化逻辑表单
+    // 從單個答案對象初始化邏輯表單
     initLogicFormAnswerFromObject(question, answer) {
       const logicData = this.getLogicFormData(question)
       if (!logicData) return
@@ -699,7 +699,7 @@ export default {
       try {
         const answerData = JSON.parse(answer.answerData)
         if (Array.isArray(answerData)) {
-          // answerData是数组，包含多个节点答案
+          // answerData是數組，包含多個節點答案
           answerData.forEach(nodeAnswer => {
             const nodeId = String(nodeAnswer.nodeId)
             let answerValue = null
@@ -707,7 +707,7 @@ export default {
             // 解析answerContent
             try {
               answerValue = JSON.parse(nodeAnswer.answerContent)
-              // 如果是填空题的新格式（包含blankId和value的对象数组），转换为简单数组
+              // 如果是填空題的新格式（包含blankId和value的對象數組），轉換爲簡單數組
               if (Array.isArray(answerValue) && answerValue.length > 0 &&
                   typeof answerValue[0] === 'object' && answerValue[0].hasOwnProperty('blankId')) {
                 answerValue = answerValue.map(item => item.value)
@@ -716,7 +716,7 @@ export default {
               answerValue = nodeAnswer.answerContent
             }
 
-            // 如果是附件类型，从attachmentUrls恢复文件信息
+            // 如果是附件類型，從attachmentUrls恢復文件信息
             if (String(nodeAnswer.nodeType) === '4' && nodeAnswer.attachmentUrls) {
               try {
                 const attachments = JSON.parse(nodeAnswer.attachmentUrls)
@@ -729,7 +729,7 @@ export default {
                   }
                 }
               } catch (e) {
-                console.error('解析附件URL失败:', e)
+                console.error('解析附件URL失敗:', e)
               }
             }
 
@@ -737,31 +737,31 @@ export default {
           })
         }
       } catch (e) {
-        console.error('解析答案数据失败:', e)
+        console.error('解析答案數據失敗:', e)
       }
 
-      // 标记为已完成
+      // 標記爲已完成
       state.isComplete = true
 
-      // 设置activeNodeId为第一个root节点
+      // 設置activeNodeId爲第一個root節點
       if (logicData.roots && logicData.roots.length > 0) {
         state.activeNodeId = logicData.roots[0].node.id
       }
     },
 
-    // 初始化逻辑表单的答案
+    // 初始化邏輯表單的答案
     initLogicFormAnswers(question, answers) {
       const logicData = this.getLogicFormData(question)
       if (!logicData) return
 
       const state = this.getLogicFormState(question)
 
-      // 将答案填充到state.answers中
+      // 將答案填充到state.answers中
       answers.forEach(answer => {
         try {
           const answerData = JSON.parse(answer.answerData)
           if (Array.isArray(answerData)) {
-            // answerData是数组，包含多个节点答案
+            // answerData是數組，包含多個節點答案
             answerData.forEach(nodeAnswer => {
               const nodeId = String(nodeAnswer.nodeId)
               let answerValue = null
@@ -769,7 +769,7 @@ export default {
               // 解析answerContent
               try {
                 answerValue = JSON.parse(nodeAnswer.answerContent)
-                // 如果是填空题的新格式（包含blankId和value的对象数组），转换为简单数组
+                // 如果是填空題的新格式（包含blankId和value的對象數組），轉換爲簡單數組
                 if (Array.isArray(answerValue) && answerValue.length > 0 &&
                     typeof answerValue[0] === 'object' && answerValue[0].hasOwnProperty('blankId')) {
                   answerValue = answerValue.map(item => item.value)
@@ -778,7 +778,7 @@ export default {
                 answerValue = nodeAnswer.answerContent
               }
 
-              // 如果是附件类型，从attachmentUrls恢复文件信息
+              // 如果是附件類型，從attachmentUrls恢復文件信息
               if (String(nodeAnswer.nodeType) === '4' && nodeAnswer.attachmentUrls) {
                 try {
                   const attachments = JSON.parse(nodeAnswer.attachmentUrls)
@@ -791,7 +791,7 @@ export default {
                     }
                   }
                 } catch (e) {
-                  console.error('解析附件URL失败:', e)
+                  console.error('解析附件URL失敗:', e)
                 }
               }
 
@@ -799,20 +799,20 @@ export default {
             })
           }
         } catch (e) {
-          console.error('解析答案数据失败:', e)
+          console.error('解析答案數據失敗:', e)
         }
       })
 
-      // 标记为已完成
+      // 標記爲已完成
       state.isComplete = true
 
-      // 设置activeNodeId为第一个root节点
+      // 設置activeNodeId爲第一個root節點
       if (logicData.roots && logicData.roots.length > 0) {
         state.activeNodeId = logicData.roots[0].node.id
       }
     },
 
-    // 获取审查模式下的答案列表（从单个对象解析）
+    // 獲取審查模式下的答案列表（從單個對象解析）
     getReviewAnswers(question) {
       if (!this.userAnswer) return []
 
@@ -820,37 +820,37 @@ export default {
         const data = JSON.parse(this.userAnswer.answerData)
         return Array.isArray(data) ? data : []
       } catch (e) {
-        console.error('解析审查答案失败:', e)
+        console.error('解析審查答案失敗:', e)
         return []
       }
     },
 
-    // 格式化答案内容显示
+    // 格式化答案內容顯示
     formatAnswerContent(content) {
       if (!content) return '未作答'
       try {
-        // 如果content已经是对象或数组，直接使用
+        // 如果content已經是對象或數組，直接使用
         let parsed = content
-        // 如果是字符串，尝试解析
+        // 如果是字符串，嘗試解析
         if (typeof content === 'string') {
           parsed = JSON.parse(content)
         }
 
         if (Array.isArray(parsed)) {
-          // 检查是否是新的填空题格式（包含blankId和value的对象数组）
+          // 檢查是否是新的填空題格式（包含blankId和value的對象數組）
           const firstNonNullItem = parsed.find(item => item !== null && item !== undefined)
           if (firstNonNullItem && typeof firstNonNullItem === 'object' && firstNonNullItem.hasOwnProperty('blankId')) {
-            // 新格式填空题：按填空项序号显示
+            // 新格式填空題：按填空項序號顯示
             return parsed.map((item, index) => {
               if (item && typeof item === 'object' && item.hasOwnProperty('value')) {
                 const value = item.value
-                const displayValue = (value === '' || value === null || value === undefined) ? '(未填写)' : value
+                const displayValue = (value === '' || value === null || value === undefined) ? '(未填寫)' : value
                 return `（${index + 1}）${displayValue}`
               }
-              return `（${index + 1}）(未填写)`
+              return `（${index + 1}）(未填寫)`
             }).join('\n')
           }
-          // 原有的数组格式处理
+          // 原有的數組格式處理
           return parsed.map(item => {
             if (item === null || item === undefined) return ''
             if (typeof item === 'object') {
@@ -861,7 +861,7 @@ export default {
         }
         return parsed
       } catch (e) {
-        console.error('formatAnswerContent 解析失败:', e)
+        console.error('formatAnswerContent 解析失敗:', e)
         return content
       }
     },
@@ -876,7 +876,7 @@ export default {
       return `${year}-${month}-${day}`
     },
 
-    // 格式化日期时间
+    // 格式化日期時間
     formatDateTime(dateStr) {
       if (!dateStr) return ''
       const date = new Date(dateStr)
@@ -888,7 +888,7 @@ export default {
       return `${year}-${month}-${day} ${hours}:${minutes}`
     },
 
-    // 解析选项
+    // 解析選項
     parseOptions(optionsStr) {
       if (!optionsStr) return []
       try {
@@ -1005,7 +1005,7 @@ export default {
     // 格式化填空題內容用於顯示（已提交的答案）
     formatFillBlankContentForDisplay(content) {
       if (!content) return '';
-      // 將 {{fillblank-n}} 或 fillblank-n 替換為帶有下划线的格式
+      // 將 {{fillblank-n}} 或 fillblank-n 替換為帶有下劃線的格式
       return content.replace(/\{?\{?fillblank-(\d+)\}?\}?/g, (match, num) => {
         return `<span style="display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px;"><span>( ${num} )</span><span style="border-bottom: 2px solid #94a3b8; width: 50px; margin-top: 2px;"></span></span>`;
       });
@@ -1160,13 +1160,13 @@ export default {
         // 顯示上傳中狀態（持續顯示，不自動關閉）
         this.showToast('正在上傳文件...', 'info', 0);
 
-        // 创建 FormData
+        // 創建 FormData
         const formData = new FormData();
         formData.append('file', file);
 
-        // 获取当前选中的学生ID（从localStorage或sessionStorage）
+        // 獲取當前選中的學生ID（從localStorage或sessionStorage）
         const studentUserId = localStorage.getItem('currentStudentUserId') || sessionStorage.getItem('currentStudentUserId');
-        console.log('当前学生ID:', studentUserId);
+        console.log('當前學生ID:', studentUserId);
 
         if (!studentUserId) {
           this.showToast('請先切換學生後再上傳文件', 'warning');
@@ -1176,14 +1176,14 @@ export default {
 
         formData.append('studentUserId', studentUserId);
 
-        // 调用上传接口（不要手动设置 headers，让 axios 拦截器自动处理）
+        // 調用上傳接口（不要手動設置 headers，讓 axios 攔截器自動處理）
         const response = await service.post(API_ENDPOINTS.FILE_UPLOAD, formData);
 
         if (response.data.code === 200) {
-          // 上传成功，保存文件URL
+          // 上傳成功，保存文件URL
           const result = response.data.data;
           const fileUrl = result.url;
-          const fileName = result.fileName || file.name; // 使用后端返回的文件名，如果没有则使用原始文件名
+          const fileName = result.fileName || file.name; // 使用後端返回的文件名，如果沒有則使用原始文件名
           const state = this.logicFormStates[questionId];
           if (state) {
             state.answers[nodeId] = {
@@ -1199,11 +1199,11 @@ export default {
         }
       } catch (error) {
         console.error('文件上傳失敗:', error);
-        // 显示后端返回的错误信息
+        // 顯示後端返回的錯誤信息
         const errorMsg = error.response?.data?.msg || error.message || '文件上傳失敗，請重試';
         this.showToast(errorMsg, 'error');
       } finally {
-        // 清空input，允许重复选择同一文件
+        // 清空input，允許重複選擇同一文件
         event.target.value = '';
       }
     },
@@ -1237,18 +1237,18 @@ export default {
       } else if (String(nodeData.type) === '4') {
         hasAnswer = !!answerData; // File 對象存在即代表已填答
       } else if (String(nodeData.type) === '2') {
-        // 多选题：验证选项数量限制
+        // 多選題：驗證選項數量限制
         const answerIndices = answerData || [];
         const minOptions = nodeData.minOptions || 0;
         const maxOptions = nodeData.maxOptions || null;
 
-        // 验证最小选项数
+        // 驗證最小選項數
         if (minOptions > 0 && answerIndices.length < minOptions) {
           this.showToast(`「${nodeData.title}」至少需要選擇 ${minOptions} 個選項`);
           return;
         }
 
-        // 验证最大选项数
+        // 驗證最大選項數
         if (maxOptions !== null && answerIndices.length > maxOptions) {
           this.showToast(`「${nodeData.title}」最多只能選擇 ${maxOptions} 個選項`);
           return;
@@ -1328,25 +1328,25 @@ export default {
       }
     },
 
-    // 获取完整的附件URL
+    // 獲取完整的附件URL
     getFullAttachmentUrl(attachment) {
       if (!attachment) return ''
 
-      // 如果是对象，提取url属性
+      // 如果是對象，提取url屬性
       let url = typeof attachment === 'object' ? attachment.url : attachment
 
       if (!url || typeof url !== 'string') return ''
 
-      // 如果已经是完整URL（以http或https开头），直接返回
+      // 如果已經是完整URL（以http或https開頭），直接返回
       if (url.startsWith('http://') || url.startsWith('https://')) {
         return url
       }
 
-      // 清理URL中的双斜杠
+      // 清理URL中的雙斜槓
       url = url.replace(/\/+/g, '/')
 
-      // 统一使用相对路径，通过Nginx代理访问后端
-      // 开发环境（localhost）和生产环境（Nginx代理）都使用相同的路径
+      // 統一使用相對路徑，通過Nginx代理訪問後端
+      // 開發環境（localhost）和生產環境（Nginx代理）都使用相同的路徑
       const origin = window.location.origin
       if (url.startsWith('/')) {
         return origin + url
@@ -1354,28 +1354,28 @@ export default {
       return origin + '/' + url
     },
 
-    // 获取附件名称
+    // 獲取附件名稱
     getAttachmentName(attachment) {
       if (!attachment) return '未知文件'
 
-      // 如果是对象，提取name属性
+      // 如果是對象，提取name屬性
       if (typeof attachment === 'object') {
         return attachment.name || this.getFileNameFromUrl(attachment.url)
       }
 
-      // 如果是字符串，从URL提取文件名
+      // 如果是字符串，從URL提取文件名
       return this.getFileNameFromUrl(attachment)
     },
 
-    // 从URL中提取文件名
+    // 從URL中提取文件名
     getFileNameFromUrl(url) {
       if (!url || typeof url !== 'string') return '未知文件'
       try {
-        // 移除查询参数
+        // 移除查詢參數
         const urlWithoutParams = url.split('?')[0]
-        // 获取最后一个/后面的部分
+        // 獲取最後一個/後面的部分
         const fileName = urlWithoutParams.split('/').pop()
-        // 解码URL编码的字符
+        // 解碼URL編碼的字符
         return decodeURIComponent(fileName) || '未知文件'
       } catch (e) {
         return '未知文件'
@@ -1446,11 +1446,11 @@ export default {
       }
     },
 
-    // 判断是否为图片
+    // 判斷是否爲圖片
     isImage(attachment) {
       if (!attachment) return false
 
-      // 如果是对象，提取url属性
+      // 如果是對象，提取url屬性
       let url = typeof attachment === 'object' ? attachment.url : attachment
 
       if (!url || typeof url !== 'string') return false
@@ -1461,7 +1461,7 @@ export default {
     // 提交回答
     async submitAnswers() {
       try {
-        // 验证必填题
+        // 驗證必填題
         const validation = this.validateRequiredQuestions();
         if (!validation.valid) {
           this.showToast(validation.message);
@@ -1478,54 +1478,54 @@ export default {
 
         this.submitting = true;
 
-        // 从localStorage获取当前选中的学生ID
+        // 從localStorage獲取當前選中的學生ID
         const studentUserId = localStorage.getItem('currentStudentUserId');
         if (!studentUserId) {
-          ElMessage.error('请指定学生ID');
+          ElMessage.error('請指定學生ID');
           this.submitting = false;
           return;
         }
 
-        // 调用后端API提交答案（只传第一个问题的答案）
+        // 調用後端API提交答案（只傳第一個問題的答案）
         const notificationId = this.$route.params.id;
         const response = await service.post(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}/submit`, {
-          answer: answers[0],  // 只传单个问题对象
-          studentUserId: studentUserId  // 传递学生ID
+          answer: answers[0],  // 只傳單個問題對象
+          studentUserId: studentUserId  // 傳遞學生ID
         });
 
         if (response.data.code === 200) {
           ElMessage.success('提交成功！');
-          // 重新加载详情数据
+          // 重新加載詳情數據
           await this.loadNoticeDetail();
-          // 滚动到顶部（使用平滑滚动，移动端兼容性更好）
+          // 滾動到頂部（使用平滑滾動，移動端兼容性更好）
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else if (response.data.code === 409) {
-          // 409 表示重复提交，显示提示后刷新页面
-          ElMessage.warning(response.data.msg || '您已回答过此问题');
-          // 延迟 1 秒后刷新页面，让用户看到提示
+          // 409 表示重複提交，顯示提示後刷新頁面
+          ElMessage.warning(response.data.msg || '您已回答過此問題');
+          // 延遲 1 秒後刷新頁面，讓用戶看到提示
           setTimeout(async () => {
             await this.loadNoticeDetail();
-            // 滚动到顶部（使用平滑滚动，移动端兼容性更好）
+            // 滾動到頂部（使用平滑滾動，移動端兼容性更好）
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }, 1000);
         } else {
           ElMessage.error(response.data.msg || '提交失敗，請重試');
         }
       } catch (error) {
-        console.error('提交回答失败:', error);
+        console.error('提交回答失敗:', error);
         ElMessage.error('網絡錯誤，請稍後重試');
       } finally {
         this.submitting = false;
       }
     },
 
-    // 验证必填问题
+    // 驗證必填問題
     validateRequiredQuestions() {
       for (const question of this.questions) {
-        // 跳过非必答问题
+        // 跳過非必答問題
         if (question.isRequired !== '1') continue;
 
-        // 检查逻辑表单
+        // 檢查邏輯表單
         if (question.questionType === '5') {
           const state = this.logicFormStates[question.questionId];
           if (!state || !state.isComplete) {
@@ -1535,29 +1535,29 @@ export default {
             };
           }
 
-          // 验证多选题的选项数量限制
+          // 驗證多選題的選項數量限制
           const validation = this.validateLogicFormOptions(question, state);
           if (!validation.valid) {
             return validation;
           }
         } else {
-          // 检查普通问题
-          // TODO: 这里需要根据实际的表单绑定来实现验证
-          // 目前先假设用户已经填写
+          // 檢查普通問題
+          // TODO: 這裡需要根據實際的表單綁定來實現驗證
+          // 目前先假設用戶已經填寫
         }
       }
       return { valid: true };
     },
 
-    // 验证逻辑表单的选项数量限制
+    // 驗證邏輯表單的選項數量限制
     validateLogicFormOptions(question, state) {
       const logicData = this.getLogicFormData(question);
       if (!logicData) return { valid: true };
 
-      // 遍历所有节点，验证多选题的 minOptions 和 maxOptions
+      // 遍歷所有節點，驗證多選題的 minOptions 和 maxOptions
       for (const nodeInfo of logicData.allNodes) {
         const node = nodeInfo.node;
-        if (String(node.type) !== '2') continue; // 只验证多选题
+        if (String(node.type) !== '2') continue; // 只驗證多選題
 
         const answerValue = state.answers[node.id];
         if (!answerValue || !Array.isArray(answerValue)) continue;
@@ -1566,7 +1566,7 @@ export default {
         const minOptions = node.minOptions || 0;
         const maxOptions = node.maxOptions || null;
 
-        // 验证最小选项数
+        // 驗證最小選項數
         if (minOptions > 0 && selectedCount < minOptions) {
           return {
             valid: false,
@@ -1574,7 +1574,7 @@ export default {
           };
         }
 
-        // 验证最大选项数
+        // 驗證最大選項數
         if (maxOptions !== null && selectedCount > maxOptions) {
           return {
             valid: false,
@@ -1588,17 +1588,17 @@ export default {
 
     // 收集所有答案
     collectAllAnswers() {
-      const answersMap = new Map(); // 使用Map按questionId分组
+      const answersMap = new Map(); // 使用Map按questionId分組
       const notificationId = this.$route.params.id;
 
       this.questions.forEach(question => {
-        // 处理逻辑表单 (题型 5)
+        // 處理邏輯表單 (題型 5)
         if (question.questionType === '5') {
           const logicAnswers = this.collectLogicFormAnswers(question, notificationId);
 
-          // 将同一问题的多个节点答案合并
+          // 將同一問題的多個節點答案合併
           if (logicAnswers.length > 0) {
-            // 如果该问题还没有答案，初始化
+            // 如果該問題還沒有答案，初始化
             if (!answersMap.has(question.questionId)) {
               answersMap.set(question.questionId, {
                 notificationId: notificationId,
@@ -1606,12 +1606,12 @@ export default {
                 answerData: []
               });
             }
-            // 将所有节点答案添加到answerData数组中
+            // 將所有節點答案添加到answerData數組中
             const existingAnswer = answersMap.get(question.questionId);
             existingAnswer.answerData.push(...logicAnswers);
           }
         } else {
-          // 处理普通问题 (题型 1-4)
+          // 處理普通問題 (題型 1-4)
           const normalAnswer = this.collectNormalQuestionAnswer(question, notificationId);
           if (normalAnswer) {
             answersMap.set(question.questionId, normalAnswer);
@@ -1619,11 +1619,11 @@ export default {
         }
       });
 
-      // 将Map转换为数组
+      // 將Map轉換爲數組
       return Array.from(answersMap.values());
     },
 
-    // 收集逻辑表单答案
+    // 收集邏輯表單答案
     collectLogicFormAnswers(question, notificationId) {
       const nodeAnswers = [];
       const state = this.logicFormStates[question.questionId];
@@ -1632,12 +1632,12 @@ export default {
       const logicData = this.getLogicFormData(question);
       if (!logicData) return nodeAnswers;
 
-      // 遍历所有已回答的节点
+      // 遍歷所有已回答的節點
       Object.keys(state.answers).forEach(nodeId => {
         let answerValue = state.answers[nodeId];
         if (answerValue === null || answerValue === undefined) return;
 
-        // 查找对应的节点信息
+        // 查找對應的節點信息
         const nodeInfo = logicData.allNodes.find(n => n.node.id === Number(nodeId));
         if (!nodeInfo) return;
 
@@ -1645,9 +1645,9 @@ export default {
         let answerContent = '';
         let attachmentUrls = null;
 
-        // 根据题目类型处理答案
+        // 根據題目類型處理答案
         if (String(node.type) === '1' || String(node.type) === '2') {
-          // 单选或多选：转换为实际选项文本
+          // 單選或多選：轉換爲實際選項文本
           if (Array.isArray(answerValue) && node.options) {
             const selectedOptions = answerValue.map(idx => node.options[idx]).filter(opt => opt !== undefined);
             answerContent = JSON.stringify(selectedOptions);
@@ -1655,21 +1655,21 @@ export default {
             answerContent = JSON.stringify(answerValue);
           }
         } else if (String(node.type) === '3') {
-          // 填空题：存储填空答案数组，包含每个填空项的ID信息
-          // 获取fillBlanks配置
+          // 填空題：存儲填空答案數組，包含每個填空項的ID信息
+          // 獲取fillBlanks配置
           const fillBlanks = node.fillBlanks || [];
           const blanksCount = fillBlanks.length > 0 ? fillBlanks.length : this.getFillBlanksCount(node.content);
 
-          // 确保答案数组存在
+          // 確保答案數組存在
           if (!Array.isArray(answerValue)) {
             answerValue = [];
           }
 
-          // 将答案转换为包含blankId和value的对象数组
+          // 將答案轉換爲包含blankId和value的對象數組
           const fillBlankAnswers = [];
           for (let i = 0; i < blanksCount; i++) {
             const blankId = fillBlanks[i] ? fillBlanks[i].id : `fillblank-${i + 1}`;
-            // 使用答案数组中的值，如果不存在则为空字符串
+            // 使用答案數組中的值，如果不存在則爲空字符串
             const value = (answerValue[i] !== undefined && answerValue[i] !== null) ? String(answerValue[i]) : '';
             fillBlankAnswers.push({
               blankId: blankId,
@@ -1678,7 +1678,7 @@ export default {
           }
           answerContent = JSON.stringify(fillBlankAnswers);
         } else if (String(node.type) === '4') {
-          // 附件上传：存储文件URL
+          // 附件上傳：存儲文件URL
           if (answerValue && typeof answerValue === 'object' && answerValue.url) {
             answerContent = answerValue.name;
             attachmentUrls = JSON.stringify([{
@@ -1691,12 +1691,12 @@ export default {
         }
 
         if (answerContent) {
-          // 只返回节点级别的答案数据，不包含questionId和notificationId
+          // 只返回節點級別的答案數據，不包含questionId和notificationId
           nodeAnswers.push({
             nodeId: nodeId,
             nodeTitle: node.title,
             nodeType: node.type,
-            nodeContent: node.content || '',  // 添加题目内容
+            nodeContent: node.content || '',  // 添加題目內容
             answerContent: answerContent,
             attachmentUrls: attachmentUrls
           });
@@ -1706,19 +1706,19 @@ export default {
       return nodeAnswers;
     },
 
-    // 收集普通问题答案
+    // 收集普通問題答案
     collectNormalQuestionAnswer(question, notificationId) {
-      // TODO: 这里需要根据实际的表单数据绑定来实现
-      // 目前返回null，实际需要获取用户输入的值
+      // TODO: 這裡需要根據實際的表單數據綁定來實現
+      // 目前返回null，實際需要獲取用戶輸入的值
       return null;
     },
 
-    // 计算单个逻辑表单的进度
+    // 計算單個邏輯表單的進度
     getQuestionProgress(questionId) {
       const state = this.logicFormStates[questionId];
       if (!state) return 0;
 
-      // 如果已经完成，直接返回100%
+      // 如果已經完成，直接返回100%
       if (state.isComplete) return 100;
 
       const question = this.questions.find(q => q.questionId === questionId);
@@ -1743,7 +1743,7 @@ export default {
               answeredCount++;
             }
           } else if (typeof answer === 'object' && answer.name) {
-            // 文件上传
+            // 文件上傳
             answeredCount++;
           } else if (String(answer).trim() !== '') {
             answeredCount++;
@@ -1775,12 +1775,12 @@ export default {
       });
     },
 
-    // 图片加载错误处理
+    // 圖片加載錯誤處理
     handleImageError(event) {
       event.target.style.display = 'none'
     },
 
-    // 显示居中提示
+    // 顯示居中提示
     showToast(message, type = 'info', duration = 1500) {
       this.toastMessage = message;
       this.toastType = type;
@@ -1815,7 +1815,7 @@ export default {
   padding: 0;
 }
 
-/* 顶部导航栏 */
+/* 頂部導航欄 */
 .header {
   display: flex;
   align-items: center;
@@ -1892,7 +1892,7 @@ export default {
   height: 16px;
 }
 
-/* 加载状态 */
+/* 加載狀態 */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -1922,7 +1922,7 @@ export default {
   color: #909399;
 }
 
-/* 详情内容 */
+/* 詳情內容 */
 .detail-content {
   padding: 20px 25px;
   max-width: 1200px;
@@ -2015,13 +2015,13 @@ export default {
   overflow-wrap: break-word;
 }
 
-/* 确保内容文本中的链接不会溢出 */
+/* 確保內容文本中的鏈接不會溢出 */
 .content-text :deep(a) {
   word-break: break-all;
   overflow-wrap: break-word;
 }
 
-/* 居中提示弹窗 */
+/* 居中提示彈窗 */
 .center-toast {
   position: fixed;
   top: 0;
@@ -2049,7 +2049,7 @@ export default {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* 成功类型 */
+/* 成功類型 */
 .toast-content.toast-success {
   border-top: 4px solid #10b981;
 }
@@ -2058,7 +2058,7 @@ export default {
   color: #10b981;
 }
 
-/* 错误类型 */
+/* 錯誤類型 */
 .toast-content.toast-error {
   border-top: 4px solid #ef4444;
 }
@@ -2067,7 +2067,7 @@ export default {
   color: #ef4444;
 }
 
-/* 警告类型 */
+/* 警告類型 */
 .toast-content.toast-warning {
   border-top: 4px solid #f59e0b;
 }
@@ -2076,7 +2076,7 @@ export default {
   color: #f59e0b;
 }
 
-/* 信息类型 */
+/* 信息類型 */
 .toast-content.toast-info {
   border-top: 4px solid #3b82f6;
 }
@@ -2234,7 +2234,7 @@ export default {
   line-height: 1.5;
 }
 
-/* 问题部分重构 */
+/* 問題部分重構 */
 .questions-section {
   background: white;
   border-radius: 12px;
@@ -2269,7 +2269,7 @@ export default {
   font-size: 22px;
 }
 
-/* 进度条样式 */
+/* 進度條樣式 */
 .progress-wrapper {
   padding: 20px 24px;
   background: #f8fafc;
@@ -2871,7 +2871,7 @@ export default {
   line-height: 1;
 }
 
-/* 选项样式 */
+/* 選項樣式 */
 .question-options {
   display: flex;
   flex-direction: column;
@@ -2905,7 +2905,7 @@ export default {
   flex: 1;
 }
 
-/* 输入框样式 */
+/* 輸入框樣式 */
 .question-input {
   margin-top: 10px;
 }
@@ -2924,7 +2924,7 @@ export default {
   border-color: #67c23a;
 }
 
-/* 填空题列表 */
+/* 填空題列表 */
 .fill-blanks-container {
   display: flex;
   flex-direction: column;
@@ -3045,7 +3045,7 @@ export default {
   padding: 0;
 }
 
-/* 上传按钮 */
+/* 上傳按鈕 */
 .question-upload {
   margin-top: 10px;
 }
@@ -3065,7 +3065,7 @@ export default {
   background: #5daf34;
 }
 
-/* 提交按钮 */
+/* 提交按鈕 */
 .submit-section {
   margin-top: 15px;
   padding-top: 1px;
@@ -3114,7 +3114,7 @@ export default {
   margin: 0;
 }
 
-/* 过期提示 */
+/* 過期提示 */
 .expired-notice {
   display: flex;
   flex-direction: column;
@@ -3146,7 +3146,7 @@ export default {
   text-align: center;
 }
 
-/* 已提交后查看答案 */
+/* 已提交後查看答案 */
 .submitted-answers-wrapper {
   margin-top: 20px;
 }
@@ -3224,7 +3224,7 @@ export default {
   text-align: left;
 }
 
-/* 题目内容显示样式 */
+/* 題目內容顯示樣式 */
 .node-question-content {
   margin-bottom: 8px;
   padding: 8px 12px;
@@ -3248,12 +3248,12 @@ export default {
   word-wrap: break-word;
   word-break: break-word;
   text-align: left;
-  white-space: pre-line; /* 支持换行符显示 */
+  white-space: pre-line; /* 支持換行符顯示 */
 }
 
 
 
-/* 错误状态 */
+/* 錯誤狀態 */
 .error-state {
   display: flex;
   flex-direction: column;
@@ -3288,7 +3288,7 @@ export default {
   background: #5daf34;
 }
 
-/* 移动端适配 */
+/* 移動端適配 */
 @media (max-width: 768px) {
   .header {
     padding: 12px 10px;

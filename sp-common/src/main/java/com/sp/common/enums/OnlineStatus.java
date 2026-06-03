@@ -1,13 +1,13 @@
 package com.sp.common.enums;
 
 /**
- * 用户会话
+ * 用戶會話
  *
  */
 public enum OnlineStatus
 {
-    /** 用户状态 */
-    on_line("在线"), off_line("离线");
+    /** 用戶狀態 */
+    on_line("在線"), off_line("離線");
 
     private final String info;
 

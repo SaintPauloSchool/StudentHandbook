@@ -11,9 +11,9 @@ import java.util.List;
 public interface NotificationMapper {
 
     /**
-     * 根据ID查询通知详情
+     * 根據ID查詢通知詳情
      * @param notificationId 通知ID
-     * @return 通知详情
+     * @return 通知詳情
      */
     Notification selectNotificationById(@Param("notificationId") Long notificationId);
 }

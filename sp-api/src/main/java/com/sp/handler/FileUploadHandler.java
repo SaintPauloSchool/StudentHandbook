@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 文件上传处理器
+ * 文件上傳處理器
  */
 @Component
 public class FileUploadHandler {
@@ -26,40 +26,40 @@ public class FileUploadHandler {
     private DepartmentService departmentService;
 
     /**
-     * 构建自定义文件名：班级名_学生名_关系.扩展名
+     * 構建自定義文件名：班級名_學生名_關係.擴展名
      *
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID（必须传入）
-     * @return 自定义文件名
-     * @throws RuntimeException 当学生信息不匹配时抛出异常
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID（必須傳入）
+     * @return 自定義文件名
+     * @throws RuntimeException 當學生信息不匹配時拋出異常
      */
     public String buildCustomFileName(String parentUserId, String studentUserId) {
         try {
             ParentStudentRelation relation = null;
             
             if (StringUtils.isEmpty(studentUserId)) {
-                // 如果没有传入studentUserId，直接抛出异常
+                // 如果沒有傳入studentUserId，直接拋出異常
                 logger.error("當前家長跟學生的信息不對，無法上傳文件");
                 throw new RuntimeException("當前家長跟學生的信息不對，無法上傳文件");
             }
             
-            // 如果传入了studentUserId，根据parentUserId和studentUserId查询特定学生
+            // 如果傳入了studentUserId，根據parentUserId和studentUserId查詢特定學生
             List<ParentStudentRelation> relations = parentStudentRelationService.selectByParentId(parentUserId);
-            // 判断relations是否为空
+            // 判斷relations是否爲空
             if (relations == null || relations.isEmpty()) {
-                logger.error("未找到家长 {} 的关联学生信息", parentUserId);
+                logger.error("未找到家長 {} 的關聯學生信息", parentUserId);
                 throw new RuntimeException("當前家長跟學生的信息不對，無法上傳文件");
             }
             
-            // 使用Stream查找匹配的学生
+            // 使用Stream查找匹配的學生
             relation = relations.stream()
                 .filter(r -> studentUserId.equals(r.getStudentUserId()))
                 .findFirst()
                 .orElse(null);
             
-            // 判断relation是否为空
+            // 判斷relation是否爲空
             if (relation == null) {
-                logger.error("未找到家长 {} 与学生 {} 的关系信息", parentUserId, studentUserId);
+                logger.error("未找到家長 {} 與學生 {} 的關係信息", parentUserId, studentUserId);
                 throw new RuntimeException("當前家長跟學生的信息不對，無法上傳文件");
             }
 
@@ -67,21 +67,21 @@ public class FileUploadHandler {
             String studentName = relation.getStudentName();
             String relationDesc = relation.getRelationDesc();
 
-            // 获取班级名
+            // 獲取班級名
             String className = departmentService.getClassNameByParentAndStudent(parentUserId, studentId);
             if (StringUtils.isEmpty(className)) {
-                logger.error("未找到班级信息");
-                throw new RuntimeException("未找到班级信息，无法上传文件");
+                logger.error("未找到班級信息");
+                throw new RuntimeException("未找到班級信息，無法上傳文件");
             }
 
-            // 构建文件名：班级名_学生名_关系_上傳（不包含扩展名，uploadWithCustomName会添加）
+            // 構建文件名：班級名_學生名_關係_上傳（不包含擴展名，uploadWithCustomName會添加）
             return className + "_" + studentName + "_" + relationDesc + "_上傳";
         } catch (RuntimeException e) {
-            // 重新抛出运行时异常
+            // 重新拋出運行時異常
             throw e;
         } catch (Exception e) {
-            logger.error("构建自定义文件名失败: {}", e.getMessage(), e);
-            throw new RuntimeException("文件上传失败: " + e.getMessage());
+            logger.error("構建自定義文件名失敗: {}", e.getMessage(), e);
+            throw new RuntimeException("文件上傳失敗: " + e.getMessage());
         }
     }
 }

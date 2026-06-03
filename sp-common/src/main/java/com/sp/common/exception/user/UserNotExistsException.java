@@ -1,7 +1,7 @@
 package com.sp.common.exception.user;
 
 /**
- * 用户不存在异常类
+ * 用戶不存在異常類
  *
  */
 public class UserNotExistsException extends UserException

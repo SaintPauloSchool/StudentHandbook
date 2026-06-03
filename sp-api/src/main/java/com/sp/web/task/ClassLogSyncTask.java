@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 课程日志数据同步定时任务
- * 每週一到週五午5点40分执行课程日志数据同步（北京时间）
+ * 課程日誌數據同步定時任務
+ * 每週一到週五午5點40分執行課程日誌數據同步（北京時間）
  */
 @Component
 public class ClassLogSyncTask {
@@ -30,39 +30,39 @@ public class ClassLogSyncTask {
     private static final AtomicBoolean isExecuting = new AtomicBoolean(false);
 
     /**
-     * 每週一到週五17点50分执行课程日志数据同步（北京时间）
+     * 每週一到週五17點50分執行課程日誌數據同步（北京時間）
      */
     //@Scheduled(cron = "0 50 17 ? * MON-FRI", zone = "Asia/Shanghai")
     public void syncClassLogData() {
-        // 使用AtomicBoolean确保同一时间只有一个实例在执行
+        // 使用AtomicBoolean確保同一時間只有一個實例在執行
         if (!isExecuting.compareAndSet(false, true)) {
-            logger.info("课程日志数据同步任务已在执行中，跳过本次执行");
+            logger.info("課程日誌數據同步任務已在執行中，跳過本次執行");
             return;
         }
 
         try {
-            logger.info("开始执行课程日志数据同步任务");
+            logger.info("開始執行課程日誌數據同步任務");
 
-            // 从外部数据库获取所有课程日志数据
+            // 從外部數據庫獲取所有課程日誌數據
             List<ClassLog> classLogs = externalClassLogService.getAllClassLogsFromExternal();
 
             if (classLogs != null && !classLogs.isEmpty()) {
-                logger.info("从外部数据库获取到 {} 条课程日志数据", classLogs.size());
+                logger.info("從外部數據庫獲取到 {} 條課程日誌數據", classLogs.size());
 
-                // 将数据传输到目标数据库
+                // 將數據傳輸到目標數據庫
                 classLogService.batchUpsertClassLogs(classLogs);
 
-                logger.info("课程日志数据同步任务完成");
+                logger.info("課程日誌數據同步任務完成");
             } else {
-                logger.info("外部数据库中没有课程日志数据需要同步");
+                logger.info("外部數據庫中沒有課程日誌數據需要同步");
             }
         } catch (Exception e) {
-            logger.error("同步课程日志数据失败", e);
+            logger.error("同步課程日誌數據失敗", e);
         } finally {
-            // 确保执行完成后释放锁
+            // 確保執行完成後釋放鎖
             isExecuting.set(false);
         }
 
-        logger.info("课程日志数据同步任务执行完成");
+        logger.info("課程日誌數據同步任務執行完成");
     }
 }

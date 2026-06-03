@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.sp.common.annotation.Anonymous;
 
 /**
- * 设置Anonymous注解允许匿名访问的url
+ * 設置Anonymous註解允許匿名訪問的url
  *
  */
 @Configuration
@@ -45,7 +45,7 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
             {
                 beanClass = bean.getClass();
             }
-            // 处理类级别的匿名访问注解
+            // 處理類級別的匿名訪問註解
             if (beanClass.isAnnotationPresent(Anonymous.class))
             {
                 RequestMapping baseMapping = beanClass.getAnnotation(RequestMapping.class);
@@ -60,7 +60,7 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
                 }
             }
 
-            // 处理方法级别的匿名访问注解
+            // 處理方法級別的匿名訪問註解
             Method[] methods = beanClass.getDeclaredMethods();
             for (Method method : methods)
             {
@@ -106,7 +106,7 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
             }
         }
         
-        // 添加企业微信OAuth相关URL到匿名访问列表
+        // 添加企業微信OAuth相關URL到匿名訪問列表
         urls.add("/wechat/oauth/callback");
     }
 

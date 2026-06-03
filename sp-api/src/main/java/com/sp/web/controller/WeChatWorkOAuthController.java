@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 
 /**
- * 企业微信授权回调
+ * 企業微信授權回調
  */
 @RestController
 @RequestMapping("/wechat/oauth")
@@ -46,11 +46,11 @@ public class WeChatWorkOAuthController extends BaseController {
     private String frontendUrl;
 
     /**
-     * 企业微信授权回调处理
-     * 此接口专门用于处理企业微信应用的网页授权回调
+     * 企業微信授權回調處理
+     * 此接口專門用於處理企業微信應用的網頁授權回調
      *
-     * @param code     企业微信授权code
-     * @param state    状态码
+     * @param code     企業微信授權code
+     * @param state    狀態碼
      * @param session  HttpSession
      * @param response HttpServletResponse
      */
@@ -62,15 +62,15 @@ public class WeChatWorkOAuthController extends BaseController {
             HttpSession session,
             HttpServletResponse response) {
 
-        logger.info("接收到企业微信授权回调，code: {}, state: {}", code, state);
+        logger.info("接收到企業微信授權回調，code: {}, state: {}", code, state);
 
         try {
-            // 如果是在开发环境中，直接返回预设的userId生成的Token
+            // 如果是在開發環境中，直接返回預設的userId生成的Token
             if ("dev".equals(activeProfile)) {
                 logger.info("開發環境模擬登錄，使用配置的 userId: {}", devParentUserId);
                 // 預設模擬登錄的身份為家長，因此 userType 傳入 1
                 String token = tokenService.createToken(devParentUserId, 1);
-                logger.info("开发环境模拟登录，生成token: {}", token);
+                logger.info("開發環境模擬登錄，生成token: {}", token);
                 // 重定向回 dev 前端（帶完整 host:port，避免跳到 prod 的 port 80）
                 response.sendRedirect(frontendUrl + "/?token=" + token + "&userType=1");
                 return;
@@ -81,98 +81,98 @@ public class WeChatWorkOAuthController extends BaseController {
             boolean isCampusNotice = state != null && state.startsWith("campus_notice_");
 
             if (!isWechatTest && !isDefault && !isCampusNotice) {
-                // 验证state参数，防止CSRF攻击（除了微信测试情况、默认情况、和校园系统抄送通知）
+                // 驗證state參數，防止CSRF攻擊（除了微信測試情況、默認情況、和校園系統抄送通知）
                 String savedState = (String) session.getAttribute("wechat_oauth_state");
 
                 if (savedState == null || !savedState.equals(state)) {
-                    logger.warn("state参数验证失败，可能遭遇CSRF攻击");
-                    // 返回错误页面
+                    logger.warn("state參數驗證失敗，可能遭遇CSRF攻擊");
+                    // 返回錯誤頁面
                     response.sendRedirect(frontendUrl + "/login?error=invalid_state");
                     return;
                 }
             }
 
-            // 第一步：尝试获取家校用户信息（家长或学生）
+            // 第一步：嘗試獲取家校用戶信息（家長或學生）
             JSONObject userInfo = weChatWorkOAuth2Utils.getSchoolUserInfo(code);
-            logger.info("获取企业微信家校用户信息，用户userInfo: {}", userInfo);
+            logger.info("獲取企業微信家校用戶信息，用戶userInfo: {}", userInfo);
 
             String userId = null;
-            int userType = -1; // -1 表示未找到有效用户
+            int userType = -1; // -1 表示未找到有效用戶
 
-            // 检查是否包含家校用户ID（家长或学生）
+            // 檢查是否包含家校用戶ID（家長或學生）
             if (userInfo.containsKey("parent_userid") || userInfo.containsKey("student_userid")) {
-                // 获取家校用户信息成功
+                // 獲取家校用戶信息成功
                 userId = userInfo.containsKey("parent_userid") ? userInfo.getString("parent_userid")
                         : userInfo.getString("student_userid");
                 userType = userInfo.containsKey("parent_userid") ? 1 : 0;
-                logger.info("处理家校授权用户，用户ID: {}, 类型: {}", userId, userType == 1 ? "家长" : "学生");
+                logger.info("處理家校授權用戶，用戶ID: {}, 類型: {}", userId, userType == 1 ? "家長" : "學生");
             } else {
-                // 第二步：如果不是家校用户，尝试获取企业微信员工信息
-                logger.info("未找到家校用户信息，尝试获取企业微信员工信息");
+                // 第二步：如果不是家校用戶，嘗試獲取企業微信員工信息
+                logger.info("未找到家校用戶信息，嘗試獲取企業微信員工信息");
                 JSONObject employeeInfo = weChatWorkOAuth2Utils.getAuthUserInfo(code);
-                logger.info("获取企业微信员工信息，员工info: {}", employeeInfo);
+                logger.info("獲取企業微信員工信息，員工info: {}", employeeInfo);
 
-                // 检查是否获取成功且状态为1（已激活）
+                // 檢查是否獲取成功且狀態爲1（已激活）
                 if (employeeInfo.getInteger("errcode") == 0 && employeeInfo.containsKey("userid")) {
-                    // 获取状态
+                    // 獲取狀態
                     Integer status = employeeInfo.getInteger("status");
                     // 是否已激活
                     if (status != null && status == 1) {
                         userId = employeeInfo.getString("userid");
-                        userType = 2; // 员工类型为2
-                        logger.info("处理企业微信员工授权，用户ID: {}, 状态: 已激活", userId);
+                        userType = 2; // 員工類型爲2
+                        logger.info("處理企業微信員工授權，用戶ID: {}, 狀態: 已激活", userId);
                     } else {
-                        logger.warn("企业微信员工状态异常，status: {}", status);
+                        logger.warn("企業微信員工狀態異常，status: {}", status);
                     }
                 } else {
-                    logger.error("获取企业微信员工信息失败: {}", employeeInfo.getString("errmsg"));
+                    logger.error("獲取企業微信員工信息失敗: {}", employeeInfo.getString("errmsg"));
                 }
             }
 
-            // 检查是否获取到有效的用户信息
+            // 檢查是否獲取到有效的用戶信息
             if (userId == null) {
-                logger.error("无法获取有效的用户信息，授权失败");
+                logger.error("無法獲取有效的用戶信息，授權失敗");
                 response.sendRedirect(frontendUrl + "/login?error=user_info_failed&message=" +
-                        URLEncoder.encode("无法获取用户信息，请联系学校管理员", "UTF-8"));
+                        URLEncoder.encode("無法獲取用戶信息，請聯繫學校管理員", "UTF-8"));
                 return;
             }
 
-            // 清除临时session数据（如果不是测试情况、默认情况和校园通知情况）
+            // 清除臨時session數據（如果不是測試情況、默認情況和校園通知情況）
             if (!isWechatTest && !isDefault && !isCampusNotice) {
                 session.removeAttribute("wechat_oauth_state");
             }
 
-            // 如果是家长用户，验证家长是否绑定了学生
+            // 如果是家長用戶，驗證家長是否綁定了學生
             if (userType == 1) {
-                // 验证家长是否绑定了学生（检查是否在sys_department_parent_binding表中有绑定学生）
+                // 驗證家長是否綁定了學生（檢查是否在sys_department_parent_binding表中有綁定學生）
                 if (!departmentParentBindingService.checkHasBoundStudents(userId)) {
-                    logger.warn("家长用户 {} 不存在有效的学生关联，授权失败", userId);
-                    // 重定向到错误页面
+                    logger.warn("家長用戶 {} 不存在有效的學生關聯，授權失敗", userId);
+                    // 重定向到錯誤頁面
                     response.sendRedirect(frontendUrl + "/login?error=authorization_failed&message=" +
-                            URLEncoder.encode("家长账户未关联任何学生，请联系学校管理员确认", "UTF-8"));
+                            URLEncoder.encode("家長賬戶未關聯任何學生，請聯繫學校管理員確認", "UTF-8"));
                     return;
                 }
             }
 
             // 生成Token
             String token = tokenService.createToken(userId, userType);
-            logger.info("用户 {} (类型: {}) 登录成功，生成token: {}", userId,
-                    userType == 0 ? "学生" : (userType == 1 ? "家长" : "员工"), token);
+            logger.info("用戶 {} (類型: {}) 登錄成功，生成token: {}", userId,
+                    userType == 0 ? "學生" : (userType == 1 ? "家長" : "員工"), token);
 
-            // 重定向到前端页面并带上 userType，方便前端立刻决定显示哪些按钮。同時帶上 state 以便處理通知跳轉
+            // 重定向到前端頁面並帶上 userType，方便前端立刻決定顯示哪些按鈕。同時帶上 state 以便處理通知跳轉
             String redirectUrl = frontendUrl + "/?token=" + token + "&userType=" + userType;
             if (state != null && !state.isEmpty()) {
                 redirectUrl += "&state=" + URLEncoder.encode(state, "UTF-8");
             }
             response.sendRedirect(redirectUrl);
         } catch (Exception e) {
-            logger.error("处理企业微信家校授权回调时发生错误", e);
+            logger.error("處理企業微信家校授權回調時發生錯誤", e);
             try {
-                // 重定向到错误页面
+                // 重定向到錯誤頁面
                 response.sendRedirect(frontendUrl + "/login?error=internal_error&message=" +
                         URLEncoder.encode(e.getMessage(), "UTF-8"));
             } catch (IOException ioException) {
-                logger.error("重定向失败", ioException);
+                logger.error("重定向失敗", ioException);
             }
         }
     }

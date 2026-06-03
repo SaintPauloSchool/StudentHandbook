@@ -1,7 +1,7 @@
 package com.sp.common.enums;
 
 /**
- * 操作人类别
+ * 操作人類別
  *
  */
 public enum OperatorType
@@ -12,12 +12,12 @@ public enum OperatorType
     OTHER,
 
     /**
-     * 后台用户
+     * 後臺用戶
      */
     MANAGE,
 
     /**
-     * 手机端用户
+     * 手機端用戶
      */
     MOBILE
 }

@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 课程日志Service业务层处理
+ * 課程日誌Service業務層處理
  */
 @Service
 public class ClassLogServiceImpl implements IClassLogService {
@@ -34,95 +34,95 @@ public class ClassLogServiceImpl implements IClassLogService {
     private IClassSectionService classSectionService;
 
     /**
-     * 根据家长用户ID和学生用户ID获取过去一个月课程日志列表
+     * 根據家長用戶ID和學生用戶ID獲取過去一個月課程日誌列表
      *
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @return 过去一个月课程日志列表
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @return 過去一個月課程日誌列表
      */
     @Override
     public List<ClassLog> getPastMonthClassLogListByParentUserId(String parentUserId, String studentUserId) {
         try {
-            // 获取班级部门ID
+            // 獲取班級部門ID
             String classSectionSp = getClassSectionSpByParentUserId(parentUserId, studentUserId);
             if (classSectionSp == null) {
                 return Collections.emptyList();
             }
             
-            // 使用class_section_sp查询过去一个月的class_log数据
+            // 使用class_section_sp查詢過去一個月的class_log數據
             List<ClassLog> classLogs = classLogMapper.selectPastMonthClassLogByStudentClass(classSectionSp);
-            // 根据规范，仅返回'功課'和'測驗'类型的课程日志
+            // 根據規範，僅返回'功課'和'測驗'類型的課程日誌
             return filterValidClassLogs(classLogs);
         } catch (Exception e) {
-            logger.error("根据家长用户ID和学生用户ID获取过去一个月课程日志列表失败: {}", e.getMessage());
+            logger.error("根據家長用戶ID和學生用戶ID獲取過去一個月課程日誌列表失敗: {}", e.getMessage());
             return java.util.Collections.emptyList();
         }
     }
 
     /**
-     * 根据家长用户ID和学生用户ID获取当天课程日志列表
+     * 根據家長用戶ID和學生用戶ID獲取當天課程日誌列表
      *
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @return 当天课程日志列表
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @return 當天課程日誌列表
      */
     @Override
     public List<ClassLog> getTodayClassLogListByParentUserId(String parentUserId, String studentUserId) {
         try {
-            // 获取班级部门ID
+            // 獲取班級部門ID
             String classSectionSp = getClassSectionSpByParentUserId(parentUserId, studentUserId);
             if (classSectionSp == null) {
                 return Collections.emptyList();
             }
             
-            // 使用class_section_sp查询当天的class_log数据
+            // 使用class_section_sp查詢當天的class_log數據
             List<ClassLog> classLogs = classLogMapper.selectTodayClassLogByStudentClass(classSectionSp);
-            // 根据规范，仅返回'功課'和'測驗'类型的课程日志
+            // 根據規範，僅返回'功課'和'測驗'類型的課程日誌
             return filterValidClassLogs(classLogs);
         } catch (Exception e) {
-            logger.error("根据家长用户ID和学生用户ID获取当天课程日志列表失败: {}", e.getMessage());
+            logger.error("根據家長用戶ID和學生用戶ID獲取當天課程日誌列表失敗: {}", e.getMessage());
             return java.util.Collections.emptyList();
         }
     }
 
     /**
-     * 根据家长用户ID和学生用户ID获取未来七天课程日志列表
+     * 根據家長用戶ID和學生用戶ID獲取未來七天課程日誌列表
      *
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @return 未来七天课程日志列表
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @return 未來七天課程日誌列表
      */
     @Override
     public List<ClassLog> getNextSevenDaysClassLogListByParentUserId(String parentUserId, String studentUserId) {
         try {
-            // 获取班级部门ID
+            // 獲取班級部門ID
             String classSectionSp = getClassSectionSpByParentUserId(parentUserId, studentUserId);
             if (classSectionSp == null) {
                 return Collections.emptyList();
             }
             
-            // 使用class_section_sp查询未来七天（不含当天）的class_log数据
+            // 使用class_section_sp查詢未來七天（不含當天）的class_log數據
             List<ClassLog> classLogs = classLogMapper.selectNextSevenDaysClassLogByStudentClass(classSectionSp);
-            // 根据规范，仅返回'功課'和'測驗'类型的课程日志
+            // 根據規範，僅返回'功課'和'測驗'類型的課程日誌
             return filterValidClassLogs(classLogs);
         } catch (Exception e) {
-            logger.error("根据家长用户ID和学生用户ID获取未来七天课程日志列表失败: {}", e.getMessage());
+            logger.error("根據家長用戶ID和學生用戶ID獲取未來七天課程日誌列表失敗: {}", e.getMessage());
             return java.util.Collections.emptyList();
         }
     }
 
     /**
-     * 批量插入或更新课程日志数据
+     * 批量插入或更新課程日誌數據
      *
-     * @param classLogs 课程日志数据列表
+     * @param classLogs 課程日誌數據列表
      */
     @Override
     @Transactional
     public void batchUpsertClassLogs(List<ClassLog> classLogs) {
         try {
-            // 检查参数
+            // 檢查參數
             if (classLogs == null || classLogs.isEmpty()) {
-                logger.info("没有需要传输的课程日志数据");
+                logger.info("沒有需要傳輸的課程日誌數據");
                 return;
             }
     
@@ -134,20 +134,20 @@ public class ClassLogServiceImpl implements IClassLogService {
                     .collect(Collectors.toList());
     
             if (ids.isEmpty()) {
-                logger.info("没有有效的课程日志ID需要处理");
+                logger.info("沒有有效的課程日誌ID需要處理");
                 return;
             }
     
-            // 批量查询现有记录
+            // 批量查詢現有記錄
             List<ClassLog> existingLogs;
             try {
                 existingLogs = classLogMapper.selectClassLogsByIds(ids);
             } catch (Exception e) {
-                logger.error("批量查询现有课程日志记录时发生数据库异常: {}", e.getMessage(), e);
-                return; // 发生数据库异常时直接返回
+                logger.error("批量查詢現有課程日誌記錄時發生數據庫異常: {}", e.getMessage(), e);
+                return; // 發生數據庫異常時直接返回
             }
     
-            // 将现有记录放入Map便于快速查找
+            // 將現有記錄放入Map便於快速查找
             Map<String, ClassLog> existingLogsMap = new HashMap<>();
             for (ClassLog existingLog : existingLogs) {
                 if (existingLog != null && existingLog.getId() != null) {
@@ -155,93 +155,93 @@ public class ClassLogServiceImpl implements IClassLogService {
                 }
             }
     
-            // 分离需要插入和更新的记录
+            // 分離需要插入和更新的記錄
             List<ClassLog> toInsert = new ArrayList<>();
             List<ClassLog> toUpdate = new ArrayList<>();
     
             for (ClassLog classLog : classLogs) {
                 if (classLog.getId() == null || classLog.getId().trim().isEmpty()) {
-                    continue; // 跳过ID为空的记录
+                    continue; // 跳過ID爲空的記錄
                 }
     
                 if (existingLogsMap.containsKey(classLog.getId())) {
-                    // 记录已存在，需要更新
+                    // 記錄已存在，需要更新
                     toUpdate.add(classLog);
                 } else {
-                    // 记录不存在，需要插入
+                    // 記錄不存在，需要插入
                     toInsert.add(classLog);
                 }
             }
     
-            // 批量插入新记录
+            // 批量插入新記錄
             if (!toInsert.isEmpty()) {
                 for (ClassLog classLog : toInsert) {
                     try {
                         insertClassLog(classLog);
                     } catch (Exception e) {
-                        logger.error("插入课程日志数据时发生错误，ID: {}，错误: {}", classLog.getId(), e.getMessage());
+                        logger.error("插入課程日誌數據時發生錯誤，ID: {}，錯誤: {}", classLog.getId(), e.getMessage());
                     }
                 }
-                logger.info("成功插入 {} 条新课程日志数据", toInsert.size());
+                logger.info("成功插入 {} 條新課程日誌數據", toInsert.size());
             }
     
-            // 批量更新现有记录
+            // 批量更新現有記錄
             if (!toUpdate.isEmpty()) {
                 for (ClassLog classLog : toUpdate) {
                     try {
                         updateClassLog(classLog);
                     } catch (Exception e) {
-                        logger.error("更新课程日志数据时发生错误，ID: {}，错误: {}", classLog.getId(), e.getMessage());
+                        logger.error("更新課程日誌數據時發生錯誤，ID: {}，錯誤: {}", classLog.getId(), e.getMessage());
                     }
                 }
-                logger.info("成功更新 {} 条课程日志数据", toUpdate.size());
+                logger.info("成功更新 {} 條課程日誌數據", toUpdate.size());
             }
     
-            logger.info("成功传输 {} 条课程日志数据到目标数据库 ({} 条插入, {} 条更新)",
+            logger.info("成功傳輸 {} 條課程日誌數據到目標數據庫 ({} 條插入, {} 條更新)",
                     classLogs.size(), toInsert.size(), toUpdate.size());
         } catch (Exception e) {
-            logger.error("批量更新课程日志数据时发生异常: {}", e.getMessage(), e);
+            logger.error("批量更新課程日誌數據時發生異常: {}", e.getMessage(), e);
         }
     }
     
     /**
-     * 根据家长用户ID和学生用户ID获取对应的班级代码(SP)
+     * 根據家長用戶ID和學生用戶ID獲取對應的班級代碼(SP)
      * 
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @return 班级代码(SP)，如果无法获取则返回null
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @return 班級代碼(SP)，如果無法獲取則返回null
      */
     private String getClassSectionSpByParentUserId(String parentUserId, String studentUserId) {
         try {
-            // 根据parentUserId和studentUserId查询部门信息
+            // 根據parentUserId和studentUserId查詢部門信息
             List<Department> departments = departmentService.getDepartmentsByParentUserId(parentUserId, studentUserId);
             if (departments.isEmpty()) {
-                logger.warn("未找到家长用户 {} 和学生用户 {} 对应的部门信息", parentUserId, studentUserId);
+                logger.warn("未找到家長用戶 {} 和學生用戶 {} 對應的部門信息", parentUserId, studentUserId);
                 return null;
             }
             
             String departmentName = departments.get(0).getName();
-            logger.debug("获取到部门名称: {}", departmentName);
+            logger.debug("獲取到部門名稱: {}", departmentName);
             
-            // 使用部门名称查询class_section表获取class_section_sp
+            // 使用部門名稱查詢class_section表獲取class_section_sp
             ClassSection classSection = classSectionService.getClassSectionByDsedj(departmentName);
             if (classSection == null || classSection.getClassSectionSp() == null) {
-                logger.warn("未找到部门 {} 对应的课程班级信息", departmentName);
+                logger.warn("未找到部門 {} 對應的課程班級信息", departmentName);
                 return null;
             }
             
             return classSection.getClassSectionSp();
         } catch (Exception e) {
-            logger.error("根据家长用户ID和学生用户ID获取班级代码时发生异常: {}", e.getMessage(), e);
+            logger.error("根據家長用戶ID和學生用戶ID獲取班級代碼時發生異常: {}", e.getMessage(), e);
             return null;
         }
     }
     
     /**
-     * 过滤有效的课程日志（仅返回'功課'和'測驗'类型的课程日志）
+     * 過濾有效的課程日誌（僅返回'功課'和'測驗'類型的課程日誌）
      * 
-     * @param classLogs 课程日志列表
-     * @return 过滤后的有效课程日志列表
+     * @param classLogs 課程日誌列表
+     * @return 過濾後的有效課程日誌列表
      */
     private List<ClassLog> filterValidClassLogs(List<ClassLog> classLogs) {
         if (classLogs == null) {
@@ -251,38 +251,38 @@ public class ClassLogServiceImpl implements IClassLogService {
         try {
             return classLogs;
         } catch (Exception e) {
-            logger.error("过滤课程日志时发生异常: {}", e.getMessage(), e);
+            logger.error("過濾課程日誌時發生異常: {}", e.getMessage(), e);
             return java.util.Collections.emptyList();
         }
     }
 
     /**
-     * 批量插入课程日志数据
+     * 批量插入課程日誌數據
      *
-     * @param classLog 课程日志列表
+     * @param classLog 課程日誌列表
      */
     @Transactional
     public void insertClassLog(ClassLog classLog) {
         try {
             classLogMapper.insertClassLog(classLog);
         } catch (Exception e) {
-            logger.error("插入课程日志数据时发生异常: {}", e.getMessage(), e);
-            throw e; // 重新抛出异常，让调用方处理
+            logger.error("插入課程日誌數據時發生異常: {}", e.getMessage(), e);
+            throw e; // 重新拋出異常，讓調用方處理
         }
     }
 
     /**
-     * 批量更新课程日志数据
+     * 批量更新課程日誌數據
      *
-     * @param classLog 课程日志列表
+     * @param classLog 課程日誌列表
      */
     @Transactional
     public void updateClassLog(ClassLog classLog) {
         try {
             classLogMapper.updateClassLogById(classLog);
         } catch (Exception e) {
-            logger.error("更新课程日志数据时发生异常: {}", e.getMessage(), e);
-            throw e; // 重新抛出异常，让调用方处理
+            logger.error("更新課程日誌數據時發生異常: {}", e.getMessage(), e);
+            throw e; // 重新拋出異常，讓調用方處理
         }
     }
 

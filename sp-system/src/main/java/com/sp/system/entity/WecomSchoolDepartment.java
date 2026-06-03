@@ -1,15 +1,15 @@
 package com.sp.system.entity;
 
 /**
- * 企业微信学校部门实体类
+ * 企業微信學校部門實體類
  */
 public class WecomSchoolDepartment {
-    private Long id;                      // 部门 id
-    private Integer parentId;             // 父部门 id
-    private String name;                  // 部门名称
-    private String nameEn;                // 部门英文名称
-    private Integer order;                // 在父部门中的次序值
-    private String departmentLeader;      // 部门负责人的 UserID（JSON 数组字符串）
+    private Long id;                      // 部門 id
+    private Integer parentId;             // 父部門 id
+    private String name;                  // 部門名稱
+    private String nameEn;                // 部門英文名稱
+    private Integer order;                // 在父部門中的次序值
+    private String departmentLeader;      // 部門負責人的 UserID（JSON 數組字符串）
 
     // Getter 和 Setter 方法
     public Long getId() {

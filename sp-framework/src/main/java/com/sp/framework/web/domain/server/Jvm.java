@@ -5,23 +5,23 @@ import com.sp.common.utils.Arith;
 import com.sp.common.utils.DateUtils;
 
 /**
- * JVM相关信息
+ * JVM相關信息
  *
  */
 public class Jvm
 {
     /**
-     * 当前JVM占用的内存总数(M)
+     * 當前JVM佔用的內存總數(M)
      */
     private double total;
 
     /**
-     * JVM最大可用内存总数(M)
+     * JVM最大可用內存總數(M)
      */
     private double max;
 
     /**
-     * JVM空闲内存(M)
+     * JVM空閒內存(M)
      */
     private double free;
 
@@ -31,7 +31,7 @@ public class Jvm
     private String version;
 
     /**
-     * JDK路径
+     * JDK路徑
      */
     private String home;
 
@@ -76,7 +76,7 @@ public class Jvm
     }
 
     /**
-     * 获取JDK名称
+     * 獲取JDK名稱
      */
     public String getName()
     {
@@ -104,7 +104,7 @@ public class Jvm
     }
 
     /**
-     * JDK启动时间
+     * JDK啓動時間
      */
     public String getStartTime()
     {
@@ -112,7 +112,7 @@ public class Jvm
     }
 
     /**
-     * JDK运行时间
+     * JDK運行時間
      */
     public String getRunTime()
     {
@@ -120,7 +120,7 @@ public class Jvm
     }
 
     /**
-     * 运行参数
+     * 運行參數
      */
     public String getInputArgs()
     {

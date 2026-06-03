@@ -56,7 +56,7 @@ public class TokenInterceptor implements HandlerInterceptor {
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         Method method = handlerMethod.getMethod();
 
-        // 有 @Anonymous 注解的接口跳過驗證
+        // 有 @Anonymous 註解的接口跳過驗證
         if (method.getAnnotation(Anonymous.class) != null ||
             handlerMethod.getBeanType().getAnnotation(Anonymous.class) != null) {
             return true;

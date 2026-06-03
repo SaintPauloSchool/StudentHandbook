@@ -25,8 +25,8 @@
 <script>
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
-import settings from '@/config/settings' // 导入全局配置设置
-import { baseURL } from '@/config/api.js' // 导入 API 基础路径
+import settings from '@/config/settings' // 導入全局配置設置
+import { baseURL } from '@/config/api.js' // 導入 API 基礎路徑
 
 export default {
   name: 'Login',
@@ -38,44 +38,44 @@ export default {
     }
   },
   mounted() {
-    // 检查URL参数，看是否是错误状态
+    // 檢查URL參數，看是否是錯誤狀態
     this.checkUrlError();
 
-    // 如果是错误状态，不执行自动登录
+    // 如果是錯誤狀態，不執行自動登錄
     if (this.showError) {
       return;
     }
 
-    // 检查URL参数中的token（来自微信授权回调）
+    // 檢查URL參數中的token（來自微信授權回調）
     // 如果 URL 中已帶有 token，保存後直接跳首頁，不再繼續執行登錄流程
     if (this.checkTokenFromUrl()) {
       return;
     }
 
-    // 检查URL参数中的授权code
+    // 檢查URL參數中的授權code
     this.checkWeChatAuthCode();
 
-    // 根据配置决定是否执行微信登录流程
+    // 根據配置決定是否執行微信登錄流程
     if (settings.enableWeChatAuth) {
-      // 自动触发微信登录流程
+      // 自動觸發微信登錄流程
       this.autoWechatLogin();
     } else {
-      // 如果未启用微信验证，则直接跳转到首页
+      // 如果未啓用微信驗證，則直接跳轉到首頁
       this.$router.push('/');
     }
   },
   methods: {
-    // 检查URL参数中的token，找到則保存並返回 true（通知 mounted 提前結束）
+    // 檢查URL參數中的token，找到則保存並返回 true（通知 mounted 提前結束）
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
 
       if (token) {
-        // 保存token到本地存储，同时记录过期时间 (7天)
+        // 保存token到本地存儲，同時記錄過期時間 (7天)
         localStorage.setItem('token', token);
         localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
 
-        // 清除URL中的token参数，避免在地址栏显示敏感信息
+        // 清除URL中的token參數，避免在地址欄顯示敏感信息
         urlParams.delete('token');
         const newUrl = window.location.pathname +
             (urlParams.toString() ? '?' + urlParams.toString() : '') +
@@ -83,51 +83,51 @@ export default {
         window.history.replaceState({}, document.title, newUrl);
 
         ElMessage.success('登錄成功');
-        // 获取之前保存的重定向地址
+        // 獲取之前保存的重定向地址
         const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
         sessionStorage.removeItem('redirect_url');
-        // 跳转
+        // 跳轉
         this.$router.push(redirectUrl);
         return true; // ← 告知調用方已處理，無需繼續登錄流程
       }
       return false;
     },
 
-    // 检查URL参数中是否有微信授权code
+    // 檢查URL參數中是否有微信授權code
     async checkWeChatAuthCode() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       const state = urlParams.get('state');
 
-      // 检查是否有错误参数
+      // 檢查是否有錯誤參數
       const errcode = urlParams.get('errcode');
       if (errcode) {
-        console.error(`微信授权错误，错误码: ${errcode}`);
-        ElMessage.error('微信授权失败');
+        console.error(`微信授權錯誤，錯誤碼: ${errcode}`);
+        ElMessage.error('微信授權失敗');
         return;
       }
 
       if (code) {
-        console.log('检测到微信授权code，开始登录流程');
+        console.log('檢測到微信授權code，開始登錄流程');
         this.loginLoading = true;
 
         try {
           const response = await service.get(`${baseURL}/wechat/oauth/callback?code=${code}&state=${state || 'default'}`);
 
           if (response.data.code === 200) {
-            // 由于request.js中的响应拦截器已经处理了token的保存
-            // 这里不再需要手动保存token
+            // 由於request.js中的響應攔截器已經處理了token的保存
+            // 這裡不再需要手動保存token
             ElMessage.success('登錄成功');
-            // 获取之前保存的重定向地址
+            // 獲取之前保存的重定向地址
             const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
             sessionStorage.removeItem('redirect_url');
-            // 跳转
+            // 跳轉
             this.$router.push(redirectUrl);
           } else {
             ElMessage.error(response.data.msg || '登錄失敗');
           }
         } catch (error) {
-          console.error('登录请求失败:', error);
+          console.error('登錄請求失敗:', error);
           ElMessage.error('登錄請求失敗');
         } finally {
           this.loginLoading = false;
@@ -135,7 +135,7 @@ export default {
       }
     },
 
-    // 检查URL参数，确定是否显示错误
+    // 檢查URL參數，確定是否顯示錯誤
     checkUrlError() {
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get('error');
@@ -148,20 +148,20 @@ export default {
       return !!error;
     },
 
-    // 重试登录
+    // 重試登錄
     retryLogin() {
       this.showError = false;
       this.errorMessage = '授權失敗無法進入系統，請聯繫學校管理員';
       if (settings.enableWeChatAuth) {
-        // 重新触发微信登录
+        // 重新觸發微信登錄
         this.autoWechatLogin();
       } else {
-        // 如果未启用微信验证，则直接跳转到首页
+        // 如果未啓用微信驗證，則直接跳轉到首頁
         this.$router.push('/');
       }
     },
 
-    // 自动微信登录
+    // 自動微信登錄
     async autoWechatLogin() {
       const urlParams = new URLSearchParams(window.location.search);
       let state = 'default';
@@ -179,36 +179,36 @@ export default {
         return;
       }
 
-      // 检查是否在微信环境中
+      // 檢查是否在微信環境中
       const isWeChat = navigator.userAgent.includes('MicroMessenger');
 
       if (isWeChat) {
-        console.log('在微信环境中，自动触发微信授权');
+        console.log('在微信環境中，自動觸發微信授權');
 
-        // 尝试通过OAuth2方式获取用户信息
+        // 嘗試通過OAuth2方式獲取用戶信息
         await this.getWeChatUserInfoByOAuth(state);
       } else {
-        console.log('非微信环境，显示提示信息');
-        ElMessage.warning('请在微信或企业微信环境中打开应用');
+        console.log('非微信環境，顯示提示信息');
+        ElMessage.warning('請在微信或企業微信環境中打開應用');
       }
     },
 
-    // 通过OAuth2方式获取微信用户信息
+    // 通過OAuth2方式獲取微信用戶信息
     async getWeChatUserInfoByOAuth(state) {
       try {
-        console.log('构建微信授权链接');
-        // 从配置文件中读取企业微信相关参数
+        console.log('構建微信授權鏈接');
+        // 從配置文件中讀取企業微信相關參數
         const redirectUri = encodeURIComponent(settings.wechat.redirectUri);
         const corpId = settings.wechat.corpId;
         const agentId = settings.wechat.agentId;
         const safeState = state || 'default';
 
-        // 构造适合手机端的企业微信OAuth2授权链接，使用动态状态
-        console.log('跳转到微信授权页面: https://open.weixin.qq.com/connect/oauth2/authorize');
-        // 重定向到授权页面
+        // 構造適合手機端的企業微信OAuth2授權鏈接，使用動態狀態
+        console.log('跳轉到微信授權頁面: https://open.weixin.qq.com/connect/oauth2/authorize');
+        // 重定向到授權頁面
         window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=${safeState}#wechat_redirect`;
       } catch (error) {
-        console.error('发起微信授权失败: ' + error.message);
+        console.error('發起微信授權失敗: ' + error.message);
       }
     }
   }
@@ -360,7 +360,7 @@ export default {
   margin: 0;
 }
 
-/* 响应式设计 */
+/* 響應式設計 */
 @media (max-width: 768px) {
   .login-container {
     padding: 10px;

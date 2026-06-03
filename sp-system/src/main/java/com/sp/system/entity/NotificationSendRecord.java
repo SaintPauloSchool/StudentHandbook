@@ -3,50 +3,50 @@ package com.sp.system.entity;
 import java.time.LocalDateTime;
 
 /**
- * 发送通知记录主表实体类
+ * 發送通知記錄主表實體類
  */
 public class NotificationSendRecord {
 
-    /** 发送记录ID */
+    /** 發送記錄ID */
     private Long sendRecordId;
 
     /** 通知ID */
     private Long notificationId;
 
-    /** 发送人ID */
+    /** 發送人ID */
     private Long senderId;
 
-    /** 发送人姓名 */
+    /** 發送人姓名 */
     private String senderName;
 
-    /** 发送时间 */
+    /** 發送時間 */
     private LocalDateTime sendTime;
 
-    /** 发送状态（0待发送 1发送中 2发送成功 3发送失败 4部分成功） */
+    /** 發送狀態（0待發送 1發送中 2發送成功 3發送失敗 4部分成功） */
     private String sendStatus;
 
-    /** 应发送总人数 */
+    /** 應發送總人數 */
     private Integer totalCount;
 
-    /** 发送成功人数 */
+    /** 發送成功人數 */
     private Integer successCount;
 
-    /** 发送失败人数 */
+    /** 發送失敗人數 */
     private Integer failCount;
 
-    /** 创建者 */
+    /** 創建者 */
     private String createBy;
 
-    /** 创建时间 */
+    /** 創建時間 */
     private LocalDateTime createTime;
 
     /** 更新者 */
     private String updateBy;
 
-    /** 更新时间 */
+    /** 更新時間 */
     private LocalDateTime updateTime;
 
-    /** 备注 */
+    /** 備註 */
     private String remark;
 
     public Long getSendRecordId() {

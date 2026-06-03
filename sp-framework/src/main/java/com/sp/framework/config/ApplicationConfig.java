@@ -6,15 +6,15 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * 程序注解配置
+ * 程序註解配置
  *
  */
 @Configuration
-// 表示通过aop框架暴露该代理对象,AopContext能够访问
+// 表示通過aop框架暴露該代理對象,AopContext能夠訪問
 @EnableAspectJAutoProxy(exposeProxy = true)
-// 指定要扫描的Mapper类的包的路径
+// 指定要掃描的Mapper類的包的路徑
 @MapperScan("com.sp.**.mapper")
-// 启用事务管理
+// 啓用事務管理
 @EnableTransactionManagement
 public class ApplicationConfig
 {

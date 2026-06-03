@@ -4,37 +4,37 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 表格分页数据对象
+ * 表格分頁數據對象
  *
  */
 public class TableDataInfo implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
-    /** 总记录数 */
+    /** 總記錄數 */
     private long total;
 
-    /** 列表数据 */
+    /** 列表數據 */
     private List<?> rows;
 
-    /** 消息状态码 */
+    /** 消息狀態碼 */
     private int code;
 
-    /** 消息内容 */
+    /** 消息內容 */
     private String msg;
 
     /**
-     * 表格数据对象
+     * 表格數據對象
      */
     public TableDataInfo()
     {
     }
 
     /**
-     * 分页
+     * 分頁
      * 
-     * @param list 列表数据
-     * @param total 总记录数
+     * @param list 列表數據
+     * @param total 總記錄數
      */
     public TableDataInfo(List<?> list, long total)
     {

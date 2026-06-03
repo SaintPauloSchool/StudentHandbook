@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * CxSelect树结构实体类
+ * CxSelect樹結構實體類
  *
  */
 public class CxSelect implements Serializable
@@ -12,17 +12,17 @@ public class CxSelect implements Serializable
     private static final long serialVersionUID = 1L;
 
     /**
-     * 数据值字段名称
+     * 數據值字段名稱
      */
     private String v;
 
     /**
-     * 数据标题字段名称
+     * 數據標題字段名稱
      */
     private String n;
 
     /**
-     * 子集数据字段名称
+     * 子集數據字段名稱
      */
     private List<CxSelect> s;
 

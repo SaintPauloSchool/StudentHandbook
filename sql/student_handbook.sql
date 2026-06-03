@@ -234,8 +234,8 @@ CREATE TABLE sys_department (
                                 standard_grade      INT             DEFAULT NULL                    COMMENT '標準年級',
                                 order_num           INT             DEFAULT '0'                     COMMENT '排序值',
                                 is_graduated        TINYINT(1)      DEFAULT '0'                     COMMENT '是否畢業：1-是，0-否',
-                                open_group_chat     TINYINT(1)      DEFAULT '0'                     COMMENT '是否開啟班級群：1-是，0-否',
-                                group_chat_id       VARCHAR(255)    DEFAULT NULL                    COMMENT '班級群 id',
+                                open_group_chat     TINYINT(1)      DEFAULT '0'                     COMMENT '是否開啟班級羣：1-是，0-否',
+                                group_chat_id       VARCHAR(255)    DEFAULT NULL                    COMMENT '班級羣 id',
                                 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部門表';
 
@@ -299,19 +299,19 @@ INSERT INTO class_section VALUES
                               (79,'SC2_A_家長','F5A'),(80,'SC2_B_家長','F5B'),(81,'SC2_C_家長','F5C'),(82,'SC2_D_家長','F5D'),(83,'SC2_E_家長','F5E'),(84,'SC2_F_家長','F5F'),
                               (85,'SC3_A_家長','F6A'),(86,'SC3_B_家長','F6B'),(87,'SC3_C_家長','F6C'),(88,'SC3_D_家長','F6D'),(89,'SC3_E_家長','F6E'),(90,'SC3_F_家長','F6F');
 -- ----------------------------
--- 部门管理员表
+-- 部門管理員表
 -- ----------------------------
 DROP TABLE IF EXISTS sys_department_admin;
 CREATE TABLE sys_department_admin (
-                                      id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主键ID',
-                                      department_id       BIGINT          NOT NULL                   COMMENT '部门ID',
-                                      userid              VARCHAR(64)     NOT NULL                   COMMENT '部门管理员的userid',
-                                      type                INT             DEFAULT NULL               COMMENT '部门管理员的类型：1-校区负责人, 2-年级负责人, 3-班主任, 4-任课老师, 5-学段负责人',
-                                      subject             VARCHAR(100)    DEFAULT NULL               COMMENT '教师或班主任的科目',
-                                      create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
-                                      update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                      id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主鍵ID',
+                                      department_id       BIGINT          NOT NULL                   COMMENT '部門ID',
+                                      userid              VARCHAR(64)     NOT NULL                   COMMENT '部門管理員的userid',
+                                      type                INT             DEFAULT NULL               COMMENT '部門管理員的類型：1-校區負責人, 2-年級負責人, 3-班主任, 4-任課老師, 5-學段負責人',
+                                      subject             VARCHAR(100)    DEFAULT NULL               COMMENT '教師或班主任的科目',
+                                      create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '創建時間',
+                                      update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
                                       PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='部门管理员表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='部門管理員表';
 -- ----------------------------
 -- 微信學校部門表
 -- ----------------------------
@@ -347,13 +347,13 @@ CREATE TABLE wecom_school_department_member (
 -- ----------------------------
 DROP TABLE IF EXISTS sys_token;
 CREATE TABLE `sys_token` (
-                             `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-                             `user_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户ID',
-                             `user_type` tinyint(1) DEFAULT NULL COMMENT '用户类型 (1: parent, 0: student, 2: staff)',
+                             `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主鍵ID',
+                             `user_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用戶ID',
+                             `user_type` tinyint(1) DEFAULT NULL COMMENT '用戶類型 (1: parent, 0: student, 2: staff)',
                              `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Token值',
-                             `expire_time` datetime NOT NULL COMMENT '过期时间',
-                             `create_time` datetime NOT NULL COMMENT '创建时间',
-                             `update_time` datetime NOT NULL COMMENT '更新时间',
+                             `expire_time` datetime NOT NULL COMMENT '過期時間',
+                             `create_time` datetime NOT NULL COMMENT '創建時間',
+                             `update_time` datetime NOT NULL COMMENT '更新時間',
                              PRIMARY KEY (`id`),
                              UNIQUE KEY `token_value` (`token`),
                              KEY `idx_user_id` (`user_id`)
@@ -392,47 +392,47 @@ CREATE TABLE sys_school_department_member (
                                               PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系統學校部門成員表';
 -- ----------------------------
--- 通知重发失败记录表
--- 用于追踪每个用户的重发失败情况，失败次数达到 3 次则放弃重发
+-- 通知重發失敗記錄表
+-- 用於追蹤每個用戶的重發失敗情況，失敗次數達到 3 次則放棄重發
 DROP TABLE IF EXISTS notification_resend_fail_record;
 CREATE TABLE `notification_resend_fail_record` (
-                                                   `id`              bigint       NOT NULL AUTO_INCREMENT          COMMENT '主键ID',
+                                                   `id`              bigint       NOT NULL AUTO_INCREMENT          COMMENT '主鍵ID',
                                                    `notification_id` bigint       NOT NULL                         COMMENT '通知ID',
-                                                   `send_record_id`  bigint       NOT NULL                         COMMENT '发送记录ID',
-                                                   `user_id`         varchar(64)  NOT NULL                         COMMENT '接收用户ID（家长或学生）',
-                                                   `user_type`       char(1)      NOT NULL DEFAULT '2'             COMMENT '用户类型（1学生 2家长）',
-                                                   `student_user_id` varchar(64)           DEFAULT NULL            COMMENT '关联学生ID',
-                                                   `fail_reason_1`   varchar(255)          DEFAULT NULL            COMMENT '第1次失败原因',
-                                                   `fail_message_1`  varchar(1000)         DEFAULT NULL            COMMENT '第1次失败详细信息',
-                                                   `fail_reason_2`   varchar(255)          DEFAULT NULL            COMMENT '第2次失败原因',
-                                                   `fail_message_2`  varchar(1000)         DEFAULT NULL            COMMENT '第2次失败详细信息',
-                                                   `fail_reason_3`   varchar(255)          DEFAULT NULL            COMMENT '第3次失败原因',
-                                                   `fail_message_3`  varchar(1000)         DEFAULT NULL            COMMENT '第3次失败详细信息',
-                                                   `fail_count`      int          NOT NULL DEFAULT 1               COMMENT '累计失败次数（最大3次，达到后放弃重发）',
-                                                   `status`          char(1)      NOT NULL DEFAULT '0'             COMMENT '状态：0-待重发 1-已放弃',
-                                                   `create_time`     datetime              DEFAULT NULL            COMMENT '首次失败时间',
-                                                   `update_time`     datetime              DEFAULT NULL            COMMENT '最近更新时间',
+                                                   `send_record_id`  bigint       NOT NULL                         COMMENT '發送記錄ID',
+                                                   `user_id`         varchar(64)  NOT NULL                         COMMENT '接收用戶ID（家長或學生）',
+                                                   `user_type`       char(1)      NOT NULL DEFAULT '2'             COMMENT '用戶類型（1學生 2家長）',
+                                                   `student_user_id` varchar(64)           DEFAULT NULL            COMMENT '關聯學生ID',
+                                                   `fail_reason_1`   varchar(255)          DEFAULT NULL            COMMENT '第1次失敗原因',
+                                                   `fail_message_1`  varchar(1000)         DEFAULT NULL            COMMENT '第1次失敗詳細信息',
+                                                   `fail_reason_2`   varchar(255)          DEFAULT NULL            COMMENT '第2次失敗原因',
+                                                   `fail_message_2`  varchar(1000)         DEFAULT NULL            COMMENT '第2次失敗詳細信息',
+                                                   `fail_reason_3`   varchar(255)          DEFAULT NULL            COMMENT '第3次失敗原因',
+                                                   `fail_message_3`  varchar(1000)         DEFAULT NULL            COMMENT '第3次失敗詳細信息',
+                                                   `fail_count`      int          NOT NULL DEFAULT 1               COMMENT '累計失敗次數（最大3次，達到後放棄重發）',
+                                                   `status`          char(1)      NOT NULL DEFAULT '0'             COMMENT '狀態：0-待重發 1-已放棄',
+                                                   `create_time`     datetime              DEFAULT NULL            COMMENT '首次失敗時間',
+                                                   `update_time`     datetime              DEFAULT NULL            COMMENT '最近更新時間',
                                                    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='通知重发失败记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='通知重發失敗記錄表';
 -- ----------------------------
--- 系统管理员表（全局）
+-- 系統管理員表（全局）
 -- ----------------------------
 DROP TABLE IF EXISTS sys_admin;
 CREATE TABLE sys_admin (
-                           id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主键ID',
-                           user_id             VARCHAR(64)     NOT NULL                   COMMENT '用户ID（关联token表的user_id）',
-                           admin_name          VARCHAR(100)    DEFAULT NULL               COMMENT '管理员姓名',
-                           status              CHAR(1)         DEFAULT '0'                COMMENT '状态（0正常 1停用）',
-                           create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
-                           update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                           remark              VARCHAR(500)    DEFAULT NULL               COMMENT '备注',
+                           id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主鍵ID',
+                           user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID（關聯token表的user_id）',
+                           admin_name          VARCHAR(100)    DEFAULT NULL               COMMENT '管理員姓名',
+                           status              CHAR(1)         DEFAULT '0'                COMMENT '狀態（0正常 1停用）',
+                           create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '創建時間',
+                           update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+                           remark              VARCHAR(500)    DEFAULT NULL               COMMENT '備註',
                            PRIMARY KEY (id),
                            UNIQUE KEY uk_user_id (user_id),
                            KEY idx_status (status)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统管理员表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='系統管理員表';
 
--- 插入示例管理员数据（需要根据实际user_id调整）
--- INSERT INTO sys_admin VALUES(1, 'admin_user_id', '系统管理员', '0', NOW(), NOW(), '超级管理员');
+-- 插入示例管理員數據（需要根據實際user_id調整）
+-- INSERT INTO sys_admin VALUES(1, 'admin_user_id', '系統管理員', '0', NOW(), NOW(), '超級管理員');
 -- ----------------------------
 -- 行事曆事件表
 -- ----------------------------

@@ -20,28 +20,28 @@ import springfox.documentation.spring.web.plugins.Docket;
 @Configuration
 public class SwaggerConfig
 {
-    /** 是否开启swagger */
+    /** 是否開啓swagger */
     @Value("${swagger.enabled}")
     private boolean enabled;
     
     /**
-     * 创建API
+     * 創建API
      */
     @Bean
     public Docket createRestApi()
     {
         return new Docket(DocumentationType.OAS_30)
-                // 是否启用Swagger
+                // 是否啓用Swagger
                 .enable(enabled)
-                // 用来创建该API的基本信息，展示在文档的页面中（自定义展示的信息）
+                // 用來創建該API的基本信息，展示在文檔的頁面中（自定義展示的信息）
                 .apiInfo(apiInfo())
-                // 设置哪些接口暴露给Swagger展示
+                // 設置哪些接口暴露給Swagger展示
                 .select()
-                // 扫描所有有注解的api，用这种方式更灵活
+                // 掃描所有有註解的api，用這種方式更靈活
                 .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
-                // 扫描指定包中的swagger注解
+                // 掃描指定包中的swagger註解
                 //.apis(RequestHandlerSelectors.basePackage("com.sp.project.tool.swagger"))
-                // 扫描所有 .apis(RequestHandlerSelectors.any())
+                // 掃描所有 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
                 .build();
     }
@@ -51,16 +51,16 @@ public class SwaggerConfig
      */
     private ApiInfo apiInfo()
     {
-        // 用ApiInfoBuilder进行定制
+        // 用ApiInfoBuilder進行定製
         return new ApiInfoBuilder()
-                // 设置标题
-                .title("标题：系统接口文档")
+                // 設置標題
+                .title("標題：系統接口文檔")
                 // 描述
                 .description("描述")
                 // 作者信息
                 .contact(new Contact(OverallSituationConfig.getName(), null, null))
                 // 版本
-                .version("版本号:" + OverallSituationConfig.getVersion())
+                .version("版本號:" + OverallSituationConfig.getVersion())
                 .build();
     }
 }

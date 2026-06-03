@@ -21,7 +21,7 @@ import com.sp.common.utils.html.EscapeUtil;
 import com.sp.common.utils.security.PermissionUtils;
 
 /**
- * 全局异常处理器
+ * 全局異常處理器
  *
  */
 @RestControllerAdvice
@@ -30,13 +30,13 @@ public class GlobalExceptionHandler
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
-     * 权限校验异常（ajax请求返回json，redirect请求跳转页面）
+     * 權限校驗異常（ajax請求返回json，redirect請求跳轉頁面）
      */
     @ExceptionHandler(AccessDeniedException.class)
     public Object handleAuthorizationException(AccessDeniedException e, HttpServletRequest request)
     {
         String requestURI = request.getRequestURI();
-        log.error("请求地址'{}',权限校验失败'{}'", requestURI, e.getMessage());
+        log.error("請求地址'{}',權限校驗失敗'{}'", requestURI, e.getMessage());
         if (ServletUtils.isAjaxRequest(request))
         {
             return AjaxResult.error(PermissionUtils.getMsg(e.getMessage()));
@@ -48,41 +48,41 @@ public class GlobalExceptionHandler
     }
 
     /**
-     * 请求方式不支持
+     * 請求方式不支持
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public AjaxResult handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException e,
             HttpServletRequest request)
     {
         String requestURI = request.getRequestURI();
-        log.error("请求地址'{}',不支持'{}'请求", requestURI, e.getMethod());
+        log.error("請求地址'{}',不支持'{}'請求", requestURI, e.getMethod());
         return AjaxResult.error(e.getMessage());
     }
 
     /**
-     * 拦截未知的运行时异常
+     * 攔截未知的運行時異常
      */
     @ExceptionHandler(RuntimeException.class)
     public AjaxResult handleRuntimeException(RuntimeException e, HttpServletRequest request)
     {
         String requestURI = request.getRequestURI();
-        log.error("请求地址'{}',发生未知异常.", requestURI, e);
+        log.error("請求地址'{}',發生未知異常.", requestURI, e);
         return AjaxResult.error(e.getMessage());
     }
 
     /**
-     * 系统异常
+     * 系統異常
      */
     @ExceptionHandler(Exception.class)
     public AjaxResult handleException(Exception e, HttpServletRequest request)
     {
         String requestURI = request.getRequestURI();
-        log.error("请求地址'{}',发生系统异常.", requestURI, e);
+        log.error("請求地址'{}',發生系統異常.", requestURI, e);
         return AjaxResult.error(e.getMessage());
     }
 
     /**
-     * 业务异常
+     * 業務異常
      */
     @ExceptionHandler(ServiceException.class)
     public Object handleServiceException(ServiceException e, HttpServletRequest request)
@@ -99,18 +99,18 @@ public class GlobalExceptionHandler
     }
 
     /**
-     * 请求路径中缺少必需的路径变量
+     * 請求路徑中缺少必需的路徑變量
      */
     @ExceptionHandler(MissingPathVariableException.class)
     public AjaxResult handleMissingPathVariableException(MissingPathVariableException e, HttpServletRequest request)
     {
         String requestURI = request.getRequestURI();
-        log.error("请求路径中缺少必需的路径变量'{}',发生系统异常.", requestURI, e);
-        return AjaxResult.error(String.format("请求路径中缺少必需的路径变量[%s]", e.getVariableName()));
+        log.error("請求路徑中缺少必需的路徑變量'{}',發生系統異常.", requestURI, e);
+        return AjaxResult.error(String.format("請求路徑中缺少必需的路徑變量[%s]", e.getVariableName()));
     }
 
     /**
-     * 请求参数类型不匹配
+     * 請求參數類型不匹配
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public AjaxResult handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e,
@@ -122,12 +122,12 @@ public class GlobalExceptionHandler
         {
             value = EscapeUtil.clean(value);
         }
-        log.error("请求参数类型不匹配'{}',发生系统异常.", requestURI, e);
-        return AjaxResult.error(String.format("请求参数类型不匹配，参数[%s]要求类型为：'%s'，但输入值为：'%s'", e.getName(), e.getRequiredType().getName(), value));
+        log.error("請求參數類型不匹配'{}',發生系統異常.", requestURI, e);
+        return AjaxResult.error(String.format("請求參數類型不匹配，參數[%s]要求類型爲：'%s'，但輸入值爲：'%s'", e.getName(), e.getRequiredType().getName(), value));
     }
 
     /**
-     * 自定义验证异常
+     * 自定義驗證異常
      */
     @ExceptionHandler(BindException.class)
     public AjaxResult handleBindException(BindException e)
@@ -138,11 +138,11 @@ public class GlobalExceptionHandler
     }
 
     /**
-     * 演示模式异常
+     * 演示模式異常
      */
     @ExceptionHandler(DemoModeException.class)
     public AjaxResult handleDemoModeException(DemoModeException e)
     {
-        return AjaxResult.error("演示模式，不允许操作");
+        return AjaxResult.error("演示模式，不允許操作");
     }
 }

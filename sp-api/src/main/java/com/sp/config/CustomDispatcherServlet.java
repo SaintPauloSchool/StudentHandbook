@@ -9,7 +9,7 @@ public class CustomDispatcherServlet extends DispatcherServlet {
 
     @Override
     protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        // 在请求处理前设置属性，防止错误页面处理
+        // 在請求處理前設置屬性，防止錯誤頁面處理
         request.setAttribute("javax.servlet.error.status_code", null);
         request.setAttribute("javax.servlet.error.message", null);
         request.setAttribute("javax.servlet.error.exception", null);
@@ -21,8 +21,8 @@ public class CustomDispatcherServlet extends DispatcherServlet {
 
     @Override
     protected void noHandlerFound(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        // 对于找不到处理器的情况，直接返回200状态码并转发到index.html
-        // 这样可以避免触发错误页面处理逻辑
+        // 對於找不到處理器的情況，直接返回200狀態碼並轉發到index.html
+        // 這樣可以避免觸發錯誤頁面處理邏輯
         if (!response.isCommitted()) {
             response.setStatus(HttpServletResponse.SC_OK);
             request.getRequestDispatcher("/dist/index.html").forward(request, response);

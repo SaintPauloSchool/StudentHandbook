@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 自定义xss校验注解
+ * 自定義xss校驗註解
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -18,7 +18,7 @@ public @interface Xss
 {
     String message()
 
-    default "不允许任何脚本运行";
+    default "不允許任何腳本運行";
 
     Class<?>[] groups() default {};
 

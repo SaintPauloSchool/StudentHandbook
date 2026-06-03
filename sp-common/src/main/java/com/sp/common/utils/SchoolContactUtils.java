@@ -6,23 +6,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 家校通讯录工具类
- * 用于获取学生或家长的身份信息
+ * 家校通訊錄工具類
+ * 用於獲取學生或家長的身份信息
  */
 public class SchoolContactUtils {
     
     private static final Logger logger = LoggerFactory.getLogger(SchoolContactUtils.class);
     
     /**
-     * 企业微信API地址
+     * 企業微信API地址
      */
     private static final String GET_USER_INFO_URL = "https://qyapi.weixin.qq.com/cgi-bin/school/user/get";
     
     /**
-     * 根据用户ID获取学生或家长信息
-     * @param accessToken 企业微信应用的access_token
-     * @param userId 用户ID（学生或家长的userid）
-     * @return 用户信息对象
+     * 根據用戶ID獲取學生或家長信息
+     * @param accessToken 企業微信應用的access_token
+     * @param userId 用戶ID（學生或家長的userid）
+     * @return 用戶信息對象
      */
     public static JSONObject getUserInfo(String accessToken, String userId) {
         try {
@@ -31,22 +31,22 @@ public class SchoolContactUtils {
             urlBuilder.append("&userid=").append(userId);
             
             String response = HttpUtils.sendGet(urlBuilder.toString());
-            logger.info("获取家校通讯录用户信息结果: {}", response);
+            logger.info("獲取家校通訊錄用戶信息結果: {}", response);
             
             JSONObject result = JSONObject.parseObject(response);
-            logger.info("解析后的JSON对象: {}", result.toJSONString());
+            logger.info("解析後的JSON對象: {}", result.toJSONString());
             
             return result;
         } catch (Exception e) {
-            logger.error("获取家校通讯录用户信息异常", e);
+            logger.error("獲取家校通訊錄用戶信息異常", e);
             return null;
         }
     }
     
     /**
-     * 判断用户是否为学生
-     * @param userInfo 用户信息对象
-     * @return true表示是学生，false表示不是学生（可能是家长或其他）
+     * 判斷用戶是否爲學生
+     * @param userInfo 用戶信息對象
+     * @return true表示是學生，false表示不是學生（可能是家長或其他）
      */
     public static boolean isStudent(JSONObject userInfo) {
         if (userInfo == null || !userInfo.containsKey("student")) {
@@ -56,9 +56,9 @@ public class SchoolContactUtils {
     }
     
     /**
-     * 判断用户是否为家长
-     * @param userInfo 用户信息对象
-     * @return true表示是家长，false表示不是家长（可能是学生或其他）
+     * 判斷用戶是否爲家長
+     * @param userInfo 用戶信息對象
+     * @return true表示是家長，false表示不是家長（可能是學生或其他）
      */
     public static boolean isParent(JSONObject userInfo) {
         if (userInfo == null || !userInfo.containsKey("parent")) {
@@ -68,9 +68,9 @@ public class SchoolContactUtils {
     }
     
     /**
-     * 获取学生信息
-     * @param userInfo 用户信息对象
-     * @return 学生信息对象
+     * 獲取學生信息
+     * @param userInfo 用戶信息對象
+     * @return 學生信息對象
      */
     public static JSONObject getStudentInfo(JSONObject userInfo) {
         if (userInfo != null && userInfo.containsKey("student")) {
@@ -80,9 +80,9 @@ public class SchoolContactUtils {
     }
     
     /**
-     * 获取家长信息
-     * @param userInfo 用户信息对象
-     * @return 家长信息对象
+     * 獲取家長信息
+     * @param userInfo 用戶信息對象
+     * @return 家長信息對象
      */
     public static JSONObject getParentInfo(JSONObject userInfo) {
         if (userInfo != null && userInfo.containsKey("parent")) {

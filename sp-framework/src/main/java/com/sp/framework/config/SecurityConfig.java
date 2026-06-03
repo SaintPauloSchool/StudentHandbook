@@ -12,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Spring Security配置类
+ * Spring Security配置類
  */
 @Configuration
 @EnableWebSecurity
@@ -31,21 +31,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        // 在实际项目中，这里应该配置用户认证服务
-        // 由于缺少具体用户认证逻辑，暂时留空
+        // 在實際項目中，這裡應該配置用戶認證服務
+        // 由於缺少具體用戶認證邏輯，暫時留空
         // auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
-                // 基于token，所以不需要session
+                // 基於token，所以不需要session
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                // 对于登录和匿名接口允许访问
+                // 對於登錄和匿名接口允許訪問
                 .antMatchers("/login", "/captchaImage").anonymous()
-                // 静态资源和公开接口，可匿名访问
+                // 靜態資源和公開接口，可匿名訪問
                 .antMatchers(
                         "/",
                         "/profile/**",
@@ -63,10 +63,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/assets/**",
                         "/sp-api/",
                         "/sp-api/**").permitAll()
-                // 除上面外的所有请求全部需要鉴权认证
+                // 除上面外的所有請求全部需要鑑權認證
                 .anyRequest().authenticated();
 
-        // 添加自定义过滤器（如果需要的话）
+        // 添加自定義過濾器（如果需要的話）
         // http.addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }

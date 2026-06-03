@@ -13,24 +13,24 @@ public interface NotificationAnswerMapper {
     /**
      * 批量插入答案
      * @param answers 答案列表
-     * @return 插入记录数
+     * @return 插入記錄數
      */
     int batchInsertAnswers(@Param("answers") List<NotificationAnswer> answers);
     
     /**
-     * 查询用户对该通知的回答
+     * 查詢用戶對該通知的回答
      * @param notificationId 通知ID
-     * @param userId 用户ID
+     * @param userId 用戶ID
      * @return 答案列表
      */
     List<NotificationAnswer> selectUserAnswers(@Param("notificationId") Long notificationId, @Param("userId") String userId);
     
     /**
-     * 检查学生是否已回答该问题
+     * 檢查學生是否已回答該問題
      * @param notificationId 通知ID
-     * @param questionId 问题ID
-     * @param studentUserId 学生用户ID
-     * @return 答案数量
+     * @param questionId 問題ID
+     * @param studentUserId 學生用戶ID
+     * @return 答案數量
      */
     int checkStudentAnswerExists(@Param("notificationId") Long notificationId, 
                                   @Param("questionId") Long questionId, 

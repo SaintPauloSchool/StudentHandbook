@@ -8,7 +8,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * 启动程序
+ * 啓動程序
  *
  */
 @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
@@ -18,7 +18,7 @@ public class SpApplication extends SpringBootServletInitializer
     public static void main(String[] args)
     {
         SpringApplication.run(SpApplication.class, args);
-        // 启动成功日志记录已由日志框架自动处理
+        // 啓動成功日誌記錄已由日誌框架自動處理
     }
     
     @Override

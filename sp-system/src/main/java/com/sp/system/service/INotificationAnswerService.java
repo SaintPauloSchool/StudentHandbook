@@ -11,37 +11,37 @@ import java.util.List;
 public interface INotificationAnswerService {
     
     /**
-     * 将前端传来的答案数据转换为实体对象并保存
-     * @param answerData 前端传来的答案数据（单个问题）
-     * @param userId 用户ID（parentUserId）
-     * @param userType 用户类型
-     * @param studentUserId 学生用户ID
-     * @return 插入记录数
-     * @throws RuntimeException 如果学生已经回答过该问题
+     * 將前端傳來的答案數據轉換爲實體對象並保存
+     * @param answerData 前端傳來的答案數據（單個問題）
+     * @param userId 用戶ID（parentUserId）
+     * @param userType 用戶類型
+     * @param studentUserId 學生用戶ID
+     * @return 插入記錄數
+     * @throws RuntimeException 如果學生已經回答過該問題
      */
     int submitAnswers(AnswerItemVO answerData, String userId, String userType, String studentUserId);
     
     /**
-     * 根据家长ID获取对应的学生ID
-     * @param parentUserId 家长用户ID
-     * @return 学生用户ID（如果有多个学生，返回第一个）
+     * 根據家長ID獲取對應的學生ID
+     * @param parentUserId 家長用戶ID
+     * @return 學生用戶ID（如果有多個學生，返回第一個）
      */
     String getStudentUserIdByParentId(String parentUserId);
     
     /**
-     * 检查学生是否已回答该通知的问题
+     * 檢查學生是否已回答該通知的問題
      * @param notificationId 通知ID
-     * @param questionId 问题ID
-     * @param studentUserId 学生用户ID
+     * @param questionId 問題ID
+     * @param studentUserId 學生用戶ID
      * @return true-已回答，false-未回答
      */
     boolean checkStudentAnswerExists(Long notificationId, Long questionId, String studentUserId);
     
     /**
-     * 查询用户对该通知的回答（只有一条记录）
+     * 查詢用戶對該通知的回答（只有一條記錄）
      * @param notificationId 通知ID
-     * @param studentUserId 学生用户ID
-     * @return 答案对象（只有一条记录）
+     * @param studentUserId 學生用戶ID
+     * @return 答案對象（只有一條記錄）
      */
     NotificationAnswer getUserAnswer(Long notificationId, String studentUserId);
 }

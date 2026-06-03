@@ -17,7 +17,7 @@ import com.sp.common.core.text.Convert;
 import com.sp.common.utils.DateUtils;
 
 /**
- * 反射工具类. 提供调用getter/setter方法, 访问私有变量, 调用私有方法, 获取泛型类型Class, 被AOP过的真实类等工具函数.
+ * 反射工具類. 提供調用getter/setter方法, 訪問私有變量, 調用私有方法, 獲取泛型類型Class, 被AOP過的真實類等工具函數.
  *
  */
 @SuppressWarnings("rawtypes")
@@ -32,8 +32,8 @@ public class ReflectUtils
     private static Logger logger = LoggerFactory.getLogger(ReflectUtils.class);
 
     /**
-     * 调用Getter方法.
-     * 支持多级，如：对象名.对象名.方法
+     * 調用Getter方法.
+     * 支持多級，如：對象名.對象名.方法
      */
     @SuppressWarnings("unchecked")
     public static <E> E invokeGetter(Object obj, String propertyName)
@@ -48,8 +48,8 @@ public class ReflectUtils
     }
 
     /**
-     * 调用Setter方法, 仅匹配方法名。
-     * 支持多级，如：对象名.对象名.方法
+     * 調用Setter方法, 僅匹配方法名。
+     * 支持多級，如：對象名.對象名.方法
      */
     public static <E> void invokeSetter(Object obj, String propertyName, E value)
     {
@@ -71,7 +71,7 @@ public class ReflectUtils
     }
 
     /**
-     * 直接读取对象属性值, 无视private/protected修饰符, 不经过getter函数.
+     * 直接讀取對象屬性值, 無視private/protected修飾符, 不經過getter函數.
      */
     @SuppressWarnings("unchecked")
     public static <E> E getFieldValue(final Object obj, final String fieldName)
@@ -79,7 +79,7 @@ public class ReflectUtils
         Field field = getAccessibleField(obj, fieldName);
         if (field == null)
         {
-            logger.debug("在 [" + obj.getClass() + "] 中，没有找到 [" + fieldName + "] 字段 ");
+            logger.debug("在 [" + obj.getClass() + "] 中，沒有找到 [" + fieldName + "] 字段 ");
             return null;
         }
         E result = null;
@@ -89,21 +89,21 @@ public class ReflectUtils
         }
         catch (IllegalAccessException e)
         {
-            logger.error("不可能抛出的异常{}", e.getMessage());
+            logger.error("不可能拋出的異常{}", e.getMessage());
         }
         return result;
     }
 
     /**
-     * 直接设置对象属性值, 无视private/protected修饰符, 不经过setter函数.
+     * 直接設置對象屬性值, 無視private/protected修飾符, 不經過setter函數.
      */
     public static <E> void setFieldValue(final Object obj, final String fieldName, final E value)
     {
         Field field = getAccessibleField(obj, fieldName);
         if (field == null)
         {
-            // throw new IllegalArgumentException("在 [" + obj.getClass() + "] 中，没有找到 [" + fieldName + "] 字段 ");
-            logger.debug("在 [" + obj.getClass() + "] 中，没有找到 [" + fieldName + "] 字段 ");
+            // throw new IllegalArgumentException("在 [" + obj.getClass() + "] 中，沒有找到 [" + fieldName + "] 字段 ");
+            logger.debug("在 [" + obj.getClass() + "] 中，沒有找到 [" + fieldName + "] 字段 ");
             return;
         }
         try
@@ -112,14 +112,14 @@ public class ReflectUtils
         }
         catch (IllegalAccessException e)
         {
-            logger.error("不可能抛出的异常: {}", e.getMessage());
+            logger.error("不可能拋出的異常: {}", e.getMessage());
         }
     }
 
     /**
-     * 直接调用对象方法, 无视private/protected修饰符.
-     * 用于一次性调用的情况，否则应使用getAccessibleMethod()函数获得Method后反复调用.
-     * 同时匹配方法名+参数类型，
+     * 直接調用對象方法, 無視private/protected修飾符.
+     * 用於一次性調用的情況，否則應使用getAccessibleMethod()函數獲得Method後反覆調用.
+     * 同時匹配方法名+參數類型，
      */
     @SuppressWarnings("unchecked")
     public static <E> E invokeMethod(final Object obj, final String methodName, final Class<?>[] parameterTypes,
@@ -132,7 +132,7 @@ public class ReflectUtils
         Method method = getAccessibleMethod(obj, methodName, parameterTypes);
         if (method == null)
         {
-            logger.debug("在 [" + obj.getClass() + "] 中，没有找到 [" + methodName + "] 方法 ");
+            logger.debug("在 [" + obj.getClass() + "] 中，沒有找到 [" + methodName + "] 方法 ");
             return null;
         }
         try
@@ -147,9 +147,9 @@ public class ReflectUtils
     }
 
     /**
-     * 直接调用对象方法, 无视private/protected修饰符，
-     * 用于一次性调用的情况，否则应使用getAccessibleMethodByName()函数获得Method后反复调用.
-     * 只匹配函数名，如果有多个同名函数调用第一个。
+     * 直接調用對象方法, 無視private/protected修飾符，
+     * 用於一次性調用的情況，否則應使用getAccessibleMethodByName()函數獲得Method後反覆調用.
+     * 只匹配函數名，如果有多個同名函數調用第一個。
      */
     @SuppressWarnings("unchecked")
     public static <E> E invokeMethodByName(final Object obj, final String methodName, final Object[] args)
@@ -157,13 +157,13 @@ public class ReflectUtils
         Method method = getAccessibleMethodByName(obj, methodName, args.length);
         if (method == null)
         {
-            // 如果为空不报错，直接返回空。
-            logger.debug("在 [" + obj.getClass() + "] 中，没有找到 [" + methodName + "] 方法 ");
+            // 如果爲空不報錯，直接返回空。
+            logger.debug("在 [" + obj.getClass() + "] 中，沒有找到 [" + methodName + "] 方法 ");
             return null;
         }
         try
         {
-            // 类型转换（将参数数据类型转换为目标方法参数类型）
+            // 類型轉換（將參數數據類型轉換爲目標方法參數類型）
             Class<?>[] cs = method.getParameterTypes();
             for (int i = 0; i < cs.length; i++)
             {
@@ -224,12 +224,12 @@ public class ReflectUtils
     }
 
     /**
-     * 循环向上转型, 获取对象的DeclaredField, 并强制设置为可访问.
-     * 如向上转型到Object仍无法找到, 返回null.
+     * 循環向上轉型, 獲取對象的DeclaredField, 並強制設置爲可訪問.
+     * 如向上轉型到Object仍無法找到, 返回null.
      */
     public static Field getAccessibleField(final Object obj, final String fieldName)
     {
-        // 为空不报错。直接返回 null
+        // 爲空不報錯。直接返回 null
         if (obj == null)
         {
             return null;
@@ -252,15 +252,15 @@ public class ReflectUtils
     }
 
     /**
-     * 循环向上转型, 获取对象的DeclaredMethod,并强制设置为可访问.
-     * 如向上转型到Object仍无法找到, 返回null.
-     * 匹配函数名+参数类型。
-     * 用于方法需要被多次调用的情况. 先使用本函数先取得Method,然后调用Method.invoke(Object obj, Object... args)
+     * 循環向上轉型, 獲取對象的DeclaredMethod,並強制設置爲可訪問.
+     * 如向上轉型到Object仍無法找到, 返回null.
+     * 匹配函數名+參數類型。
+     * 用於方法需要被多次調用的情況. 先使用本函數先取得Method,然後調用Method.invoke(Object obj, Object... args)
      */
     public static Method getAccessibleMethod(final Object obj, final String methodName,
             final Class<?>... parameterTypes)
     {
-        // 为空不报错。直接返回 null
+        // 爲空不報錯。直接返回 null
         if (obj == null)
         {
             return null;
@@ -283,14 +283,14 @@ public class ReflectUtils
     }
 
     /**
-     * 循环向上转型, 获取对象的DeclaredMethod,并强制设置为可访问.
-     * 如向上转型到Object仍无法找到, 返回null.
-     * 只匹配函数名。
-     * 用于方法需要被多次调用的情况. 先使用本函数先取得Method,然后调用Method.invoke(Object obj, Object... args)
+     * 循環向上轉型, 獲取對象的DeclaredMethod,並強制設置爲可訪問.
+     * 如向上轉型到Object仍無法找到, 返回null.
+     * 只匹配函數名。
+     * 用於方法需要被多次調用的情況. 先使用本函數先取得Method,然後調用Method.invoke(Object obj, Object... args)
      */
     public static Method getAccessibleMethodByName(final Object obj, final String methodName, int argsNum)
     {
-        // 为空不报错。直接返回 null
+        // 爲空不報錯。直接返回 null
         if (obj == null)
         {
             return null;
@@ -312,7 +312,7 @@ public class ReflectUtils
     }
 
     /**
-     * 改变private/protected的方法为public，尽量不调用实际改动的语句，避免JDK的SecurityManager抱怨。
+     * 改變private/protected的方法爲public，儘量不調用實際改動的語句，避免JDK的SecurityManager抱怨。
      */
     public static void makeAccessible(Method method)
     {
@@ -324,7 +324,7 @@ public class ReflectUtils
     }
 
     /**
-     * 改变private/protected的成员变量为public，尽量不调用实际改动的语句，避免JDK的SecurityManager抱怨。
+     * 改變private/protected的成員變量爲public，儘量不調用實際改動的語句，避免JDK的SecurityManager抱怨。
      */
     public static void makeAccessible(Field field)
     {
@@ -336,8 +336,8 @@ public class ReflectUtils
     }
 
     /**
-     * 通过反射, 获得Class定义中声明的泛型参数的类型, 注意泛型必须定义在父类处
-     * 如无法找到, 返回Object.class.
+     * 通過反射, 獲得Class定義中聲明的泛型參數的類型, 注意泛型必須定義在父類處
+     * 如無法找到, 返回Object.class.
      */
     @SuppressWarnings("unchecked")
     public static <T> Class<T> getClassGenricType(final Class clazz)
@@ -346,8 +346,8 @@ public class ReflectUtils
     }
 
     /**
-     * 通过反射, 获得Class定义中声明的父类的泛型参数的类型.
-     * 如无法找到, 返回Object.class.
+     * 通過反射, 獲得Class定義中聲明的父類的泛型參數的類型.
+     * 如無法找到, 返回Object.class.
      */
     public static Class getClassGenricType(final Class clazz, final int index)
     {
@@ -396,7 +396,7 @@ public class ReflectUtils
     }
 
     /**
-     * 将反射时的checked exception转换为unchecked exception.
+     * 將反射時的checked exception轉換爲unchecked exception.
      */
     public static RuntimeException convertReflectionExceptionToUnchecked(String msg, Exception e)
     {

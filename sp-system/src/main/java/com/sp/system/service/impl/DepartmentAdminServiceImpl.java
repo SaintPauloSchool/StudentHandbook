@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 部门管理员业务逻辑实现类
+ * 部門管理員業務邏輯實現類
  */
 @Service
 public class DepartmentAdminServiceImpl implements DepartmentAdminService {
@@ -25,14 +25,14 @@ public class DepartmentAdminServiceImpl implements DepartmentAdminService {
     private DepartmentAdminMapper departmentAdminMapper;
 
     /**
-     * 批量保存部门管理员信息（处理新增和更新）
+     * 批量保存部門管理員信息（處理新增和更新）
      *
-     * @param admins 部门管理员列表
+     * @param admins 部門管理員列表
      */
     @Override
     @Transactional
     public void batchSaveDepartmentAdmins(List<DepartmentAdmin> admins) {
-        // 检查列表是否为空
+        // 檢查列表是否爲空
         if (admins == null || admins.isEmpty()) {
             return;
         }
@@ -42,9 +42,9 @@ public class DepartmentAdminServiceImpl implements DepartmentAdminService {
         int insertCount = 0;
         int updateCount = 0;
 
-        // 遍历每条记录，检查是否存在
+        // 遍歷每條記錄，檢查是否存在
         for (DepartmentAdmin admin : admins) {
-            // 查询是否已存在相同的 department_id 和 userid 组合
+            // 查詢是否已存在相同的 department_id 和 userid 組合
             DepartmentAdmin existing = departmentAdminMapper.selectByDepartmentIdAndUserid(
                     admin.getDepartmentId(), admin.getUserid());
 
@@ -61,23 +61,23 @@ public class DepartmentAdminServiceImpl implements DepartmentAdminService {
             }
         }
 
-        // 批量插入新记录
+        // 批量插入新記錄
         if (!toInsert.isEmpty()) {
             departmentAdminMapper.batchInsertDepartmentAdmins(toInsert);
             insertCount = toInsert.size();
-            logger.info("新增部门管理员 {} 条", insertCount);
+            logger.info("新增部門管理員 {} 條", insertCount);
         }
 
-        // 逐条更新已有记录
+        // 逐條更新已有記錄
         if (!toUpdate.isEmpty()) {
             for (DepartmentAdmin admin : toUpdate) {
                 departmentAdminMapper.updateByDepartmentIdAndUserid(admin);
             }
             updateCount = toUpdate.size();
-            logger.info("更新部门管理员 {} 条", updateCount);
+            logger.info("更新部門管理員 {} 條", updateCount);
         }
 
-        logger.info("部门管理员同步完成 - 新增: {}, 更新: {}", insertCount, updateCount);
+        logger.info("部門管理員同步完成 - 新增: {}, 更新: {}", insertCount, updateCount);
     }
 
 }

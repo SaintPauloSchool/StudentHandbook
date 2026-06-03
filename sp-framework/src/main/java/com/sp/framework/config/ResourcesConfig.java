@@ -14,7 +14,7 @@ import com.sp.framework.interceptor.RepeatSubmitInterceptor;
 import com.sp.framework.interceptor.TokenInterceptor;
 
 /**
- * 拦截器配置
+ * 攔截器配置
  *
  * @author ruoyi
  */
@@ -31,7 +31,7 @@ public class ResourcesConfig implements WebMvcConfigurer {
     private ApiSignatureInterceptor apiSignatureInterceptor;
 
     /**
-     * 默认首页的设置，当输入域名是可以自动跳转到默认指定的网页
+     * 默認首頁的設置，當輸入域名是可以自動跳轉到默認指定的網頁
      */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
@@ -39,7 +39,7 @@ public class ResourcesConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        /** 本地文件上传路径 */
+        /** 本地文件上傳路徑 */
         registry.addResourceHandler(Constants.RESOURCE_PREFIX + "/**").addResourceLocations("file:" + OverallSituationConfig.getProfile() + "/");
 
         /** swagger配置 */
@@ -47,12 +47,12 @@ public class ResourcesConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 自定义拦截规则
+     * 自定義攔截規則
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(repeatSubmitInterceptor).addPathPatterns("/**");
-        // 对特定路径放行，避免被token拦截
+        // 對特定路徑放行，避免被token攔截
         registry.addInterceptor(tokenInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
@@ -71,7 +71,7 @@ public class ResourcesConfig implements WebMvcConfigurer {
                         "/tool/swagger/**"
                 );
                 
-        // 签名校验拦截器配置
+        // 籤名校驗攔截器配置
         registry.addInterceptor(apiSignatureInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
