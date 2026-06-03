@@ -3,17 +3,17 @@ package com.sp.system.entity;
 import java.time.LocalDateTime;
 
 /**
- * 通知回答表实体类
+ * 通知回答表實體類
  */
 public class NotificationAnswer {
     private Long answerId;            // 答案 ID
     private Long notificationId;      // 通知 ID
-    private Long questionId;          // 问题 ID
-    private String answerData;        // 答案数据（JSON格式，包含nodeId、nodeTitle、nodeType、answerContent、attachmentUrls）
-    private String userId;            // 用户 ID（parentUserId）
-    private String userType;          // 用户类型（1 学生 2 家长 3 教师）
-    private String studentUserId;     // 学生用户ID（关联sys_parent_student_relation）
-    private LocalDateTime createTime;          // 创建时间
+    private Long questionId;          // 問題 ID
+    private String answerData;        // 答案數據（JSON格式，包含nodeId、nodeTitle、nodeType、answerContent、attachmentUrls）
+    private String userId;            // 用戶 ID（parentUserId）
+    private String userType;          // 用戶類型（1 學生 2 家長 3 教師）
+    private String studentUserId;     // 學生用戶ID（關聯sys_parent_student_relation）
+    private LocalDateTime createTime;          // 創建時間
 
     public Long getAnswerId() {
         return answerId;

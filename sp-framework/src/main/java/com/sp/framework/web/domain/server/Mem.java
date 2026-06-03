@@ -3,23 +3,23 @@ package com.sp.framework.web.domain.server;
 import com.sp.common.utils.Arith;
 
 /**
- * 內存相关信息
+ * 內存相關信息
  *
  */
 public class Mem
 {
     /**
-     * 内存总量
+     * 內存總量
      */
     private double total;
 
     /**
-     * 已用内存
+     * 已用內存
      */
     private double used;
 
     /**
-     * 剩余内存
+     * 剩餘內存
      */
     private double free;
 

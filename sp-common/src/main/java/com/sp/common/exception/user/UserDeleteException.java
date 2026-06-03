@@ -1,7 +1,7 @@
 package com.sp.common.exception.user;
 
 /**
- * 用户账号已被删除
+ * 用戶賬號已被刪除
  *
  */
 public class UserDeleteException extends UserException

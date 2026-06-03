@@ -1,14 +1,14 @@
 package com.sp.common.exception;
 
 /**
- * 重复提交异常
+ * 重複提交異常
  */
 public class DuplicateSubmissionException extends RuntimeException {
     
     private static final long serialVersionUID = 1L;
     
     /**
-     * 错误码
+     * 錯誤碼
      */
     private int code;
     

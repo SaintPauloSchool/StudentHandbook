@@ -6,57 +6,57 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 部门家长绑定数据层
+ * 部門家長綁定數據層
  *
  */
 public interface DepartmentParentBindingMapper {
 
     /**
-     * 根据家长ID和学生ID查询绑定的部门
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @return 部门ID（只返回一条）
+     * 根據家長ID和學生ID查詢綁定的部門
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @return 部門ID（只返回一條）
      */
     Long selectByParentUserId(@Param("parentUserId") String parentUserId, @Param("studentUserId") String studentUserId);
 
     /**
-     * 安全插入部门家长绑定记录（忽略重复）
-     * @param binding 部门家长绑定对象
-     * @return 影响的行数
+     * 安全插入部門家長綁定記錄（忽略重複）
+     * @param binding 部門家長綁定對象
+     * @return 影響的行數
      */
     int insertIgnore(DepartmentParentBinding binding);
 
     /**
-     * 查询所有唯一的家长用户ID
-     * @return 家长用户ID列表
+     * 查詢所有唯一的家長用戶ID
+     * @return 家長用戶ID列表
      */
     List<String> selectAllParentUserIds();
     
     /**
-     * 检查家长是否绑定了学生（即绑定了学生用户ID的记录）
-     * @param parentUserId 家长用户ID
-     * @return 记录数量
+     * 檢查家長是否綁定了學生（即綁定了學生用戶ID的記錄）
+     * @param parentUserId 家長用戶ID
+     * @return 記錄數量
      */
     int checkHasBoundStudents(@Param("parentUserId") String parentUserId);
     
     /**
-     * 根据部门ID查询所有绑定记录
-     * @param departmentId 部门ID
-     * @return 绑定记录列表
+     * 根據部門ID查詢所有綁定記錄
+     * @param departmentId 部門ID
+     * @return 綁定記錄列表
      */
     List<DepartmentParentBinding> selectByDepartmentId(@Param("departmentId") Long departmentId);
     
     /**
-     * 根据ID更新绑定记录
-     * @param binding 绑定记录
-     * @return 影响的行数
+     * 根據ID更新綁定記錄
+     * @param binding 綁定記錄
+     * @return 影響的行數
      */
     int updateById(DepartmentParentBinding binding);
     
     /**
-     * 根据ID删除绑定记录
-     * @param id 记录ID
-     * @return 影响的行数
+     * 根據ID刪除綁定記錄
+     * @param id 記錄ID
+     * @return 影響的行數
      */
     int deleteById(@Param("id") Long id);
 }

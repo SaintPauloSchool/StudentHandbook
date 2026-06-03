@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 部门业务逻辑实现类
+ * 部門業務邏輯實現類
  */
 @Service
 public class DepartmentServiceImpl implements DepartmentService {
@@ -33,32 +33,32 @@ public class DepartmentServiceImpl implements DepartmentService {
     private IClassSectionService classSectionService;
 
     /**
-     * 批量保存部门信息
+     * 批量保存部門信息
      *
-     * @param departments 部门列表
+     * @param departments 部門列表
      */
     @Override
     @Transactional
     public void batchSaveDepartments(List<Department> departments) {
-        // 检查部门列表是否为空
+        // 檢查部門列表是否爲空
         if (departments != null && !departments.isEmpty()) {
-            // 批量插入或更新部门信息（根据ID判断存在与否）
+            // 批量插入或更新部門信息（根據ID判斷存在與否）
             departmentMapper.batchInsertDepartments(departments);
         }
     }
 
     /**
-     * 根据家长用户ID查询部门信息
+     * 根據家長用戶ID查詢部門信息
      *
-     * @param parentUserId 家长用户ID
-     * @return 部门列表
+     * @param parentUserId 家長用戶ID
+     * @return 部門列表
      */
     @Override
     public List<Department> getDepartmentsByParentUserId(String parentUserId, String studentUserId) {
-        // 查询家长用户绑定的部门ID（只返回一条）
+        // 查詢家長用戶綁定的部門ID（只返回一條）
         Long departmentId = departmentParentBindingMapper.selectByParentUserId(parentUserId, studentUserId);
         
-        // 根据部门ID查询部门详细信息
+        // 根據部門ID查詢部門詳細信息
         List<Department> departments = new ArrayList<>();
         if (departmentId != null) {
             Department department = departmentMapper.selectById(departmentId);
@@ -72,9 +72,9 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     /**
-     * 获取班级部门 ID
+     * 獲取班級部門 ID
      *
-     * @return 班级部门 ID 列表
+     * @return 班級部門 ID 列表
      */
     @Override
     public List<Long> getClassDepartmentId() {
@@ -82,34 +82,34 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     /**
-     * 根据家长ID和学生ID获取班级名
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @return 班级名
+     * 根據家長ID和學生ID獲取班級名
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @return 班級名
      */
     @Override
     public String getClassNameByParentAndStudent(String parentUserId, String studentUserId) {
         try {
-            // 1. 获取部门信息
+            // 1. 獲取部門信息
             List<Department> departments = getDepartmentsByParentUserId(parentUserId, studentUserId);
             if (departments == null || departments.isEmpty()) {
-                logger.warn("未找到家长 {} 和学生 {} 的部门信息", parentUserId, studentUserId);
+                logger.warn("未找到家長 {} 和學生 {} 的部門信息", parentUserId, studentUserId);
                 return null;
             }
 
             String departmentName = departments.get(0).getName();
-            logger.debug("获取到部门名称: {}", departmentName);
+            logger.debug("獲取到部門名稱: {}", departmentName);
 
-            // 2. 使用部门名称查询 class_section 表获取 class_section_sp
+            // 2. 使用部門名稱查詢 class_section 表獲取 class_section_sp
             ClassSection classSection = classSectionService.getClassSectionByDsedj(departmentName);
             if (classSection == null || classSection.getClassSectionSp() == null) {
-                logger.warn("未找到部门 {} 对应的班级信息", departmentName);
+                logger.warn("未找到部門 {} 對應的班級信息", departmentName);
                 return null;
             }
 
             return classSection.getClassSectionSp();
         } catch (Exception e) {
-            logger.error("获取班级名失败: {}", e.getMessage(), e);
+            logger.error("獲取班級名失敗: {}", e.getMessage(), e);
             return null;
         }
     }

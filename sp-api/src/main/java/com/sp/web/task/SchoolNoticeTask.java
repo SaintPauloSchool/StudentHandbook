@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 学校通知定时发送任务
- * 每周一到周五下午6点执行学校通知发送任务（北京时间）
+ * 學校通知定時發送任務
+ * 每周一到周五下午6點執行學校通知發送任務（北京時間）
  */
 @Component
 public class SchoolNoticeTask {
@@ -35,45 +35,45 @@ public class SchoolNoticeTask {
     private static final AtomicBoolean isExecuting = new AtomicBoolean(false);
 
     /**
-     * 每批发送的最大家长数量（企业微信限制）
+     * 每批發送的最大家長數量（企業微信限制）
      */
     private static final int BATCH_SIZE = 1000;
     /**
-     * 每周一到周五下午6点执行学校通知发送任务（北京时间）
+     * 每周一到周五下午6點執行學校通知發送任務（北京時間）
      */
     //@Scheduled(cron = "0 0 18 ? * MON-FRI", zone = "Asia/Shanghai")
     public void sendSchoolNotice() {
-        // 使用AtomicBoolean确保同一时间只有一个实例在执行
+        // 使用AtomicBoolean確保同一時間只有一個實例在執行
         if (!isExecuting.compareAndSet(false, true)) {
-            logger.info("学校通知发送任务已在执行中，跳过本次执行");
+            logger.info("學校通知發送任務已在執行中，跳過本次執行");
             return;
         }
 
         try {
-            logger.info("开始执行定时学校通知发送任务");
+            logger.info("開始執行定時學校通知發送任務");
 
-            // 从sys_department_parent_binding表获取parent_user_id列表
+            // 從sys_department_parent_binding表獲取parent_user_id列表
             List<String> allParentUserIds = departmentParentBindingService.getAllParentUserIds();
             if (allParentUserIds == null) {
                 allParentUserIds = new ArrayList<>();
             }
-            logger.info("获取到家长用户ID总数量: {}", allParentUserIds.size());
+            logger.info("獲取到家長用戶ID總數量: {}", allParentUserIds.size());
 
             if (allParentUserIds.isEmpty()) {
-                logger.warn("没有家长用户ID，跳过发送");
+                logger.warn("沒有家長用戶ID，跳過發送");
                 return;
             }
 
-            // 获取access_token
+            // 獲取access_token
             String accessToken = weChatWorkSchoolUtils.getAccessToken();
-            logger.info("成功获取access_token");
+            logger.info("成功獲取access_token");
 
-            // 构造请求URL
+            // 構造請求URL
             String url = "https://qyapi.weixin.qq.com/cgi-bin/externalcontact/message/send?access_token=" + accessToken;
 
-            // 分批发送消息
+            // 分批發送消息
             int totalBatches = (int) Math.ceil((double) allParentUserIds.size() / BATCH_SIZE);
-            logger.info("需要分 {} 批发送，每批最多 {} 个家长", totalBatches, BATCH_SIZE);
+            logger.info("需要分 {} 批發送，每批最多 {} 個家長", totalBatches, BATCH_SIZE);
 
             int successCount = 0;
             int failCount = 0;
@@ -83,9 +83,9 @@ public class SchoolNoticeTask {
                 List<String> batchList = allParentUserIds.subList(i, endIndex);
                 int batchNumber = (i / BATCH_SIZE) + 1;
 
-                logger.info("开始发送第 {}/{} 批，本批家长数量: {}", batchNumber, totalBatches, batchList.size());
+                logger.info("開始發送第 {}/{} 批，本批家長數量: {}", batchNumber, totalBatches, batchList.size());
 
-                // 构造请求参数
+                // 構造請求參數
                 Map<String, Object> noticeRequest = new HashMap<>();
                 noticeRequest.put("recv_scope", 0);
                 noticeRequest.put("to_parent_userid", batchList);
@@ -106,32 +106,32 @@ public class SchoolNoticeTask {
                 noticeRequest.put("enable_duplicate_check", 0);
                 noticeRequest.put("duplicate_check_interval", 1800);
 
-                // 发送POST请求
+                // 發送POST請求
                 String requestBody = JSON.toJSONString(noticeRequest);
                 String response = HttpUtils.sendPost(url, requestBody);
 
-                // 解析响应结果
+                // 解析響應結果
                 JSONObject result = JSONObject.parseObject(response);
                 int errcode = result.getInteger("errcode");
                 String errmsg = result.getString("errmsg");
 
                 if (errcode == 0) {
                     successCount++;
-                    logger.info("第 {}/{} 批发送成功", batchNumber, totalBatches);
+                    logger.info("第 {}/{} 批發送成功", batchNumber, totalBatches);
                 } else {
                     failCount++;
-                    logger.error("第 {}/{} 批发送失败: errcode={}, errmsg={}", batchNumber, totalBatches, errcode, errmsg);
+                    logger.error("第 {}/{} 批發送失敗: errcode={}, errmsg={}", batchNumber, totalBatches, errcode, errmsg);
                 }
             }
 
-            logger.info("学校通知发送完成 - 总批次: {}, 成功: {}, 失败: {}", totalBatches, successCount, failCount);
+            logger.info("學校通知發送完成 - 總批次: {}, 成功: {}, 失敗: {}", totalBatches, successCount, failCount);
         } catch (Exception e) {
-            logger.error("定时发送学校通知失败", e);
+            logger.error("定時發送學校通知失敗", e);
         } finally {
-            // 确保执行完成后释放锁
+            // 確保執行完成後釋放鎖
             isExecuting.set(false);
         }
 
-        logger.info("定时学校通知发送任务执行完成");
+        logger.info("定時學校通知發送任務執行完成");
     }
 }

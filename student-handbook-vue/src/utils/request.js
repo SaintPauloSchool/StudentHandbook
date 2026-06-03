@@ -1,10 +1,10 @@
-// 封装axios的请求工具函数
+// 封裝axios的請求工具函數
 import axios from 'axios'
-import {ElMessage} from 'element-plus' // 导入Element Plus的消息组件
-import settings from '@/config/settings' // 导入全局配置设置
-import MD5 from 'crypto-js/md5' // 导入 MD5 用于计算签名
+import {ElMessage} from 'element-plus' // 導入Element Plus的消息組件
+import settings from '@/config/settings' // 導入全局配置設置
+import MD5 from 'crypto-js/md5' // 導入 MD5 用於計算籤名
 
-// 生成唯一标识符(UUID的简易实现)
+// 生成唯一標識符(UUID的簡易實現)
 const generateNonce = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         return crypto.randomUUID().replace(/-/g, '');
@@ -15,30 +15,30 @@ const generateNonce = () => {
     });
 };
 
-// 创建axios实例
+// 創建axios實例
 const getBaseURL = () => {
-    // API_ENDPOINTS已经包含了完整的路径，所以这里只需要返回空字串
+    // API_ENDPOINTS已經包含了完整的路徑，所以這裡只需要返回空字串
     return '';
 };
 
 const service = axios.create({
     baseURL: getBaseURL(), // api的base_url
-    timeout: 30000 // 请求超时时间
+    timeout: 30000 // 請求超時時間
 });
 
-// request拦截器
+// request攔截器
 service.interceptors.request.use(
     config => {
-        // 在发送请求之前做些什么
-        if (settings.enableTokenAuth) { // 只有在启用Token验证时才添加token
+        // 在發送請求之前做些什麼
+        if (settings.enableTokenAuth) { // 只有在啓用Token驗證時才添加token
             const token = localStorage.getItem('token')
             if (token) {
-                // 让每个请求携带自定义token
+                // 讓每個請求攜帶自定義token
                 config.headers['Authorization'] = 'Bearer ' + token
             }
         }
         
-        // API 安全校驗拦截器
+        // API 安全校驗攔截器
         const timestamp = Date.now().toString();
         const nonce = generateNonce();
         const appSecret = settings.appSecret;
@@ -57,15 +57,15 @@ service.interceptors.request.use(
     }
 )
 
-// response拦截器
+// response攔截器
 service.interceptors.response.use(
     response => {
-        // 检查响应数据结构
+        // 檢查響應數據結構
         const res = response.data;
 
-        // 如果后端返回了token信息，保存到本地存储
+        // 如果後端返回了token信息，保存到本地存儲
         if (res.code === 200 && res.data && res.data.token) {
-            // 将token保存到本地存储
+            // 將token保存到本地存儲
             localStorage.setItem('token', res.data.token);
         }
 
@@ -73,17 +73,17 @@ service.interceptors.response.use(
     },
     error => {
         console.log('err' + error)// for debug
-        if (settings.enableTokenAuth) { // 只有在启用Token验证时才进行跳转
+        if (settings.enableTokenAuth) { // 只有在啓用Token驗證時才進行跳轉
             if (error.response && error.response.status === 401) {
-                // token过期/无效，跳转到登录页面
+                // token過期/無效，跳轉到登錄頁面
                 localStorage.removeItem('token')
                 // 記住當前的 URL 以便登錄後跳轉回去
                 sessionStorage.setItem('redirect_url', window.location.pathname + window.location.search + window.location.hash)
-                // 重定向到登录页面
+                // 重定向到登錄頁面
                 window.location.href = '/login'
                 ElMessage.error('請先登錄')
             } else if (error.response && error.response.status === 403) {
-                // 无权限访问
+                // 無權限訪問
                 ElMessage.error('無權限訪問資源')
             }
         }

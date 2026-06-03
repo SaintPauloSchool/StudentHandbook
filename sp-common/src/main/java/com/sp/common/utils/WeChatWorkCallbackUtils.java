@@ -13,34 +13,34 @@ import java.util.Arrays;
 import java.util.Base64;
 
 /**
- * 企业微信回调工具类
- * 用于处理企业微信回调相关的签名验证和消息解密
+ * 企業微信回調工具類
+ * 用於處理企業微信回調相關的籤名驗證和消息解密
  *
- * <p>签名算法（GET/POST 通用）：将 token、timestamp、nonce、第四个参数（echostr 或 encrypt）
- * 四个字段按字典序排序后拼接，做 SHA-1 哈希，结果与 msg_signature 比对。</p>
+ * <p>籤名算法（GET/POST 通用）：將 token、timestamp、nonce、第四個參數（echostr 或 encrypt）
+ * 四個字段按字典序排序後拼接，做 SHA-1 哈希，結果與 msg_signature 比對。</p>
  */
 public class WeChatWorkCallbackUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(WeChatWorkCallbackUtils.class);
 
     private WeChatWorkCallbackUtils() {
-        // 工具类，禁止实例化
+        // 工具類，禁止實例化
     }
 
     // -------------------------------------------------------------------------
-    // 签名验证
+    // 籤名驗證
     // -------------------------------------------------------------------------
 
     /**
-     * 验证消息推送签名（POST 场景）
-     * 参与签名：token + timestamp + nonce + encrypt
+     * 驗證消息推送籤名（POST 場景）
+     * 參與籤名：token + timestamp + nonce + encrypt
      *
-     * @param token     回调 Token
-     * @param timestamp 时间戳
-     * @param nonce     随机数
-     * @param encrypt   XML 中的 Encrypt 字段内容
-     * @param signature 企业微信传递的 msg_signature
-     * @return true 验证通过
+     * @param token     回調 Token
+     * @param timestamp 時間戳
+     * @param nonce     隨機數
+     * @param encrypt   XML 中的 Encrypt 字段內容
+     * @param signature 企業微信傳遞的 msg_signature
+     * @return true 驗證通過
      */
     public static boolean verifySignature(String token, String timestamp, String nonce,
                                           String encrypt, String signature) {
@@ -48,15 +48,15 @@ public class WeChatWorkCallbackUtils {
     }
 
     /**
-     * 验证 URL 有效性签名（GET 场景）
-     * 参与签名：token + timestamp + nonce + echostr
+     * 驗證 URL 有效性籤名（GET 場景）
+     * 參與籤名：token + timestamp + nonce + echostr
      *
-     * @param token     回调 Token
-     * @param timestamp 时间戳
-     * @param nonce     随机数
-     * @param echostr   加密的随机字符串
-     * @param signature 企业微信传递的 msg_signature
-     * @return true 验证通过
+     * @param token     回調 Token
+     * @param timestamp 時間戳
+     * @param nonce     隨機數
+     * @param echostr   加密的隨機字符串
+     * @param signature 企業微信傳遞的 msg_signature
+     * @return true 驗證通過
      */
     public static boolean verifySignatureWithEchoStr(String token, String timestamp, String nonce,
                                                      String echostr, String signature) {
@@ -64,7 +64,7 @@ public class WeChatWorkCallbackUtils {
     }
 
     /**
-     * 通用签名校验：将若干字段排序拼接后做 SHA-1，与期望签名比对
+     * 通用籤名校驗：將若干字段排序拼接後做 SHA-1，與期望籤名比對
      */
     private static boolean sha1Verify(String expected, String... fields) {
         Arrays.sort(fields);
@@ -73,7 +73,7 @@ public class WeChatWorkCallbackUtils {
             sb.append(f);
         }
         String computed = sha1Hex(sb.toString());
-        logger.debug("签名校验 — 计算值: {}, 期望值: {}", computed, expected);
+        logger.debug("籤名校驗 — 計算值: {}, 期望值: {}", computed, expected);
         return computed.equalsIgnoreCase(expected);
     }
 
@@ -82,14 +82,14 @@ public class WeChatWorkCallbackUtils {
     // -------------------------------------------------------------------------
 
     /**
-     * 解密 echostr（URL 验证场景）
-     * 企业微信加密格式：AES-CBC，Key=AESKey，IV=AESKey前16字节
-     * 明文结构：16字节随机数 + 4字节消息长度(大端) + 消息内容 + receiveid
+     * 解密 echostr（URL 驗證場景）
+     * 企業微信加密格式：AES-CBC，Key=AESKey，IV=AESKey前16字節
+     * 明文結構：16字節隨機數 + 4字節消息長度(大端) + 消息內容 + receiveid
      *
-     * @param echostr        Base64 编码的密文
-     * @param encodingAesKey 企业微信配置的 EncodingAESKey（43或44字符）
-     * @return 解密后的明文字符串
-     * @throws Exception 解密失败
+     * @param echostr        Base64 編碼的密文
+     * @param encodingAesKey 企業微信配置的 EncodingAESKey（43或44字符）
+     * @return 解密後的明文字符串
+     * @throws Exception 解密失敗
      */
     public static String decryptEchoStr(String echostr, String encodingAesKey) throws Exception {
         byte[] aesKey = decodeAesKey(encodingAesKey);
@@ -97,7 +97,7 @@ public class WeChatWorkCallbackUtils {
 
         byte[] decrypted = aesDecrypt(aesKey, encryptedData);
 
-        // 跳过头部 16 字节随机数，读取 4 字节大端消息长度
+        // 跳過頭部 16 字節隨機數，讀取 4 字節大端消息長度
         ByteBuffer buf = ByteBuffer.wrap(decrypted, 16, decrypted.length - 16);
         int msgLen = buf.getInt();
 
@@ -107,12 +107,12 @@ public class WeChatWorkCallbackUtils {
     }
 
     // -------------------------------------------------------------------------
-    // 私有辅助方法
+    // 私有輔助方法
     // -------------------------------------------------------------------------
 
     /**
-     * 处理并解码 EncodingAESKey 为 AES 密钥字节数组
-     * 企业微信的 EncodingAESKey 为 43 位 Base64 字符，需补齐末尾 "=" 再解码
+     * 處理並解碼 EncodingAESKey 爲 AES 密鑰字節數組
+     * 企業微信的 EncodingAESKey 爲 43 位 Base64 字符，需補齊末尾 "=" 再解碼
      */
     private static byte[] decodeAesKey(String encodingAesKey) {
         String key = encodingAesKey.trim();
@@ -123,7 +123,7 @@ public class WeChatWorkCallbackUtils {
     }
 
     /**
-     * AES-CBC 解密，IV 取 AESKey 前 16 字节
+     * AES-CBC 解密，IV 取 AESKey 前 16 字節
      */
     private static byte[] aesDecrypt(byte[] aesKey, byte[] encryptedData) throws Exception {
         byte[] iv = Arrays.copyOf(aesKey, 16);
@@ -135,7 +135,7 @@ public class WeChatWorkCallbackUtils {
     }
 
     /**
-     * 计算字符串的 SHA-1 哈希，返回小写十六进制字符串
+     * 計算字符串的 SHA-1 哈希，返回小寫十六進制字符串
      */
     private static String sha1Hex(String input) {
         try {

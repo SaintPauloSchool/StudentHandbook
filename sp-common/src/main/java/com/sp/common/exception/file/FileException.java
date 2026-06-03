@@ -3,7 +3,7 @@ package com.sp.common.exception.file;
 import com.sp.common.exception.base.BaseException;
 
 /**
- * 文件信息异常类
+ * 文件信息異常類
  *
  */
 public class FileException extends BaseException

@@ -3,16 +3,16 @@ package com.sp.system.entity;
 import java.time.LocalDateTime;
 
 /**
- * 部门管理员实体类
+ * 部門管理員實體類
  */
 public class DepartmentAdmin {
-    private Long id;                      // 主键ID
-    private Long departmentId;            // 部门ID
-    private String userid;                // 部门管理员的userid
-    private Integer type;                 // 部门管理员的类型：1-校区负责人, 2-年级负责人, 3-班主任, 4-任课老师, 5-学段负责人
-    private String subject;               // 教师或班主任的科目
-    private LocalDateTime createTime;     // 创建时间
-    private LocalDateTime updateTime;     // 更新时间
+    private Long id;                      // 主鍵ID
+    private Long departmentId;            // 部門ID
+    private String userid;                // 部門管理員的userid
+    private Integer type;                 // 部門管理員的類型：1-校區負責人, 2-年級負責人, 3-班主任, 4-任課老師, 5-學段負責人
+    private String subject;               // 教師或班主任的科目
+    private LocalDateTime createTime;     // 創建時間
+    private LocalDateTime updateTime;     // 更新時間
 
     public Long getId() {
         return id;

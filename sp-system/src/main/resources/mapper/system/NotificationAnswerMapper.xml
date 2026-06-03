@@ -33,7 +33,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </insert>
     
-    <!-- 查询用户对该通知的回答（使用student_user_id） -->
+    <!-- 查詢用戶對該通知的回答（使用student_user_id） -->
     <select id="selectUserAnswers" resultMap="NotificationAnswerResult">
         SELECT answer_id, notification_id, question_id, answer_data, user_id, user_type, student_user_id, create_time
         FROM notification_answer
@@ -42,7 +42,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         ORDER BY question_id, answer_id
     </select>
     
-    <!-- 检查学生是否已回答该问题 -->
+    <!-- 檢查學生是否已回答該問題 -->
     <select id="checkStudentAnswerExists" resultType="int">
         SELECT COUNT(*)
         FROM notification_answer

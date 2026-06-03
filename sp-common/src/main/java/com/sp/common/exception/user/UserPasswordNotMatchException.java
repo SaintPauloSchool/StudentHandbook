@@ -1,7 +1,7 @@
 package com.sp.common.exception.user;
 
 /**
- * 用户密码不正确或不符合规范异常类
+ * 用戶密碼不正確或不符合規範異常類
  *
  */
 public class UserPasswordNotMatchException extends UserException

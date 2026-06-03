@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 匿名访问不鉴权注解
+ * 匿名訪問不鑑權註解
  *
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })

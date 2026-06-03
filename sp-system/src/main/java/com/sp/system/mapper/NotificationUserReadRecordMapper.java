@@ -8,47 +8,47 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 通知用户阅读记录 Mapper 接口
+ * 通知用戶閱讀記錄 Mapper 接口
  */
 public interface NotificationUserReadRecordMapper {
 
     /**
-     * 根据通知ID和用户ID查询阅读记录（跨 send_record 联查）
+     * 根據通知ID和用戶ID查詢閱讀記錄（跨 send_record 聯查）
      *
      * @param notificationId 通知ID
-     * @param userId         用户ID
-     * @param studentUserId  学生用户ID（可为null）
-     * @return 阅读记录；若不存在则返回null
+     * @param userId         用戶ID
+     * @param studentUserId  學生用戶ID（可爲null）
+     * @return 閱讀記錄；若不存在則返回null
      */
     NotificationUserReadRecord selectByNotificationAndUser(@Param("notificationId") Long notificationId,
                                                            @Param("userId") String userId,
                                                            @Param("studentUserId") String studentUserId);
 
     /**
-     * 将指定记录标记为已读
+     * 將指定記錄標記爲已讀
      *
-     * @param readId 阅读记录ID
-     * @param readTime 阅读时间
-     * @return 影响行数
+     * @param readId 閱讀記錄ID
+     * @param readTime 閱讀時間
+     * @return 影響行數
      */
     int markAsRead(@Param("readId") Long readId, @Param("readTime") LocalDateTime readTime);
 
     /**
-     * 将指定记录标记为已回复
+     * 將指定記錄標記爲已回復
      *
-     * @param readId 阅读记录ID
-     * @param replyTime 回复时间
-     * @return 影响行数
+     * @param readId 閱讀記錄ID
+     * @param replyTime 回復時間
+     * @return 影響行數
      */
     int markAsReplied(@Param("readId") Long readId, @Param("replyTime") LocalDateTime replyTime);
 
     /**
-     * 分页查询已发布通知列表（仅返回发送给当前用户的通知，附带阅读状态）
+     * 分頁查詢已發布通知列表（僅返回發送給當前用戶的通知，附帶閱讀狀態）
      *
      * @param offset 偏移量
-     * @param limit  每页数量
-     * @param userId 当前家长用户ID
-     * @param studentUserId 学生用户ID（可为null）
+     * @param limit  每頁數量
+     * @param userId 當前家長用戶ID
+     * @param studentUserId 學生用戶ID（可爲null）
      * @return 通知列表（含 isRead、readId、sendRecordId 字段）
      */
     List<NotificationWithReadStatusVO> selectPublishedNotificationsForUser(
@@ -58,20 +58,20 @@ public interface NotificationUserReadRecordMapper {
             @Param("studentUserId") String studentUserId);
 
     /**
-     * 查询发送给当前用户的已发布通知总数
+     * 查詢發送給當前用戶的已發布通知總數
      *
-     * @param userId 当前家长用户ID
-     * @param studentUserId 学生用户ID（可为null）
-     * @return 总数
+     * @param userId 當前家長用戶ID
+     * @param studentUserId 學生用戶ID（可爲null）
+     * @return 總數
      */
     int countPublishedNotificationsForUser(@Param("userId") String userId, @Param("studentUserId") String studentUserId);
 
     /**
-     * 查询发送给当前用户的未读通知数量
+     * 查詢發送給當前用戶的未讀通知數量
      *
-     * @param userId 当前家长用户ID
-     * @param studentUserId 学生用户ID（可为null）
-     * @return 未读数量
+     * @param userId 當前家長用戶ID
+     * @param studentUserId 學生用戶ID（可爲null）
+     * @return 未讀數量
      */
     int countUnreadNotificationsForUser(@Param("userId") String userId, @Param("studentUserId") String studentUserId);
 }

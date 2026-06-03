@@ -17,7 +17,7 @@
         <result property="createTime"   column="create_time"/>
     </resultMap>
 
-    <!-- 按 notification_id + user_id + student_user_id 联查 -->
+    <!-- 按 notification_id + user_id + student_user_id 聯查 -->
     <select id="selectByNotificationAndUser" resultMap="ReadRecordResult">
         SELECT r.read_id, r.send_record_id, r.user_id, r.user_type,
                r.is_read, r.read_time, r.reply_status, r.reply_time, r.send_status, r.create_time
@@ -32,7 +32,7 @@
         LIMIT 1
     </select>
 
-    <!-- 标记为已读 -->
+    <!-- 標記爲已讀 -->
     <update id="markAsRead">
         UPDATE notification_user_read_record
         SET is_read   = '1',
@@ -41,7 +41,7 @@
           AND is_read = '0'
     </update>
 
-    <!-- 标记为已回复 -->
+    <!-- 標記爲已回復 -->
     <update id="markAsReplied">
         UPDATE notification_user_read_record
         SET reply_status = '1',
@@ -50,7 +50,7 @@
           AND reply_status = '0'
     </update>
 
-    <!-- 通知含阅读状态的 ResultMap（以 notification_user_read_record 为驱动） -->
+    <!-- 通知含閱讀狀態的 ResultMap（以 notification_user_read_record 爲驅動） -->
     <resultMap id="NotificationWithReadStatusResult"
                type="com.sp.system.entity.vo.NotificationWithReadStatusVO">
         <id     property="notificationId"  column="notification_id"/>
@@ -74,11 +74,11 @@
     </resultMap>
 
     <!--
-        分页查询已发布通知（仅显示发送给当前用户的通知，附带阅读状态）
-        以 notification_user_read_record 为驱动表：
-          - INNER JOIN notification_send_record 确认发送记录存在
-          - INNER JOIN notification 过滤状态为已发布（status='1'）
-        无 GROUP BY，无聚合，完全兼容 only_full_group_by 模式。
+        分頁查詢已發布通知（僅顯示發送給當前用戶的通知，附帶閱讀狀態）
+        以 notification_user_read_record 爲驅動表：
+          - INNER JOIN notification_send_record 確認發送記錄存在
+          - INNER JOIN notification 過濾狀態爲已發布（status='1'）
+        無 GROUP BY，無聚合，完全兼容 only_full_group_by 模式。
     -->
     <select id="selectPublishedNotificationsForUser"
             resultMap="NotificationWithReadStatusResult">
@@ -100,7 +100,7 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <!-- 已发布通知总数（仅统计发送给当前用户的通知） -->
+    <!-- 已發布通知總數（僅統計發送給當前用戶的通知） -->
     <select id="countPublishedNotificationsForUser" resultType="int">
         SELECT COUNT(*)
         FROM notification_user_read_record r
@@ -115,7 +115,7 @@
         </if>
     </select>
 
-    <!-- 未读通知数量（仅统计发送给当前用户的未读通知） -->
+    <!-- 未讀通知數量（僅統計發送給當前用戶的未讀通知） -->
     <select id="countUnreadNotificationsForUser" resultType="int">
         SELECT COUNT(*)
         FROM notification_user_read_record r

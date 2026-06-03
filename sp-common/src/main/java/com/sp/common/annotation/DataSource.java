@@ -9,9 +9,9 @@ import java.lang.annotation.Target;
 import com.sp.common.enums.DataSourceType;
 
 /**
- * 自定义多数据源切换注解
+ * 自定義多數據源切換註解
  *
- * 优先级：先方法，后类，如果方法覆盖了类上的数据源类型，以方法的为准，否则以类上的为准
+ * 優先級：先方法，後類，如果方法覆蓋了類上的數據源類型，以方法的為準，否則以類上的為準
  *
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
@@ -21,7 +21,7 @@ import com.sp.common.enums.DataSourceType;
 public @interface DataSource
 {
     /**
-     * 切换数据源名称
+     * 切換數據源名稱
      */
     public DataSourceType value() default DataSourceType.MASTER;
 }

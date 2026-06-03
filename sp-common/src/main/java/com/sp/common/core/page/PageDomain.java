@@ -3,15 +3,15 @@ package com.sp.common.core.page;
 import com.sp.common.utils.StringUtils;
 
 /**
- * 分页数据
+ * 分頁數據
  *
  */
 public class PageDomain
 {
-    /** 当前记录起始索引 */
+    /** 當前記錄起始索引 */
     private Integer pageNum;
 
-    /** 每页显示记录数 */
+    /** 每頁顯示記錄數 */
     private Integer pageSize;
 
     /** 排序列 */
@@ -20,7 +20,7 @@ public class PageDomain
     /** 排序的方向desc或者asc */
     private String isAsc = "asc";
 
-    /** 分页参数合理化 */
+    /** 分頁參數合理化 */
     private Boolean reasonable = true;
 
     public String getOrderBy()

@@ -14,13 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 import com.sp.common.utils.StringUtils;
 
 /**
- * 防止XSS攻击的过滤器
+ * 防止XSS攻擊的過濾器
  *
  */
 public class XssFilter implements Filter
 {
     /**
-     * 排除链接
+     * 排除鏈接
      */
     public List<String> excludes = new ArrayList<>();
 
@@ -57,7 +57,7 @@ public class XssFilter implements Filter
     {
         String url = request.getServletPath();
         String method = request.getMethod();
-        // GET DELETE 不过滤
+        // GET DELETE 不過濾
         if (method == null || method.matches("GET") || method.matches("DELETE"))
         {
             return true;

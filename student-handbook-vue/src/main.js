@@ -1,14 +1,14 @@
 import {createApp} from 'vue'
 import App from './App.vue'
 import router from './router'
-import settings from '@/config/settings' // 导入全局配置设置
+import settings from '@/config/settings' // 導入全局配置設置
 
 // Element Plus imports
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhTw from 'element-plus/es/locale/lang/zh-tw'
 
-// 创建Vue应用实例
+// 創建Vue應用實例
 const app = createApp(App)
 
 // 使用Element Plus
@@ -16,23 +16,23 @@ app.use(ElementPlus, {
   locale: zhTw,
 })
 
-// 配置路由守卫，确保访问受保护页面时已登录
+// 配置路由守衛，確保訪問受保護頁面時已登錄
 router.beforeEach((to, from, next) => {
-    // 检查是否启用Token验证
+    // 檢查是否啓用Token驗證
     if (settings.enableTokenAuth) {
-        // 定义不需要验证token的页面
+        // 定義不需要驗證token的頁面
         const publicPages = ['/', '/login', '/register']
         const isPublicPage = publicPages.includes(to.path)
         const token = localStorage.getItem('token')
 
-        // 检查URL参数中的token（来自微信授权回调）
+        // 檢查URL參數中的token（來自微信授權回調）
         const urlParams = new URLSearchParams(window.location.search);
         const tokenFromUrl = urlParams.get('token');
 
         // 如果URL中有token，先保存到localStorage
         if (tokenFromUrl) {
             localStorage.setItem('token', tokenFromUrl);
-            // 更新URL，移除token参数
+            // 更新URL，移除token參數
             urlParams.delete('token');
             const newUrl = window.location.pathname +
                 (urlParams.toString() ? '?' + urlParams.toString() : '') +
@@ -51,27 +51,27 @@ router.beforeEach((to, from, next) => {
                 return;
             }
             
-            // 有token，允许访问
+            // 有token，允許訪問
             next();
             return;
         }
 
-        // 如果是公共页面且已登录，直接访问
+        // 如果是公共頁面且已登錄，直接訪問
         if (isPublicPage) {
             next()
         } else {
-            // 如果不是公共页面，需要验证token
+            // 如果不是公共頁面，需要驗證token
             if (token) {
-                // 有token，允许访问
+                // 有token，允許訪問
                 next()
             } else {
-                // 没有token，重定向到登录页面前，先保存當前路徑以便登錄後跳轉回來
+                // 沒有token，重定向到登錄頁面前，先保存當前路徑以便登錄後跳轉回來
                 sessionStorage.setItem('redirect_url', to.fullPath)
                 next('/login')
             }
         }
     } else {
-        // 如果未启用Token验证，则允许所有路由访问
+        // 如果未啓用Token驗證，則允許所有路由訪問
         next();
     }
 })
@@ -79,31 +79,31 @@ router.beforeEach((to, from, next) => {
 // 配置路由
 app.use(router)
 
-// 挂载应用
+// 掛載應用
 app.mount('#app')
 
-// 动态加载企业微信JS-SDK
+// 動態加載企業微信JS-SDK
 function loadWeChatSDK() {
-    // 检查是否启用了微信验证
+    // 檢查是否啓用了微信驗證
     if (settings.enableWeChatAuth) {
-        // 检查是否在微信相关环境中（包括微信和企业微信）
+        // 檢查是否在微信相關環境中（包括微信和企業微信）
         const isWeChat = navigator.userAgent.includes('MicroMessenger');
 
-        // 无论是在普通微信还是企业微信环境中，都尝试加载企业微信JS-SDK
-        // 因为企业微信应用在微信中打开时也需要使用企业微信JS-SDK
+        // 無論是在普通微信還是企業微信環境中，都嘗試加載企業微信JS-SDK
+        // 因爲企業微信應用在微信中打開時也需要使用企業微信JS-SDK
         if (isWeChat) {
             const script = document.createElement('script');
             script.src = 'https://res.wx.qq.com/open/js/jweixin-1.2.0.js';
             script.onload = () => {
-                console.log('企业微信JS-SDK加载成功');
+                console.log('企業微信JS-SDK加載成功');
             };
             script.onerror = () => {
-                console.error('企业微信JS-SDK加载失败');
+                console.error('企業微信JS-SDK加載失敗');
             };
             document.head.appendChild(script);
         }
     }
 }
 
-// 页面加载时尝试加载企业微信SDK
+// 頁面加載時嘗試加載企業微信SDK
 loadWeChatSDK();

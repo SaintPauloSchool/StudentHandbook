@@ -25,7 +25,7 @@ import org.springframework.util.ClassUtils;
 import com.sp.common.utils.StringUtils;
 
 /**
- * Mybatis支持*匹配扫描包
+ * Mybatis支持*匹配掃描包
  *
  */
 @Configuration
@@ -80,7 +80,7 @@ public class MyBatisConfig
             }
             else
             {
-                throw new RuntimeException("mybatis typeAliasesPackage 路径扫描错误,参数typeAliasesPackage:" + typeAliasesPackage + "未找到任何包");
+                throw new RuntimeException("mybatis typeAliasesPackage 路徑掃描錯誤,參數typeAliasesPackage:" + typeAliasesPackage + "未找到任何包");
             }
         }
         catch (IOException e)

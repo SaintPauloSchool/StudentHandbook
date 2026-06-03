@@ -12,7 +12,7 @@ import com.sp.common.constant.PermissionConstants;
 import com.sp.common.utils.MessageUtils;
 
 /**
- * permission 工具类（基于Spring Security重构）
+ * permission 工具類（基於Spring Security重構）
  *
  */
 public class PermissionUtils
@@ -20,39 +20,39 @@ public class PermissionUtils
     private static final Logger log = LoggerFactory.getLogger(PermissionUtils.class);
 
     /**
-     * 查看数据的权限
+     * 查看數據的權限
      */
     public static final String VIEW_PERMISSION = "no.view.permission";
 
     /**
-     * 创建数据的权限
+     * 創建數據的權限
      */
     public static final String CREATE_PERMISSION = "no.create.permission";
 
     /**
-     * 修改数据的权限
+     * 修改數據的權限
      */
     public static final String UPDATE_PERMISSION = "no.update.permission";
 
     /**
-     * 删除数据的权限
+     * 刪除數據的權限
      */
     public static final String DELETE_PERMISSION = "no.delete.permission";
 
     /**
-     * 导出数据的权限
+     * 導出數據的權限
      */
     public static final String EXPORT_PERMISSION = "no.export.permission";
 
     /**
-     * 其他数据的权限
+     * 其他數據的權限
      */
     public static final String PERMISSION = "no.permission";
 
     /**
-     * 权限错误消息提醒
+     * 權限錯誤消息提醒
      * 
-     * @param permissionsStr 错误信息
+     * @param permissionsStr 錯誤信息
      * @return 提示信息
      */
     public static String getMsg(String permissionsStr)
@@ -84,10 +84,10 @@ public class PermissionUtils
     }
 
     /**
-     * 返回用户属性值
+     * 返回用戶屬性值
      *
-     * @param property 属性名称
-     * @return 用户属性值
+     * @param property 屬性名稱
+     * @return 用戶屬性值
      */
     public static Object getPrincipalProperty(String property)
     {

@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 部门家长绑定服务层实现类
+ * 部門家長綁定服務層實現類
  *
  */
 @Service
@@ -46,9 +46,9 @@ public class DepartmentParentBindingServiceImpl implements DepartmentParentBindi
     @Transactional
     public void processParentChildren(Long departmentId, String parentUserId, JSONArray childrenArray,
                                       Map<String, DepartmentParentBinding> existingBindingMap) {
-        // 处理孩子信息
+        // 處理孩子信息
         if (childrenArray != null && !childrenArray.isEmpty()) {
-            // 处理家长孩子关系
+            // 處理家長孩子關係
             handleParentStudentRelation(
                     departmentId,
                     parentUserId,
@@ -56,33 +56,33 @@ public class DepartmentParentBindingServiceImpl implements DepartmentParentBindi
                     existingBindingMap
             );
         } else {
-            // 没有孩子的情况
+            // 沒有孩子的情況
             handleParentStudentRelation(departmentId, parentUserId, null, existingBindingMap);
         }
     }
     
     /**
-     * 处理家长学生关系同步
-     * @param departmentId 部门ID
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @param existingBindingMap 现有绑定记录映射
+     * 處理家長學生關係同步
+     * @param departmentId 部門ID
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @param existingBindingMap 現有綁定記錄映射
      */
     @Transactional
     public void handleParentStudentRelation(Long departmentId, String parentUserId, String studentUserId,
                                            Map<String, DepartmentParentBinding> existingBindingMap) {
-        // 从内存中的映射查找是否存在相同的记录
+        // 從內存中的映射查找是否存在相同的記錄
         DepartmentParentBinding existingBinding = existingBindingMap.get(parentUserId);
         // 如果存在
         if (existingBinding != null) {
-            // 如果存在，则更新记录
+            // 如果存在，則更新記錄
             existingBinding.setStudentUserId(studentUserId);
             existingBinding.setUpdateTime(LocalDateTime.now());
             departmentParentBindingMapper.updateById(existingBinding);
         } else {
-            // 创建或获取部门家长绑定对象
+            // 創建或獲取部門家長綁定對象
             DepartmentParentBinding binding = this.createOrUpdateBinding(departmentId, parentUserId, studentUserId);
-            // 如果不存在，则插入新记录
+            // 如果不存在，則插入新記錄
             departmentParentBindingMapper.insertIgnore(binding);
         }
     }
@@ -92,31 +92,31 @@ public class DepartmentParentBindingServiceImpl implements DepartmentParentBindi
     public void deleteObsoleteParentBindings(List<DepartmentParentBinding> existingBindings, 
                                            Set<String> currentParentUserIds, 
                                            Long departmentId) {
-        // 记录删除的个数
+        // 記錄刪除的個數
         int deletedCount = 0;
-        // 遍历原有的绑定记录列表，删除不再存在的家长绑定记录
+        // 遍歷原有的綁定記錄列表，刪除不再存在的家長綁定記錄
         for (DepartmentParentBinding binding : existingBindings) {
-            // 判断当前是否存在
+            // 判斷當前是否存在
             if (!currentParentUserIds.contains(binding.getParentUserId())) {
-                // 删除
+                // 刪除
                 boolean deleteResult = departmentParentBindingMapper.deleteById(binding.getId()) > 0;
-                // 记录删除结果
+                // 記錄刪除結果
                 if (deleteResult) {
                     deletedCount++;
                 }
             }
         }
-        // 日志记录在调用方处理
-        // 记录删除结果
-        logger.info("家长数据同步完成，共删除 {} 个家长", deletedCount);
+        // 日誌記錄在調用方處理
+        // 記錄刪除結果
+        logger.info("家長數據同步完成，共刪除 {} 個家長", deletedCount);
     }
     
     /**
-     * 创建或更新部门家长绑定对象
-     * @param departmentId 部门ID
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID (可为null)
-     * @return 部门家长绑定对象
+     * 創建或更新部門家長綁定對象
+     * @param departmentId 部門ID
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID (可爲null)
+     * @return 部門家長綁定對象
      */
     private DepartmentParentBinding createOrUpdateBinding(Long departmentId, String parentUserId, String studentUserId) {
         DepartmentParentBinding binding = new DepartmentParentBinding();

@@ -1,7 +1,7 @@
 package com.sp.common.exception;
 
 /**
- * 演示模式异常
+ * 演示模式異常
  *
  */
 public class DemoModeException extends RuntimeException

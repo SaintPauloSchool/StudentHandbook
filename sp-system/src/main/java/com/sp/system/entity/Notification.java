@@ -3,23 +3,23 @@ package com.sp.system.entity;
 import java.time.LocalDateTime;
 
 /**
- * 通知主表实体类
+ * 通知主表實體類
  */
 public class Notification {
     private Long notificationId;        // 通知 ID
-    private String title;               // 通知标题
+    private String title;               // 通知標題
     private String content;             // 通知正文
-    private Long senderId;              // 发送人 ID
-    private String senderName;          // 发送人姓名
-    private String jumpUrl;             // 跳转链接
-    private String attachmentUrls;      // 附件/图片 URL 列表 (JSON 格式)
-    private String status;              // 状态（0 草稿 1 已发布 2 已撤回）
-    private LocalDateTime replyDeadline;         // 回复截止时间
-    private String createBy;            // 创建者
-    private LocalDateTime createTime;            // 创建时间
+    private Long senderId;              // 發送人 ID
+    private String senderName;          // 發送人姓名
+    private String jumpUrl;             // 跳轉鏈接
+    private String attachmentUrls;      // 附件/圖片 URL 列表 (JSON 格式)
+    private String status;              // 狀態（0 草稿 1 已發布 2 已撤回）
+    private LocalDateTime replyDeadline;         // 回復截止時間
+    private String createBy;            // 創建者
+    private LocalDateTime createTime;            // 創建時間
     private String updateBy;            // 更新者
-    private LocalDateTime updateTime;            // 更新时间
-    private String remark;              // 备注
+    private LocalDateTime updateTime;            // 更新時間
+    private String remark;              // 備註
 
     public Long getNotificationId() {
         return notificationId;

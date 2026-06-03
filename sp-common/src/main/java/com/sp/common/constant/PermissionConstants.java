@@ -1,26 +1,26 @@
 package com.sp.common.constant;
 
 /**
- * 权限通用常量
+ * 權限通用常量
  *
  */
 public class PermissionConstants
 {
-    /** 新增权限 */
+    /** 新增權限 */
     public static final String ADD_PERMISSION = "add";
 
-    /** 修改权限 */
+    /** 修改權限 */
     public static final String EDIT_PERMISSION = "edit";
 
-    /** 删除权限 */
+    /** 刪除權限 */
     public static final String REMOVE_PERMISSION = "remove";
     
-    /** 导出权限 */
+    /** 導出權限 */
     public static final String EXPORT_PERMISSION = "export";
 
-    /** 显示权限 */
+    /** 顯示權限 */
     public static final String VIEW_PERMISSION = "view";
 
-    /** 查询权限 */
+    /** 查詢權限 */
     public static final String LIST_PERMISSION = "list";
 }

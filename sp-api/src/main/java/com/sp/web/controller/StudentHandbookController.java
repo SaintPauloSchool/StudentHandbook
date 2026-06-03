@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 学生手册Controller
+ * 學生手冊Controller
  * userId 由 TokenInterceptor 解析後注入 request attribute，Controller 直接取用
  */
 @RestController
@@ -40,7 +40,7 @@ public class StudentHandbookController extends BaseController {
         return (String) getRequest().getAttribute(TokenInterceptor.USER_ID_ATTR);
     }
 
-    @Log(title = "查询过去一个月课程日志列表", businessType = BusinessType.SELECT)
+    @Log(title = "查詢過去一個月課程日誌列表", businessType = BusinessType.SELECT)
     @GetMapping("/pastMonth")
     public TableDataInfo listPastMonth(@RequestParam(required = false) String studentUserId) {
         try {
@@ -51,12 +51,12 @@ public class StudentHandbookController extends BaseController {
             List<ClassLog> classLogs = classLogService.getPastMonthClassLogListByParentUserId(userId, studentUserId);
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
-            logger.error("获取过去一个月课程日志列表失败: {}", e.getMessage());
+            logger.error("獲取過去一個月課程日誌列表失敗: {}", e.getMessage());
             return ResponseUtils.createErrorResponse();
         }
     }
 
-    @Log(title = "查询当天课程日志列表", businessType = BusinessType.SELECT)
+    @Log(title = "查詢當天課程日誌列表", businessType = BusinessType.SELECT)
     @GetMapping("/today")
     public TableDataInfo listToday(@RequestParam(required = false) String studentUserId) {
         try {
@@ -67,12 +67,12 @@ public class StudentHandbookController extends BaseController {
             List<ClassLog> classLogs = classLogService.getTodayClassLogListByParentUserId(userId, studentUserId);
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
-            logger.error("获取当天课程日志列表失败: {}", e.getMessage());
+            logger.error("獲取當天課程日誌列表失敗: {}", e.getMessage());
             return ResponseUtils.createErrorResponse();
         }
     }
 
-    @Log(title = "查询未来七天课程日志列表（不含当天）", businessType = BusinessType.SELECT)
+    @Log(title = "查詢未來七天課程日誌列表（不含當天）", businessType = BusinessType.SELECT)
     @GetMapping("/nextSevenDays")
     public TableDataInfo listNextSevenDays(@RequestParam(required = false) String studentUserId) {
         try {
@@ -83,43 +83,43 @@ public class StudentHandbookController extends BaseController {
             List<ClassLog> classLogs = classLogService.getNextSevenDaysClassLogListByParentUserId(userId, studentUserId);
             return ResponseUtils.createSuccessResponse(classLogs);
         } catch (Exception e) {
-            logger.error("获取未来七天课程日志列表失败: {}", e.getMessage());
+            logger.error("獲取未來七天課程日誌列表失敗: {}", e.getMessage());
             return ResponseUtils.createErrorResponse();
         }
     }
 
-    @Log(title = "获取当前家长关联的学生列表", businessType = BusinessType.SELECT)
+    @Log(title = "獲取當前家長關聯的學生列表", businessType = BusinessType.SELECT)
     @GetMapping("/students")
     public AjaxResult getRelatedStudents() {
         try {
             String userId = getUserId();
             if (userId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
             }
             List<ParentStudentRelation> relations = parentStudentRelationService.selectByParentId(userId);
             return AjaxResult.success(relations);
         } catch (Exception e) {
-            logger.error("获取关联学生列表失败: {}", e.getMessage());
-            return AjaxResult.error("获取学生列表失败: " + e.getMessage());
+            logger.error("獲取關聯學生列表失敗: {}", e.getMessage());
+            return AjaxResult.error("獲取學生列表失敗: " + e.getMessage());
         }
     }
 
-    @Log(title = "切换学生", businessType = BusinessType.UPDATE)
+    @Log(title = "切換學生", businessType = BusinessType.UPDATE)
     @PostMapping("/switchStudent")
     public AjaxResult switchStudent(@RequestBody Map<String, String> requestBody) {
         try {
             String userId = getUserId();
             if (userId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
             }
 
             String studentName = requestBody.get("studentName");
             String studentUserId = requestBody.get("studentUserId");
             if (studentName == null || studentName.isEmpty()) {
-                return AjaxResult.error("学生姓名不能为空");
+                return AjaxResult.error("學生姓名不能爲空");
             }
             if (studentUserId == null || studentUserId.isEmpty()) {
-                return AjaxResult.error("学生用户ID不能为空");
+                return AjaxResult.error("學生用戶ID不能爲空");
             }
 
             List<ParentStudentRelation> relations = parentStudentRelationService.selectByParentId(userId);
@@ -128,13 +128,13 @@ public class StudentHandbookController extends BaseController {
                             studentUserId.equals(relation.getStudentUserId()));
 
             if (!studentExists) {
-                return AjaxResult.error("家长未关联该学生，无法切换");
+                return AjaxResult.error("家長未關聯該學生，無法切換");
             }
 
-            return AjaxResult.success("切换学生成功", studentName);
+            return AjaxResult.success("切換學生成功", studentName);
         } catch (Exception e) {
-            logger.error("切换学生失败: {}", e.getMessage());
-            return AjaxResult.error("切换学生失败: " + e.getMessage());
+            logger.error("切換學生失敗: {}", e.getMessage());
+            return AjaxResult.error("切換學生失敗: " + e.getMessage());
         }
     }
 }

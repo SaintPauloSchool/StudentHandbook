@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 通用文件上传处理（僅限圖片，最大 5MB）
+ * 通用文件上傳處理（僅限圖片，最大 5MB）
  */
 @RestController
 @RequestMapping("/common/upload")
@@ -49,12 +49,12 @@ public class FileUploadController extends BaseController {
     private TokenService tokenService;
 
     /**
-     * 通用文件上传
-     * @param file 上传的文件
-     * @param studentUserId 学生用户ID（可选，如果不传则使用默认学生）
-     * @return 文件访问URL
+     * 通用文件上傳
+     * @param file 上傳的文件
+     * @param studentUserId 學生用戶ID（可選，如果不傳則使用默認學生）
+     * @return 文件訪問URL
      */
-    @Log(title = "文件上传", businessType = BusinessType.INSERT)
+    @Log(title = "文件上傳", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult uploadFile(@RequestParam("file") MultipartFile file,
                                  @RequestParam(value = "studentUserId", required = false) String studentUserId,
@@ -88,7 +88,7 @@ public class FileUploadController extends BaseController {
         }
 
         try {
-            // 从token获取家长ID
+            // 從token獲取家長ID
             String token = request.getHeader("Authorization");
             if (StringUtils.isNotEmpty(token) && token.startsWith("Bearer ")) {
                 token = token.substring(7);
@@ -99,7 +99,7 @@ public class FileUploadController extends BaseController {
             String renamedFileName = null;
 
             if (StringUtils.isNotEmpty(parentUserId)) {
-                // 构建自定义文件名，传入studentUserId
+                // 構建自定義文件名，傳入studentUserId
                 renamedFileName = fileUploadHandler.buildCustomFileName(parentUserId, studentUserId);
                 if (StringUtils.isNotEmpty(renamedFileName)) {
                     filePath = FileUploadUtils.uploadWithCustomName(file, renamedFileName);
@@ -107,20 +107,20 @@ public class FileUploadController extends BaseController {
                     filePath = FileUploadUtils.uploadImage(file);
                 }
             } else {
-                logger.warn("无法从token获取家长ID，使用默认文件名上传");
+                logger.warn("無法從token獲取家長ID，使用默認文件名上傳");
                 filePath = FileUploadUtils.uploadImage(file);
             }
 
-            logger.info("文件上传成功: {}", filePath);
+            logger.info("文件上傳成功: {}", filePath);
 
-            // 返回文件访问URL和重命名后的文件名
+            // 返回文件訪問URL和重命名後的文件名
             Map<String, Object> result = new HashMap<>();
             result.put("url", filePath);
             result.put("fileName", renamedFileName != null ? renamedFileName : file.getOriginalFilename());
-            return AjaxResult.success("文件上传成功", result);
+            return AjaxResult.success("文件上傳成功", result);
 
         } catch (Exception e) {
-            logger.error("文件上传失败: {}", e.getMessage(), e);
+            logger.error("文件上傳失敗: {}", e.getMessage(), e);
             return AjaxResult.error("文件上傳失敗：" + e.getMessage());
         }
     }

@@ -1,19 +1,19 @@
 package com.sp.system.entity;
 
 /**
- * 企业微信部门实体类
+ * 企業微信部門實體類
  */
 public class Department {
-    private Long id;                      // 部门id
-    private Integer parentId;             // 父亲部门id
-    private String name;                  // 部门名称
-    private Integer type;                 // 部门类型：1-班级, 2-年级, 3-学段, 4-校区, 5-学校
-    private Integer registerYear;         // 入学年份
-    private Integer standardGrade;        // 标准年级
+    private Long id;                      // 部門id
+    private Integer parentId;             // 父親部門id
+    private String name;                  // 部門名稱
+    private Integer type;                 // 部門類型：1-班級, 2-年級, 3-學段, 4-校區, 5-學校
+    private Integer registerYear;         // 入學年份
+    private Integer standardGrade;        // 標準年級
     private Integer order;                // 排序值
-    private Integer isGraduated;          // 是否毕业：1-是, 0-否
-    private Integer openGroupChat;        // 是否开启班级群：1-是, 0-否
-    private String groupChatId;           // 班级群id
+    private Integer isGraduated;          // 是否畢業：1-是, 0-否
+    private Integer openGroupChat;        // 是否開啓班級羣：1-是, 0-否
+    private String groupChatId;           // 班級羣id
 
 
     // Getter和Setter方法

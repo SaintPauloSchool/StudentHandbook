@@ -6,14 +6,14 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 通知问题Mapper接口
+ * 通知問題Mapper接口
  */
 public interface NotificationQuestionMapper {
     
     /**
-     * 根据通知ID查询问题列表
+     * 根據通知ID查詢問題列表
      * @param notificationId 通知ID
-     * @return 问题列表
+     * @return 問題列表
      */
     List<NotificationQuestion> selectQuestionsByNotificationId(@Param("notificationId") Long notificationId);
 }

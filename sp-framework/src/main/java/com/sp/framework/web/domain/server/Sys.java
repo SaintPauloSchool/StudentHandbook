@@ -1,33 +1,33 @@
 package com.sp.framework.web.domain.server;
 
 /**
- * 系统相关信息
+ * 系統相關信息
  *
  */
 public class Sys
 {
     /**
-     * 服务器名称
+     * 服務器名稱
      */
     private String computerName;
 
     /**
-     * 服务器Ip
+     * 服務器Ip
      */
     private String computerIp;
 
     /**
-     * 项目路径
+     * 項目路徑
      */
     private String userDir;
 
     /**
-     * 操作系统
+     * 操作系統
      */
     private String osName;
 
     /**
-     * 系统架构
+     * 系統架構
      */
     private String osArch;
 

@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import com.alibaba.druid.pool.DruidDataSource;
 
 /**
- * druid 配置属性
+ * druid 配置屬性
  *
  */
 @Configuration
@@ -57,31 +57,31 @@ public class DruidProperties
         datasource.setMaxActive(maxActive);
         datasource.setMinIdle(minIdle);
 
-        /** 配置获取连接等待超时的时间 */
+        /** 配置獲取連接等待超時的時間 */
         datasource.setMaxWait(maxWait);
         
-        /** 配置驱动连接超时时间，检测数据库建立连接的超时时间，单位是毫秒 */
+        /** 配置驅動連接超時時間，檢測數據庫建立連接的超時時間，單位是毫秒 */
         datasource.setConnectTimeout(connectTimeout);
         
-        /** 配置网络超时时间，等待数据库操作完成的网络超时时间，单位是毫秒 */
+        /** 配置網絡超時時間，等待數據庫操作完成的網絡超時時間，單位是毫秒 */
         datasource.setSocketTimeout(socketTimeout);
 
-        /** 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 */
+        /** 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連接，單位是毫秒 */
         datasource.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);
 
-        /** 配置一个连接在池中最小、最大生存的时间，单位是毫秒 */
+        /** 配置一個連接在池中最小、最大生存的時間，單位是毫秒 */
         datasource.setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis);
         datasource.setMaxEvictableIdleTimeMillis(maxEvictableIdleTimeMillis);
 
         /**
-         * 用来检测连接是否有效的sql，要求是一个查询语句，常用select 'x'。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会起作用。
+         * 用來檢測連接是否有效的sql，要求是一個查詢語句，常用select 'x'。如果validationQuery爲null，testOnBorrow、testOnReturn、testWhileIdle都不會起作用。
          */
         datasource.setValidationQuery(validationQuery);
-        /** 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。 */
+        /** 建議配置爲true，不影響性能，並且保證安全性。申請連接的時候檢測，如果空閒時間大於timeBetweenEvictionRunsMillis，執行validationQuery檢測連接是否有效。 */
         datasource.setTestWhileIdle(testWhileIdle);
-        /** 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。 */
+        /** 申請連接時執行validationQuery檢測連接是否有效，做了這個配置會降低性能。 */
         datasource.setTestOnBorrow(testOnBorrow);
-        /** 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。 */
+        /** 歸還連接時執行validationQuery檢測連接是否有效，做了這個配置會降低性能。 */
         datasource.setTestOnReturn(testOnReturn);
         return datasource;
     }

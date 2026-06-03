@@ -1,7 +1,7 @@
 package com.sp.common.exception.user;
 
 /**
- * 验证码错误异常类
+ * 驗證碼錯誤異常類
  *
  */
 public class CaptchaException extends UserException

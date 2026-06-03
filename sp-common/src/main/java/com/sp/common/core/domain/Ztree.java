@@ -3,32 +3,32 @@ package com.sp.common.core.domain;
 import java.io.Serializable;
 
 /**
- * Ztree树结构实体类
+ * Ztree樹結構實體類
  *
  */
 public class Ztree implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
-    /** 节点ID */
+    /** 節點ID */
     private Long id;
 
-    /** 节点父ID */
+    /** 節點父ID */
     private Long pId;
 
-    /** 节点名称 */
+    /** 節點名稱 */
     private String name;
 
-    /** 节点标题 */
+    /** 節點標題 */
     private String title;
 
-    /** 是否勾选 */
+    /** 是否勾選 */
     private boolean checked = false;
 
-    /** 是否展开 */
+    /** 是否展開 */
     private boolean open = false;
 
-    /** 是否能勾选 */
+    /** 是否能勾選 */
     private boolean nocheck = false;
 
     public Long getId()

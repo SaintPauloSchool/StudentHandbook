@@ -10,8 +10,8 @@ import com.sp.common.json.JSON;
 import com.sp.framework.interceptor.RepeatSubmitInterceptor;
 
 /**
- * 判断请求url和数据是否和上一次相同， 
- * 如果和上次相同，则是重复提交表单。 有效时间为10秒内。
+ * 判斷請求url和數據是否和上一次相同， 
+ * 如果和上次相同，則是重複提交表單。 有效時間爲10秒內。
  *
  */
 @Component
@@ -27,13 +27,13 @@ public class SameUrlDataInterceptor extends RepeatSubmitInterceptor
     @Override
     public boolean isRepeatSubmit(HttpServletRequest request, RepeatSubmit annotation) throws Exception
     {
-        // 本次参数及系统时间
+        // 本次參數及系統時間
         String nowParams = JSON.marshal(request.getParameterMap());
         Map<String, Object> nowDataMap = new HashMap<String, Object>();
         nowDataMap.put(REPEAT_PARAMS, nowParams);
         nowDataMap.put(REPEAT_TIME, System.currentTimeMillis());
 
-        // 请求地址（作为存放session的key值）
+        // 請求地址（作爲存放session的key值）
         String url = request.getRequestURI();
 
         HttpSession session = request.getSession();
@@ -57,7 +57,7 @@ public class SameUrlDataInterceptor extends RepeatSubmitInterceptor
     }
 
     /**
-     * 判断参数是否相同
+     * 判斷參數是否相同
      */
     private boolean compareParams(Map<String, Object> nowMap, Map<String, Object> preMap)
     {
@@ -67,7 +67,7 @@ public class SameUrlDataInterceptor extends RepeatSubmitInterceptor
     }
 
     /**
-     * 判断两次间隔时间
+     * 判斷兩次間隔時間
      */
     private boolean compareTime(Map<String, Object> nowMap, Map<String, Object> preMap, int interval)
     {

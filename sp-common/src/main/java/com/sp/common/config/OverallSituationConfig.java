@@ -4,29 +4,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * 全局配置类
+ * 全局配置類
  *
  */
 @Component
 @ConfigurationProperties(prefix = "sp")
 public class OverallSituationConfig
 {
-    /** 项目名称 */
+    /** 項目名稱 */
     private static String name;
 
     /** 版本 */
     private static String version;
 
-    /** 版权年份 */
+    /** 版權年份 */
     private static String copyrightYear;
 
-    /** 实例演示开关 */
+    /** 實例演示開關 */
     private static boolean demoEnabled;
 
-    /** 上传路径 */
+    /** 上傳路徑 */
     private static String profile;
 
-    /** 获取地址开关 */
+    /** 獲取地址開關 */
     private static boolean addressEnabled;
 
     public static String getName()
@@ -90,7 +90,7 @@ public class OverallSituationConfig
     }
 
     /**
-     * 获取导入上传路径
+     * 獲取導入上傳路徑
      */
     public static String getImportPath()
     {
@@ -98,7 +98,7 @@ public class OverallSituationConfig
     }
 
     /**
-     * 获取头像上传路径
+     * 獲取頭像上傳路徑
      */
     public static String getAvatarPath()
     {
@@ -106,7 +106,7 @@ public class OverallSituationConfig
     }
 
     /**
-     * 获取下载路径
+     * 獲取下載路徑
      */
     public static String getDownloadPath()
     {
@@ -114,7 +114,7 @@ public class OverallSituationConfig
     }
 
     /**
-     * 获取上传路径
+     * 獲取上傳路徑
      */
     public static String getUploadPath()
     {

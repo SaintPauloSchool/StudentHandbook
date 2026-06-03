@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 企业微信学校部门成员业务逻辑实现类
+ * 企業微信學校部門成員業務邏輯實現類
  */
 @Service
 public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepartmentMemberService {
@@ -33,25 +33,25 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
     private WecomSchoolDepartmentMemberMapper wecomSchoolDepartmentMemberMapper;
 
     /**
-     * 根据部门 ID 数组获取并同步所有成员数据
+     * 根據部門 ID 數組獲取並同步所有成員數據
      *
-     * @param departmentIdArray 部门 ID 数组
+     * @param departmentIdArray 部門 ID 數組
      * @param accessToken access_token
-     * @return 总共获取到的成员数量
+     * @return 總共獲取到的成員數量
      */
     @Override
     @Transactional
     public int fetchAndSaveAllMembers(JSONArray departmentIdArray, String accessToken) {
         if (CollectionUtils.isEmpty(departmentIdArray)) {
-            logger.info("部门 ID 数组为空，跳过成员同步");
+            logger.info("部門 ID 數組爲空，跳過成員同步");
             return 0;
         }
         
         int totalMembers = 0;
         
-        // 遍历部门 ID 数组
+        // 遍歷部門 ID 數組
         for (int i = 0; i < departmentIdArray.size(); i++) {
-            // 获取部门对象
+            // 獲取部門對象
             JSONObject deptObj = departmentIdArray.getJSONObject(i);
             if (deptObj == null) {
                 continue;
@@ -63,17 +63,17 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
             }
             
             try {
-                // 获取部门成员列表
+                // 獲取部門成員列表
                 JSONArray userList = fetchMemberList(departmentId, accessToken);
-                // 同步成员数据（增删改）
+                // 同步成員數據（增刪改）
                 if (!CollectionUtils.isEmpty(userList)) {
-                    // 同步成员数据
+                    // 同步成員數據
                     syncMembers(userList, departmentId);
-                    logger.info("部门 ID: {} - 获取到 {} 个成员，已同步", departmentId, userList.size());
+                    logger.info("部門 ID: {} - 獲取到 {} 個成員，已同步", departmentId, userList.size());
                     totalMembers += userList.size();
                 }
             } catch (Exception e) {
-                logger.error("获取部门 {} 的成员列表失败", departmentId, e);
+                logger.error("獲取部門 {} 的成員列表失敗", departmentId, e);
             }
         }
         
@@ -81,17 +81,17 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
     }
 
     /**
-     * 获取部门成员列表
+     * 獲取部門成員列表
      */
     private JSONArray fetchMemberList(Long departmentId, String accessToken) {
-        // 获取部门成员列表
+        // 獲取部門成員列表
         String userUrl = "https://qyapi.weixin.qq.com/cgi-bin/user/simplelist?access_token=" + accessToken + "&department_id=" + departmentId;
         String userResponse = HttpUtils.sendGet(userUrl);
-        // 解析结果
+        // 解析結果
         JSONObject userResult = JSONObject.parseObject(userResponse);
-        // 检查结果
+        // 檢查結果
         if (userResult.getInteger("errcode") == null || userResult.getInteger("errcode") != 0) {
-            logger.error("获取部门 {} 的成员列表失败：errcode={}, errmsg={}", 
+            logger.error("獲取部門 {} 的成員列表失敗：errcode={}, errmsg={}", 
                     departmentId, userResult.getInteger("errcode"), userResult.getString("errmsg"));
             return null;
         }
@@ -101,10 +101,10 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
 
 
     /**
-     * 根据部门 ID 查询成员列表
+     * 根據部門 ID 查詢成員列表
      *
-     * @param departmentId 部门 ID
-     * @return 成员列表
+     * @param departmentId 部門 ID
+     * @return 成員列表
      */
     @Override
     public List<WecomSchoolDepartmentMember> getMembersByDepartmentId(Long departmentId) {
@@ -112,29 +112,29 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
     }
 
     /**
-     * 同步部门成员数据（以企业微信数据为准）
-     * @param wechatMembers 企业微信成员列表
-     * @param departmentId 部门 ID
+     * 同步部門成員數據（以企業微信數據為準）
+     * @param wechatMembers 企業微信成員列表
+     * @param departmentId 部門 ID
      */
     @Override
     @Transactional
     public void syncMembers(JSONArray wechatMembers, Long departmentId) {
         if (CollectionUtils.isEmpty(wechatMembers)) {
-            logger.info("部门 {} 的企业微信成员数据为空，跳过同步", departmentId);
+            logger.info("部門 {} 的企業微信成員數據爲空，跳過同步", departmentId);
             return;
         }
         
-        // 获取数据库中该部门的所有成员
+        // 獲取數據庫中該部門的所有成員
         List<WecomSchoolDepartmentMember> dbMembers = getMembersByDepartmentId(departmentId);
         
-        // 将数据库成员列表转换为 Map，方便对比
+        // 將數據庫成員列錶轉換爲 Map，方便對比
         Map<String, WecomSchoolDepartmentMember> dbMemberMap = new HashMap<>();
         if (!CollectionUtils.isEmpty(dbMembers)) {
             dbMemberMap = dbMembers.stream()
                     .collect(Collectors.toMap(WecomSchoolDepartmentMember::getUserid, member -> member));
         }
         
-        // 标记需要删除的成员（初始为数据库中的所有成员）
+        // 標記需要刪除的成員（初始爲數據庫中的所有成員）
         Set<String> membersToDelete = new HashSet<>();
         if (!CollectionUtils.isEmpty(dbMembers)) {
             membersToDelete = dbMembers.stream()
@@ -142,20 +142,20 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
                     .collect(Collectors.toSet());
         }
         
-        // 解析企业微信成员数据
+        // 解析企業微信成員數據
         List<WecomSchoolDepartmentMember> wechatMemberList = parseMembers(wechatMembers, departmentId);
         
-        // 分类处理：新增和更新
+        // 分類處理：新增和更新
         List<WecomSchoolDepartmentMember> membersToInsert = new ArrayList<>();
         List<WecomSchoolDepartmentMember> membersToUpdate = new ArrayList<>();
         
         for (WecomSchoolDepartmentMember wechatMember : wechatMemberList) {
             String userid = wechatMember.getUserid();
             
-            // 从待删除列表中移除（因为这个成员在企业微信中存在）
+            // 從待刪除列表中移除（因爲這個成員在企業微信中存在）
             membersToDelete.remove(userid);
             
-            // 判断是新增还是更新
+            // 判斷是新增還是更新
             if (dbMemberMap.containsKey(userid)) {
                 membersToUpdate.add(wechatMember);
             } else {
@@ -163,34 +163,34 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
             }
         }
         
-        logger.info("部门 {} 成员同步 - 新增：{}, 更新：{}, 删除：{}", 
+        logger.info("部門 {} 成員同步 - 新增：{}, 更新：{}, 刪除：{}", 
                 departmentId, membersToInsert.size(), membersToUpdate.size(), membersToDelete.size());
         
-        // 执行批量操作
+        // 執行批量操作
         executeBatchOperations(membersToInsert, membersToUpdate, membersToDelete, departmentId);
     }
 
     /**
-     * 解析企业微信成员数据
-     * @param memberArray 成员数组
-     * @param departmentId 部门 ID
-     * @return 成员对象列表
+     * 解析企業微信成員數據
+     * @param memberArray 成員數組
+     * @param departmentId 部門 ID
+     * @return 成員對象列表
      */
     private List<WecomSchoolDepartmentMember> parseMembers(JSONArray memberArray, Long departmentId) {
-        // 创建成员对象列表
+        // 創建成員對象列表
         List<WecomSchoolDepartmentMember> members = new ArrayList<>();
-        // 如果成员数组为空，则返回空列表
+        // 如果成員數組爲空，則返回空列表
         if (CollectionUtils.isEmpty(memberArray)) {
             return members;
         }
-        // 遍历成员数组
+        // 遍歷成員數組
         for (int i = 0; i < memberArray.size(); i++) {
-            // 获取成员对象
+            // 獲取成員對象
             JSONObject memberObj = memberArray.getJSONObject(i);
             if (memberObj == null) {
                 continue;
             }
-            // 创建成员对象
+            // 創建成員對象
             WecomSchoolDepartmentMember member = new WecomSchoolDepartmentMember();
             member.setUserid(memberObj.getString("userid"));
             member.setDepartmentId(departmentId);
@@ -199,41 +199,41 @@ public class WecomSchoolDepartmentMemberServiceImpl implements WecomSchoolDepart
             // 添加到列表中
             members.add(member);
         }
-        // 返回成员列表
+        // 返回成員列表
         return members;
     }
 
     /**
-     * 执行批量操作（新增、更新、删除）
-     * @param toInsert 待新增的成员列表
-     * @param toUpdate 待更新的成员列表
-     * @param toDelete 待删除的用户 ID 集合
-     * @param departmentId 部门 ID
+     * 執行批量操作（新增、更新、刪除）
+     * @param toInsert 待新增的成員列表
+     * @param toUpdate 待更新的成員列表
+     * @param toDelete 待刪除的用戶 ID 集合
+     * @param departmentId 部門 ID
      */
     private void executeBatchOperations(List<WecomSchoolDepartmentMember> toInsert, 
                                         List<WecomSchoolDepartmentMember> toUpdate,
                                         Set<String> toDelete,
                                         Long departmentId) {
-        // 执行批量新增
+        // 執行批量新增
         if (!toInsert.isEmpty()) {
             wecomSchoolDepartmentMemberMapper.batchInsertSchoolDepartmentMembers(toInsert);
-            logger.debug("部门 {} 批量新增成员 {} 个", departmentId, toInsert.size());
+            logger.debug("部門 {} 批量新增成員 {} 個", departmentId, toInsert.size());
         }
         
-        // 执行批量更新
+        // 執行批量更新
         if (!toUpdate.isEmpty()) {
             for (WecomSchoolDepartmentMember member : toUpdate) {
                 wecomSchoolDepartmentMemberMapper.updateSchoolDepartmentMember(member);
             }
-            logger.debug("部门 {} 批量更新成员 {} 个", departmentId, toUpdate.size());
+            logger.debug("部門 {} 批量更新成員 {} 個", departmentId, toUpdate.size());
         }
         
-        // 执行批量删除
+        // 執行批量刪除
         if (!toDelete.isEmpty()) {
             for (String userid : toDelete) {
                 wecomSchoolDepartmentMemberMapper.deleteSchoolDepartmentMemberByUseridAndDepartmentId(userid, departmentId);
             }
-            logger.debug("部门 {} 批量删除成员 {} 个", departmentId, toDelete.size());
+            logger.debug("部門 {} 批量刪除成員 {} 個", departmentId, toDelete.size());
         }
     }
 }

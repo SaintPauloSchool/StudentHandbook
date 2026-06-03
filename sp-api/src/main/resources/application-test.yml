@@ -1,8 +1,8 @@
-# 测试环境的数据库配置
+# 測試環境的數據庫配置
 server:
   port: 8002
 
-# 前端访问地址（用于后端登录完成后 redirect 回前端，dev 必须带 port）
+# 前端訪問地址（用於後端登錄完成後 redirect 回前端，dev 必須帶 port）
 sp:
   frontend:
     url: http://10.32.96.55:8082
@@ -12,46 +12,46 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
     druid:
-      # 主库数据源
+      # 主庫數據源
       master:
         url: jdbc:mysql://10.32.96.45:3306/school_student_management_test?useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&initialTimeout=2&connectTimeout=60000&socketTimeout=60000
         username: dba_user
         password: StrongP@ssw0rd
-        # 初始连接数
+        # 初始連接數
         initialSize: 3
-        # 最小连接池数量
+        # 最小連接池數量
         minIdle: 3
-        # 最大连接池数量
+        # 最大連接池數量
         maxActive: 8
-        # 配置获取连接等待超时的时间
+        # 配置獲取連接等待超時的時間
         maxWait: 60000
-        # 配置连接超时时间
+        # 配置連接超時時間
         connectTimeout: 30000
-        # 配置网络超时时间
+        # 配置網絡超時時間
         socketTimeout: 60000
-        # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+        # 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連接，單位是毫秒
         timeBetweenEvictionRunsMillis: 60000
-        # 配置一个连接在池中最小生存的时间，单位是毫秒
+        # 配置一個連接在池中最小生存的時間，單位是毫秒
         minEvictableIdleTimeMillis: 300000
-        # 配置一个连接在池中最大生存的时间，单位是毫秒
+        # 配置一個連接在池中最大生存的時間，單位是毫秒
         maxEvictableIdleTimeMillis: 1800000
-        # 配置检测连接是否有效
+        # 配置檢測連接是否有效
         validationQuery: SELECT 1
         testWhileIdle: true
         testOnBorrow: true
         testOnReturn: false
-        # 启用异常时移除连接
+        # 啓用異常時移除連接
         removeAbandoned: true
         removeAbandonedTimeout: 180
         logAbandoned: true
         # MySQL特定配置
         poolPreparedStatements: true
         maxPoolPreparedStatementPerConnectionSize: 20
-        # 启用ping检查
+        # 啓用ping檢查
         keepAlive: true
-      # 从库数据源
+      # 從庫數據源
       slave:
-        # 从数据源开关/默认关闭
+        # 從數據源開關/默認關閉
         enabled: false
         url: 
         username: 
@@ -60,16 +60,16 @@ spring:
         enabled: false
       statViewServlet:
         enabled: false
-        # 设置白名单，不填则允许所有访问
+        # 設置白名單，不填則允許所有訪問
         allow:
         url-pattern: /druid/*
-        # 控制台管理用户名和密码
+        # 控制臺管理用戶名和密碼
         login-username: sp
         login-password: 123456
       filter:
         stat:
           enabled: true
-          # 慢SQL记录
+          # 慢SQL記錄
           log-slow-sql: true
           slow-sql-millis: 1000
           merge-sql: true
@@ -77,14 +77,14 @@ spring:
           config:
             multi-statement-allow: true
 
-# 企业微信配置
+# 企業微信配置
 wechat:
   work:
     corpId: ww04fad852e91fd490
     agentId: 1000033
     secret: I31-B5clKayPf4vNl2bibhL1ia8x4cwIc884xK888Fc
     redirectUri: https://mo-stu-sys.org-assistant.com/sp-api/wechat/oauth/callback
-    # 回调配置
+    # 回調配置
     callback:
       token: YWhmCsbcN5dtvkN44t5aywaOxcxDWWMO
       encodingAesKey: 4C7hzSn2qFrO1hzMIJBY5iTL7UPKFZSUwmMX9TLF80D
