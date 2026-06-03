@@ -1,6 +1,6 @@
 <template>
   <div class="notice-container">
-    <!-- 顶部导航栏 -->
+    <!-- 頂部導航欄 -->
     <div class="header">
       <div class="header-left">
         <div class="student-name-display">
@@ -31,7 +31,7 @@
         :key="notice.notificationId"
         @click="viewDetail(notice)"
       >
-        <!-- 未读徽章 -->
+        <!-- 未讀徽章 -->
         <span class="unread-badge" v-if="isUnread(notice)">未讀</span>
 
         <div class="notice-header">
@@ -53,7 +53,7 @@
         </div>
       </div>
     
-      <!-- 加载更多状态 -->
+      <!-- 加載更多狀態 -->
       <div class="load-more-status" v-if="noticeList.length < total">
         <div v-if="loadingMore" class="loading-more">
           <div class="loading-spinner-small"></div>
@@ -64,19 +64,19 @@
         </div>
       </div>
     
-      <!-- 已加载全部 -->
+      <!-- 已加載全部 -->
       <div class="all-loaded" v-else>
         <span>已加載全部通知</span>
       </div>
     </div>
 
-    <!-- 空状态 -->
+    <!-- 空狀態 -->
     <div class="empty-state" v-else-if="!loading && noticeList.length === 0">
       <div class="empty-icon">📭</div>
       <p class="empty-text">暫無通知</p>
     </div>
 
-    <!-- 加载状态 : 当没有数据且正在加载时才显示 -->
+    <!-- 加載狀態 : 當沒有數據且正在加載時才顯示 -->
     <div class="loading-state" v-if="loading && noticeList.length === 0">
       <div class="loading-spinner"></div>
       <p class="loading-text">加載中...</p>
@@ -92,7 +92,7 @@ import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, HomeFilled, Refresh } from '@element-plus/icons-vue'
-import settings from '@/config/settings' // 导入全局配置设置
+import settings from '@/config/settings' // 導入全局配置設置
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 
 export default {
@@ -113,8 +113,8 @@ export default {
       pageSize: 10,
       total: 0,
       hasMore: true,
-      savedScrollTop: 0, // 保存滚动位置
-      isInitialMount: false, // 是否初次挂载
+      savedScrollTop: 0, // 保存滾動位置
+      isInitialMount: false, // 是否初次掛載
       
       // 學生選擇相關
       studentDialogVisible: false,
@@ -160,14 +160,14 @@ export default {
     }
   },
   methods: {
-    // 返回上一页
+    // 返回上一頁
     goBack() {
       this.$router.push('/')
     },
 
-    // 加载通知列表
+    // 加載通知列表
     async loadNoticeList(reset = false) {
-      // 重置分页
+      // 重置分頁
       if (reset) {
         this.currentPage = 1
         this.noticeList = []
@@ -179,7 +179,7 @@ export default {
         this.loading = true
       }
 
-      // 如果没有更多数据，直接返回
+      // 如果沒有更多數據，直接返回
       if (!this.hasMore && !reset) {
         this.loading = false
         this.loadingMore = false
@@ -192,7 +192,7 @@ export default {
           pageNum: this.currentPage,
           pageSize: this.pageSize
         }
-        // 如果有选中的学生ID，添加到请求参数中
+        // 如果有選中的學生ID，添加到請求參數中
         if (this.selectedStudentUserId) {
           params.studentUserId = this.selectedStudentUserId
         }
@@ -206,18 +206,18 @@ export default {
           this.total = data.total || 0
           this.pageSize = data.pageSize || 10
 
-          // 追加数据
+          // 追加數據
           if (reset) {
             this.noticeList = newList
           } else {
             this.noticeList = [...this.noticeList, ...newList]
           }
 
-          // 判断是否还有更多数据
+          // 判斷是否還有更多數據
           this.hasMore = this.noticeList.length < this.total
           this.currentPage++
 
-          // 检查是否需要自动加载更多（无滚动条或接近底部）
+          // 檢查是否需要自動加載更多（無滾動條或接近底部）
           this.$nextTick(() => {
             this.checkAndLoadMore()
           })
@@ -235,7 +235,7 @@ export default {
       }
     },
 
-    // 检查并自动加载更多（处理无滚动条情况）
+    // 檢查並自動加載更多（處理無滾動條情況）
     checkAndLoadMore() {
       if (!this.hasMore || this.loadingMore) {
         return
@@ -249,20 +249,20 @@ export default {
       const scrollHeight = container.scrollHeight
       const clientHeight = container.clientHeight
 
-      // 如果内容高度小于等于容器高度（无滚动条），自动加载更多
+      // 如果內容高度小於等於容器高度（無滾動條），自動加載更多
       if (scrollHeight <= clientHeight) {
         this.loadMore()
       }
     },
 
-    // 滚动事件处理
+    // 滾動事件處理
     handleScroll(event) {
       const container = event.target
       const scrollTop = container.scrollTop
       const scrollHeight = container.scrollHeight
       const clientHeight = container.clientHeight
 
-      // 当滚动到距离底部 50px 时自动加载
+      // 當滾動到距離底部 50px 時自動加載
       if (scrollTop + clientHeight >= scrollHeight - 50) {
         if (this.hasMore && !this.loadingMore) {
           this.loadMore()
@@ -270,28 +270,28 @@ export default {
       }
     },
 
-    // 加载更多
+    // 加載更多
     loadMore() {
       if (this.hasMore && !this.loadingMore) {
         this.loadNoticeList()
       }
     },
 
-    // 判断通知是否未读（无发送记录 或 is_read='0'）
+    // 判斷通知是否未讀（無發送記錄 或 is_read='0'）
     isUnread(notice) {
-      // 若 sendRecordId 为 null，说明该通知没有对应的发送记录（未发给当前用户），视为无状态，不显示未读
+      // 若 sendRecordId 爲 null，說明該通知沒有對應的發送記錄（未發給當前用戶），視爲無狀態，不顯示未讀
       if (!notice.sendRecordId) return false
-      // isRead 为 '0' 或 null（有发送记录但无阅读记录）时视为未读
+      // isRead 爲 '0' 或 null（有發送記錄但無閱讀記錄）時視爲未讀
       return notice.isRead !== '1'
     },
 
-    // 查看详情
+    // 查看詳情
     viewDetail(notice) {
-      // 保存当前滚动位置
+      // 保存當前滾動位置
       if (this.$refs.scrollContainer) {
         this.savedScrollTop = this.$refs.scrollContainer.scrollTop
       }
-      // 乐观更新本地状态：立即将该条记录标记为已读，避免返回列表时仍显示未读
+      // 樂觀更新本地狀態：立即將該條記錄標記爲已讀，避免返回列表時仍顯示未讀
       if (this.isUnread(notice)) {
         notice.isRead = '1'
       }
@@ -308,7 +308,7 @@ export default {
       return `${year}-${month}-${day}`
     },
 
-    // 截断内容
+    // 截斷內容
     truncateContent(content, maxLength) {
       if (!content) return ''
       if (content.length <= maxLength) return content
@@ -323,7 +323,7 @@ export default {
         await this.loadNoticeList(true)
         ElMessage.success('刷新成功')
       } catch (error) {
-        console.error('刷新失败:', error)
+        console.error('刷新失敗:', error)
         ElMessage.error('刷新失敗，請稍後重試')
       }
     },
@@ -340,7 +340,7 @@ export default {
       // 刷新通知列表
       this.loadNoticeList(true);
       
-      // 通知父组件或全局更新未读数量
+      // 通知父組件或全局更新未讀數量
       window.dispatchEvent(new CustomEvent('studentChanged', { 
         detail: { studentUserId: this.selectedStudentUserId } 
       }));
@@ -356,7 +356,7 @@ export default {
   padding: 0;
 }
 
-/* 顶部导航栏 */
+/* 頂部導航欄 */
 .header {
   display: flex;
   align-items: flex-start;
@@ -563,7 +563,7 @@ export default {
   transform: translateY(-4px);
 }
 
-/* 未读徽章 */
+/* 未讀徽章 */
 .unread-badge {
   position: absolute;
   top: -6px;
@@ -585,7 +585,7 @@ export default {
   50%       { box-shadow: 0 2px 12px rgba(239, 68, 68, 0.75); }
 }
 
-/* 未读通知标题加粗高亮 */
+/* 未讀通知標題加粗高亮 */
 .notice-title.unread-title {
   color: #0c4a6e;
 }
@@ -663,7 +663,7 @@ export default {
   transform: translateX(3px);
 }
 
-/* 空状态 */
+/* 空狀態 */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -682,7 +682,7 @@ export default {
   color: #909399;
 }
 
-/* 加载状态 */
+/* 加載狀態 */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -712,7 +712,7 @@ export default {
   color: #909399;
 }
 
-/* 加载更多状态 */
+/* 加載更多狀態 */
 .load-more-status {
   padding: 20px;
   text-align: center;
@@ -751,7 +751,7 @@ export default {
   transform: translateY(-2px);
 }
 
-/* 已加载全部 */
+/* 已加載全部 */
 .all-loaded {
   padding: 20px;
   text-align: center;
@@ -759,7 +759,7 @@ export default {
   font-size: 14px;
 }
 
-/* 移动端适配 */
+/* 移動端適配 */
 @media (max-width: 768px) {
   .header {
     padding: 12px 15px;
@@ -941,7 +941,7 @@ export default {
   box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
 }
 
-/* 自定义模态对话框样式 */
+/* 自定義模態對話框樣式 */
 .custom-modal-overlay {
   position: fixed;
   top: 0;
@@ -1029,7 +1029,7 @@ export default {
   padding: 0 25px 25px;
 }
 
-/* 手机端适配 */
+/* 手機端適配 */
 @media (max-width: 768px) {
   .custom-student-dialog {
     width: 90%;

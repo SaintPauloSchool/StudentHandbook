@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 家长学生关系Service业务层处理
+ * 家長學生關係Service業務層處理
  *
  */
 @Service
@@ -25,10 +25,10 @@ public class ParentStudentRelationServiceImpl implements IParentStudentRelationS
     private ParentStudentRelationMapper parentStudentRelationMapper;
 
     /**
-     * 根据家长ID查询学生列表
+     * 根據家長ID查詢學生列表
      *
-     * @param parentUserId 家长用户ID
-     * @return 家长学生关系集合
+     * @param parentUserId 家長用戶ID
+     * @return 家長學生關係集合
      */
     @Override
     public List<ParentStudentRelation> selectByParentId(String parentUserId) {
@@ -36,20 +36,20 @@ public class ParentStudentRelationServiceImpl implements IParentStudentRelationS
     }
 
     /**
-     * 创建并保存家长学生关系记录
+     * 創建並保存家長學生關係記錄
      *
-     * @param parentUserId    家长用户ID
-     * @param studentUserId  学生用户ID
-     * @param studentName    学生姓名
-     * @param relation       关系描述
-     * @param mobile         家长手机号
-     * @param externalUserid 家长外部用户ID
+     * @param parentUserId    家長用戶ID
+     * @param studentUserId  學生用戶ID
+     * @param studentName    學生姓名
+     * @param relation       關係描述
+     * @param mobile         家長手機號
+     * @param externalUserid 家長外部用戶ID
      */
     @Override
     @Transactional
     public void createAndSaveParentStudentRelation(String parentUserId, String studentUserId, String studentName, 
                                                  String relation, String mobile, String externalUserid) {
-        // 创建家长学生关系实体
+        // 創建家長學生關係實體
         ParentStudentRelation relationEntity = new ParentStudentRelation();
         relationEntity.setParentUserId(parentUserId);
         relationEntity.setStudentUserId(studentUserId);
@@ -61,15 +61,15 @@ public class ParentStudentRelationServiceImpl implements IParentStudentRelationS
         relationEntity.setUpdateTime(LocalDateTime.now());
         // 插入
         int result = parentStudentRelationMapper.insertIgnore(relationEntity);
-        // 日志记录由调用方处理
-        logger.info("创建并保存家长学生关系记录，共處理 {} 个家长", result);
+        // 日誌記錄由調用方處理
+        logger.info("創建並保存家長學生關係記錄，共處理 {} 個家長", result);
     }
 
     /**
-     * 获取作答人信息（学生姓名 + 关系）
-     * @param parentUserId 家长用户ID
-     * @param studentUserId 学生用户ID
-     * @return 作答人信息，例如：“吴煜键 - 妈妈”
+     * 獲取作答人信息（學生姓名 + 關係）
+     * @param parentUserId 家長用戶ID
+     * @param studentUserId 學生用戶ID
+     * @return 作答人信息，例如：「吳煜鍵 - 媽媽」
      */
     @Override
     public String getAnswererInfo(String parentUserId, String studentUserId) {
@@ -78,7 +78,7 @@ public class ParentStudentRelationServiceImpl implements IParentStudentRelationS
                 return "";
             }
             
-            // 直接根据parentUserId和studentUserId查询，更高效
+            // 直接根據parentUserId和studentUserId查詢，更高效
             ParentStudentRelation relation = parentStudentRelationMapper.selectByParentAndStudent(parentUserId, studentUserId);
             
             if (relation != null) {
@@ -94,7 +94,7 @@ public class ParentStudentRelationServiceImpl implements IParentStudentRelationS
             
             return "";
         } catch (Exception e) {
-            logger.error("获取作答人信息失败: {}", e.getMessage(), e);
+            logger.error("獲取作答人信息失敗: {}", e.getMessage(), e);
             return "";
         }
     }

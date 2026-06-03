@@ -50,9 +50,9 @@ public class ParentNoticeController extends BaseController {
     }
 
     /**
-     * 查询发送给当前家长的已发布通知列表（附带阅读状态）
+     * 查詢發送給當前家長的已發布通知列表（附帶閱讀狀態）
      */
-    @Log(title = "查询已发布的通知列表", businessType = BusinessType.SELECT)
+    @Log(title = "查詢已發布的通知列表", businessType = BusinessType.SELECT)
     @GetMapping("/list")
     public AjaxResult list(
             @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
@@ -61,7 +61,7 @@ public class ParentNoticeController extends BaseController {
         try {
             String userId = getUserId();
             if (userId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
             }
 
             List<NotificationWithReadStatusVO> notifications =
@@ -77,21 +77,21 @@ public class ParentNoticeController extends BaseController {
 
             return AjaxResult.success(result);
         } catch (Exception e) {
-            logger.error("获取通知列表失败: {}", e.getMessage());
-            return AjaxResult.error("获取通知列表失败: " + e.getMessage());
+            logger.error("獲取通知列表失敗: {}", e.getMessage());
+            return AjaxResult.error("獲取通知列表失敗: " + e.getMessage());
         }
     }
 
     /**
-     * 获取当前用户的未读通知数量
+     * 獲取當前用戶的未讀通知數量
      */
-    @Log(title = "获取未读通知数量", businessType = BusinessType.SELECT)
+    @Log(title = "獲取未讀通知數量", businessType = BusinessType.SELECT)
     @GetMapping("/unreadCount")
     public AjaxResult getUnreadCount(@RequestParam(value = "studentUserId", required = false) String studentUserId) {
         try {
             String userId = getUserId();
             if (userId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
             }
 
             int unreadCount = notificationUserReadRecordService.countUnreadNotificationsForUser(userId, studentUserId);
@@ -99,15 +99,15 @@ public class ParentNoticeController extends BaseController {
             result.put("unreadCount", unreadCount);
             return AjaxResult.success(result);
         } catch (Exception e) {
-            logger.error("获取未读通知数量失败: {}", e.getMessage());
-            return AjaxResult.error("获取未读通知数量失败: " + e.getMessage());
+            logger.error("獲取未讀通知數量失敗: {}", e.getMessage());
+            return AjaxResult.error("獲取未讀通知數量失敗: " + e.getMessage());
         }
     }
 
     /**
-     * 根据ID查询通知详情（包含问题列表和用户答案）
+     * 根據ID查詢通知詳情（包含問題列表和用戶答案）
      */
-    @Log(title = "查询通知详情", businessType = BusinessType.SELECT)
+    @Log(title = "查詢通知詳情", businessType = BusinessType.SELECT)
     @GetMapping("/{notificationId}")
     public AjaxResult getInfo(
             @PathVariable("notificationId") Long notificationId,
@@ -115,26 +115,26 @@ public class ParentNoticeController extends BaseController {
         try {
             String userId = getUserId();
             if (userId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
             }
 
-            // 必须传递studentUserId参数
+            // 必須傳遞studentUserId參數
             if (studentUserId == null || studentUserId.isEmpty()) {
-                return AjaxResult.error("请指定学生ID");
+                return AjaxResult.error("請指定學生ID");
             }
 
-            // 获取通知详情
+            // 獲取通知詳情
             Map<String, Object> result = notificationService.selectNotificationDetail(notificationId);
 
             if (result == null || result.get("notification") == null) {
                 return AjaxResult.error("通知不存在");
             }
 
-            // 获取学生信息
+            // 獲取學生信息
             NotificationAnswer userAnswer = notificationAnswerService.getUserAnswer(notificationId, studentUserId);
 
             if (userAnswer != null) {
-                // 使用回答那條數據的userId(家长ID)和studentUserId获取作答人信息
+                // 使用回答那條數據的userId(家長ID)和studentUserId獲取作答人信息
                 String answererInfo = parentStudentRelationService.getAnswererInfo(userAnswer.getUserId(), studentUserId);
                 result.put("userAnswer", userAnswer);
                 result.put("answererInfo", answererInfo);
@@ -147,15 +147,15 @@ public class ParentNoticeController extends BaseController {
 
             return AjaxResult.success(result);
         } catch (Exception e) {
-            logger.error("获取通知详情失败: {}", e.getMessage());
-            return AjaxResult.error("获取通知详情失败: " + e.getMessage());
+            logger.error("獲取通知詳情失敗: {}", e.getMessage());
+            return AjaxResult.error("獲取通知詳情失敗: " + e.getMessage());
         }
     }
 
     /**
-     * 标记通知为已读
+     * 標記通知爲已讀
      */
-    @Log(title = "标记通知为已读", businessType = BusinessType.UPDATE)
+    @Log(title = "標記通知爲已讀", businessType = BusinessType.UPDATE)
     @PostMapping("/{notificationId}/read")
     public AjaxResult markAsRead(
             @PathVariable("notificationId") Long notificationId,
@@ -163,19 +163,19 @@ public class ParentNoticeController extends BaseController {
         try {
             String userId = getUserId();
             if (userId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
             }
 
-            // 必须传递studentUserId参数
+            // 必須傳遞studentUserId參數
             if (studentUserId == null || studentUserId.isEmpty()) {
-                return AjaxResult.error("请指定学生ID");
+                return AjaxResult.error("請指定學生ID");
             }
             
             notificationUserReadRecordService.markAsRead(notificationId, userId, studentUserId);
-            return AjaxResult.success("已标记为已读");
+            return AjaxResult.success("已標記爲已讀");
         } catch (Exception e) {
-            logger.error("标记已读失败: {}", e.getMessage());
-            return AjaxResult.error("标记已读失败: " + e.getMessage());
+            logger.error("標記已讀失敗: {}", e.getMessage());
+            return AjaxResult.error("標記已讀失敗: " + e.getMessage());
         }
     }
 
@@ -190,25 +190,25 @@ public class ParentNoticeController extends BaseController {
         try {
             String userId = getUserId();
             if (userId == null) {
-                return AjaxResult.error("无效的访问令牌或用户未登录");
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
             }
 
             if (submitAnswersVO == null || submitAnswersVO.getAnswer() == null) {
-                return AjaxResult.error("请至少回答一个问题");
+                return AjaxResult.error("請至少回答一個問題");
             }
             
-            // 必须传递studentUserId参数
+            // 必須傳遞studentUserId參數
             String studentUserId = submitAnswersVO.getStudentUserId();
             if (studentUserId == null || studentUserId.isEmpty()) {
-                return AjaxResult.error("请指定学生ID");
+                return AjaxResult.error("請指定學生ID");
             }
 
-            String userType = "2"; // 2表示家长
+            String userType = "2"; // 2表示家長
             int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), userId, userType, studentUserId);
 
-            // 标记为已回复（传入studentUserId）
+            // 標記爲已回復（傳入studentUserId）
             notificationUserReadRecordService.markAsReplied(notificationId, userId, studentUserId);
-            logger.info("用户 {} 提交通知 {} 的回答，学生ID: {}", userId, notificationId, studentUserId);
+            logger.info("用戶 {} 提交通知 {} 的回答，學生ID: {}", userId, notificationId, studentUserId);
 
             Map<String, Object> result = new HashMap<>();
             result.put("count", count);
@@ -216,8 +216,8 @@ public class ParentNoticeController extends BaseController {
         } catch (DuplicateSubmissionException e) {
             return AjaxResult.error(e.getCode(), e.getMessage());
         } catch (Exception e) {
-            logger.error("提交通知回答失败: {}", e.getMessage(), e);
-            return AjaxResult.error("提交失败: " + e.getMessage());
+            logger.error("提交通知回答失敗: {}", e.getMessage(), e);
+            return AjaxResult.error("提交失敗: " + e.getMessage());
         }
     }
 }

@@ -11,14 +11,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 其他静态资源配置
+        // 其他靜態資源配置
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
     }
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // 前端分离后，不再处理静态页面的映射
+        // 前端分離後，不再處理靜態頁面的映射
     }
 
     @Override

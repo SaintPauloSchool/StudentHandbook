@@ -13,7 +13,7 @@ public class ErrorConfig {
         return new ErrorPageRegistrar() {
             @Override
             public void registerErrorPages(ErrorPageRegistry registry) {
-                // 不注册任何错误页面，避免与前端路由冲突
+                // 不註冊任何錯誤頁面，避免與前端路由衝突
             }
         };
     }

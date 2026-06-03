@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 通知用户阅读记录 Service 实现类
+ * 通知用戶閱讀記錄 Service 實現類
  */
 @Service
 public class NotificationUserReadRecordServiceImpl implements INotificationUserReadRecordService {
@@ -20,7 +20,7 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
     private NotificationUserReadRecordMapper notificationUserReadRecordMapper;
 
     /**
-     * 分页查询发送给当前用户的已发布通知列表（附带阅读状态）
+     * 分頁查詢發送給當前用戶的已發布通知列表（附帶閱讀狀態）
      */
     @Override
     public List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId, String studentUserId) {
@@ -29,7 +29,7 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
     }
 
     /**
-     * 查询发送给当前用户的已发布通知总数
+     * 查詢發送給當前用戶的已發布通知總數
      */
     @Override
     public int countPublishedNotificationsForUser(String userId, String studentUserId) {
@@ -37,7 +37,7 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
     }
 
     /**
-     * 查询发送给当前用户的未读通知数量
+     * 查詢發送給當前用戶的未讀通知數量
      */
     @Override
     public int countUnreadNotificationsForUser(String userId, String studentUserId) {
@@ -45,33 +45,33 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
     }
 
     /**
-     * 将指定通知对当前用户标记为已读
+     * 將指定通知對當前用戶標記爲已讀
      * <p>
-     * 查询对应的阅读记录，若存在且为未读则更新；否则忽略
-     * （阅读记录由发送时创建，此处不自动插入）。
+     * 查詢對應的閱讀記錄，若存在且爲未讀則更新；否則忽略
+     * （閱讀記錄由發送時創建，此處不自動插入）。
      */
     @Override
     public void markAsRead(Long notificationId, String userId, String studentUserId) {
-        // 查询对应的阅读记录
+        // 查詢對應的閱讀記錄
         NotificationUserReadRecord record =
                 notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
-        // 若存在且为未读则更新
+        // 若存在且爲未讀則更新
         if (record != null && "0".equals(record.getIsRead())) {
             notificationUserReadRecordMapper.markAsRead(record.getReadId(), LocalDateTime.now());
         }
     }
 
     /**
-     * 将指定通知对当前用户标记为已回复
+     * 將指定通知對當前用戶標記爲已回復
      * <p>
-     * 查询对应的阅读记录，若存在且为未回复则更新 reply_status='1' 与 reply_time；否则忽略。
+     * 查詢對應的閱讀記錄，若存在且爲未回復則更新 reply_status='1' 與 reply_time；否則忽略。
      */
     @Override
     public void markAsReplied(Long notificationId, String userId, String studentUserId) {
-        // 查询对应的阅读记录（根据userId和studentUserId）
+        // 查詢對應的閱讀記錄（根據userId和studentUserId）
         NotificationUserReadRecord record =
                 notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
-        // 若存在且为未回复则更新
+        // 若存在且爲未回復則更新
         if (record != null && "0".equals(record.getReplyStatus())) {
             notificationUserReadRecordMapper.markAsReplied(record.getReadId(), LocalDateTime.now());
         }

@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 部门数据同步定时任务
- * 每天凌晨12点同步企业微信部门数据
+ * 部門數據同步定時任務
+ * 每天凌晨12點同步企業微信部門數據
  */
 @Component
 public class DepartmentSyncTask {
@@ -39,27 +39,27 @@ public class DepartmentSyncTask {
     private static final AtomicBoolean isExecuting = new AtomicBoolean(false);
 
     /**
-     * 每天凌晨12点执行部门数据同步
+     * 每天凌晨12點執行部門數據同步
      */
     //@Scheduled(cron = "0 0 0 * * ?")
     public void syncDepartmentData() {
-        // 使用AtomicBoolean确保同一时间只有一个实例在执行
+        // 使用AtomicBoolean確保同一時間只有一個實例在執行
         if (!isExecuting.compareAndSet(false, true)) {
-            logger.info("部门数据同步任务已在执行中，跳过本次执行");
+            logger.info("部門數據同步任務已在執行中，跳過本次執行");
             return;
         }
         
         try {
-            logger.info("开始执行部门数据同步任务");
+            logger.info("開始執行部門數據同步任務");
 
-            // 获取access_token并调用部门列表接口
+            // 獲取access_token並調用部門列表接口
             String accessToken = weChatWorkSchoolUtils.getAccessToken();
             String departmentListUrl = "https://qyapi.weixin.qq.com/cgi-bin/school/department/list?access_token=" + accessToken;
 
             String departmentResponse = HttpUtils.sendGet(departmentListUrl);
-            logger.info("获取企业微信部门列表结果: {}", departmentResponse);
+            logger.info("獲取企業微信部門列表結果: {}", departmentResponse);
 
-            // 解析部门列表并保存到数据库
+            // 解析部門列表並保存到數據庫
             JSONObject departmentJson = JSONObject.parseObject(departmentResponse);
             if (departmentJson.getInteger("errcode") != null && departmentJson.getInteger("errcode") == 0) {
                 JSONArray departmentsArray = departmentJson.getJSONArray("departments");
@@ -84,11 +84,11 @@ public class DepartmentSyncTask {
                         departmentsToSave.add(department);
                     }
 
-                    // 批量保存部门信息（存在则更新，不存在则新增）
+                    // 批量保存部門信息（存在則更新，不存在則新增）
                     departmentService.batchSaveDepartments(departmentsToSave);
-                    logger.info("成功同步 {} 个部门信息到数据库", departmentsArray.size());
+                    logger.info("成功同步 {} 個部門信息到數據庫", departmentsArray.size());
 
-                    // 解析并保存部门管理员信息
+                    // 解析並保存部門管理員信息
                     List<DepartmentAdmin> allAdmins = new ArrayList<>();
                     for (int i = 0; i < departmentsArray.size(); i++) {
                         JSONObject deptObj = departmentsArray.getJSONObject(i);
@@ -111,24 +111,24 @@ public class DepartmentSyncTask {
                         }
                     }
                     
-                    // 批量保存部门管理员信息
+                    // 批量保存部門管理員信息
                     if (!allAdmins.isEmpty()) {
                         departmentAdminService.batchSaveDepartmentAdmins(allAdmins);
-                        logger.info("成功同步 {} 个部门管理员信息到数据库", allAdmins.size());
+                        logger.info("成功同步 {} 個部門管理員信息到數據庫", allAdmins.size());
                     }
                 } else {
-                    logger.info("部门列表为空");
+                    logger.info("部門列表爲空");
                 }
             } else {
-                logger.error("获取部门列表失败: {}", departmentJson.getString("errmsg"));
+                logger.error("獲取部門列表失敗: {}", departmentJson.getString("errmsg"));
             }
         } catch (Exception e) {
-            logger.error("同步部门数据失败", e);
+            logger.error("同步部門數據失敗", e);
         } finally {
-            // 确保执行完成后释放锁
+            // 確保執行完成後釋放鎖
             isExecuting.set(false);
         }
 
-        logger.info("部门数据同步任务执行完成");
+        logger.info("部門數據同步任務執行完成");
     }
 }

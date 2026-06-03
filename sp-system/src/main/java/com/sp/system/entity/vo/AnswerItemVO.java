@@ -1,7 +1,7 @@
 package com.sp.system.entity.vo;
 
 /**
- * 答案项VO
+ * 答案項VO
  */
 public class AnswerItemVO {
     
@@ -11,12 +11,12 @@ public class AnswerItemVO {
     private Long notificationId;
     
     /**
-     * 问题ID
+     * 問題ID
      */
     private Long questionId;
     
     /**
-     * 答案数据（JSON数组格式）
+     * 答案數據（JSON數組格式）
      */
     private Object answerData;
 

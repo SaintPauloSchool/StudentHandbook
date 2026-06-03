@@ -13,7 +13,7 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <!-- 批量插入部门管理员 -->
+    <!-- 批量插入部門管理員 -->
     <insert id="batchInsertDepartmentAdmins" parameterType="java.util.List">
         INSERT INTO sys_department_admin (department_id, userid, type, subject, create_time, update_time)
         VALUES
@@ -22,7 +22,7 @@
         </foreach>
     </insert>
 
-    <!-- 根据 department_id 和 userid 查询部门管理员 -->
+    <!-- 根據 department_id 和 userid 查詢部門管理員 -->
     <select id="selectByDepartmentIdAndUserid" resultMap="DepartmentAdminResultMap">
         SELECT id, department_id, userid, type, subject, create_time, update_time
         FROM sys_department_admin
@@ -31,7 +31,7 @@
         LIMIT 1
     </select>
 
-    <!-- 根据 department_id 和 userid 更新部门管理员信息 -->
+    <!-- 根據 department_id 和 userid 更新部門管理員信息 -->
     <update id="updateByDepartmentIdAndUserid" parameterType="com.sp.system.entity.DepartmentAdmin">
         UPDATE sys_department_admin
         SET type = #{type},

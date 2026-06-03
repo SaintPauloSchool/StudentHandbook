@@ -1,7 +1,7 @@
 package com.sp.common.exception.file;
 
 /**
- * 文件名大小限制异常类
+ * 文件名大小限制異常類
  *
  */
 public class FileSizeLimitExceededException extends FileException

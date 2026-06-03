@@ -1,18 +1,18 @@
 package com.sp.common.enums;
 
 /**
- * 数据源
+ * 數據源
  *
  */
 public enum DataSourceType
 {
     /**
-     * 主库
+     * 主庫
      */
     MASTER,
 
     /**
-     * 从库
+     * 從庫
      */
     SLAVE
 }

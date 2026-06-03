@@ -5,15 +5,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 响应工具类，用于创建统一格式的响应数据
+ * 響應工具類，用於創建統一格式的響應數據
  * 
  * @author author
  */
 public class ResponseUtils {
     
     /**
-     * 创建成功响应
-     * @param data 响应数据列表
+     * 創建成功響應
+     * @param data 響應數據列表
      * @return TableDataInfo
      */
     public static <T> TableDataInfo createSuccessResponse(List<T> data) {
@@ -25,19 +25,19 @@ public class ResponseUtils {
     }
     
     /**
-     * 创建未授权响应
+     * 創建未授權響應
      * @return TableDataInfo
      */
     public static TableDataInfo createUnauthorizedResponse() {
         TableDataInfo dataTable = new TableDataInfo();
-        dataTable.setCode(401); // 未授权
+        dataTable.setCode(401); // 未授權
         dataTable.setRows(Collections.emptyList());
         dataTable.setTotal(0);
         return dataTable;
     }
     
     /**
-     * 创建错误响应
+     * 創建錯誤響應
      * @return TableDataInfo
      */
     public static TableDataInfo createErrorResponse() {
@@ -49,9 +49,9 @@ public class ResponseUtils {
     }
     
     /**
-     * 创建自定义状态码的响应
-     * @param code 状态码
-     * @param data 响应数据
+     * 創建自定義狀態碼的響應
+     * @param code 狀態碼
+     * @param data 響應數據
      * @return TableDataInfo
      */
     public static <T> TableDataInfo createCustomResponse(int code, List<T> data) {
@@ -63,10 +63,10 @@ public class ResponseUtils {
     }
     
     /**
-     * 创建带消息的响应
-     * @param code 状态码
-     * @param data 响应数据
-     * @param msg 响应消息
+     * 創建帶消息的響應
+     * @param code 狀態碼
+     * @param data 響應數據
+     * @param msg 響應消息
      * @return TableDataInfo
      */
     public static <T> TableDataInfo createResponseWithMessage(int code, List<T> data, String msg) {

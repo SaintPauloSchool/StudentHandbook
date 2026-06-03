@@ -10,7 +10,7 @@ import com.sp.common.config.serializer.SensitiveJsonSerializer;
 import com.sp.common.enums.DesensitizedType;
 
 /**
- * 数据脱敏注解
+ * 數據脫敏註解
  *
  */
 @Retention(RetentionPolicy.RUNTIME)

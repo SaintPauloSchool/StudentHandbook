@@ -1,23 +1,23 @@
 package com.sp.common.core.domain;
 
 /**
- * Tree基类
+ * Tree基類
  *
  */
 public class TreeEntity extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 父菜单名称 */
+    /** 父菜單名稱 */
     private String parentName;
 
-    /** 父菜单ID */
+    /** 父菜單ID */
     private Long parentId;
 
-    /** 显示顺序 */
+    /** 顯示順序 */
     private Integer orderNum;
 
-    /** 祖级列表 */
+    /** 祖級列表 */
     private String ancestors;
 
     public String getParentName()

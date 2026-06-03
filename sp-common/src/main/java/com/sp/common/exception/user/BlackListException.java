@@ -1,7 +1,7 @@
 package com.sp.common.exception.user;
 
 /**
- * 黑名单IP异常类
+ * 黑名單IP異常類
  *
  */
 public class BlackListException extends UserException

@@ -1,7 +1,7 @@
 package com.sp.common.exception.user;
 
 /**
- * 角色锁定异常类
+ * 角色鎖定異常類
  *
  */
 public class RoleBlockedException extends UserException

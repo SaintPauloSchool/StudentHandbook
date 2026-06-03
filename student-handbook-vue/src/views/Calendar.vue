@@ -1,6 +1,6 @@
 <template>
   <div class="calendar-container">
-    <!-- 顶部导航栏 -->
+    <!-- 頂部導航欄 -->
     <div class="header">
       <div class="header-left">
         <button class="back-button" @click="goBack">
@@ -245,7 +245,7 @@ export default {
   overflow: hidden;
 }
 
-/* 顶部导航栏 */
+/* 頂部導航欄 */
 .header {
   display: flex;
   align-items: flex-start;

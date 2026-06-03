@@ -24,7 +24,7 @@ import com.sp.framework.config.properties.DruidProperties;
 import com.sp.framework.datasource.DynamicDataSource;
 
 /**
- * druid 配置多数据源
+ * druid 配置多數據源
  *
  */
 @Configuration
@@ -58,11 +58,11 @@ public class DruidConfig
     }
 
     /**
-     * 设置数据源
+     * 設置數據源
      * 
-     * @param targetDataSources 备选数据源集合
-     * @param sourceName 数据源名称
-     * @param beanName bean名称
+     * @param targetDataSources 備選數據源集合
+     * @param sourceName 數據源名稱
+     * @param beanName bean名稱
      */
     public void setDataSource(Map<Object, Object> targetDataSources, String sourceName, String beanName)
     {
@@ -77,18 +77,18 @@ public class DruidConfig
     }
 
     /**
-     * 去除监控页面底部的广告
+     * 去除監控頁面底部的廣告
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Bean
     @ConditionalOnProperty(name = "spring.datasource.druid.statViewServlet.enabled", havingValue = "true")
     public FilterRegistrationBean removeDruidFilterRegistrationBean()
     {
-        // 提取common.js的配置路径
+        // 提取common.js的配置路徑
         String pattern = "/druid/*";
         String commonJsPattern = pattern.replaceAll("\\*", "js/common.js");
         final String filePath = "support/http/resources/js/common.js";
-        // 创建filter进行过滤
+        // 創建filter進行過濾
         Filter filter = new Filter()
         {
             @Override
@@ -101,11 +101,11 @@ public class DruidConfig
                     throws IOException, ServletException
             {
                 chain.doFilter(request, response);
-                // 重置缓冲区，响应头不会被重置
+                // 重置緩衝區，響應頭不會被重置
                 response.resetBuffer();
-                // 获取common.js
+                // 獲取common.js
                 String text = Utils.readFromResource(filePath);
-                // 正则替换banner, 除去底部的广告信息
+                // 正則替換banner, 除去底部的廣告信息
                 response.getWriter().write(text);
             }
 

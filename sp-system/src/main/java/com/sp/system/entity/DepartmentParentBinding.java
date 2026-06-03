@@ -3,22 +3,22 @@ package com.sp.system.entity;
 import com.sp.common.core.domain.BaseEntity;
 
 /**
- * 部门家长绑定实体类
+ * 部門家長綁定實體類
  *
  */
 public class DepartmentParentBinding extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
-    /** 主键ID */
+    /** 主鍵ID */
     private Long id;
 
-    /** 部门ID */
+    /** 部門ID */
     private Long departmentId;
 
-    /** 家长用户ID */
+    /** 家長用戶ID */
     private String parentUserId;
 
-    /** 学生用户ID */
+    /** 學生用戶ID */
     private String studentUserId;
 
     public Long getId() {

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 通知回答Service实现类
+ * 通知回答Service實現類
  */
 @Service
 public class NotificationAnswerServiceImpl implements INotificationAnswerService {
@@ -33,23 +33,23 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
     private ParentStudentRelationMapper parentStudentRelationMapper;
     
     /**
-     * 将前端传来的答案数据转换为实体对象并保存
-     * @param answerData 前端传来的答案数据（单个问题）
-     * @param userId 用户ID（parentUserId）
-     * @param userType 用户类型
-     * @param studentUserId 学生用户ID
-     * @return 插入记录数
+     * 將前端傳來的答案數據轉換爲實體對象並保存
+     * @param answerData 前端傳來的答案數據（單個問題）
+     * @param userId 用戶ID（parentUserId）
+     * @param userType 用戶類型
+     * @param studentUserId 學生用戶ID
+     * @return 插入記錄數
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int submitAnswers(AnswerItemVO answerData, String userId, String userType, String studentUserId) {
         if (answerData == null) {
-            logger.warn("答案数据为空，无需保存");
+            logger.warn("答案數據爲空，無需保存");
             return 0;
         }
 
         try {
-            // 转换答案数据
+            // 轉換答案數據
             NotificationAnswer answer = convertToNotificationAnswer(answerData, userId, userType, studentUserId);
 
             List<NotificationAnswer> answers = new ArrayList<>();
@@ -60,88 +60,88 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
             int result = notificationAnswerMapper.batchInsertAnswers(answers);
 
             if (result == 0) {
-                logger.warn("学生 {} 已回答过通知 {} 的问题 {}（并发重复提交被忽略）",
+                logger.warn("學生 {} 已回答過通知 {} 的問題 {}（並發重複提交被忽略）",
                     studentUserId, answerData.getNotificationId(), answerData.getQuestionId());
-                throw new DuplicateSubmissionException("家长已回答过此问题，请勿重复提交");
+                throw new DuplicateSubmissionException("家長已回答過此問題，請勿重複提交");
             }
 
-            logger.info("成功提交答案记录，学生ID: {}", studentUserId);
+            logger.info("成功提交答案記錄，學生ID: {}", studentUserId);
             return result;
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("提交答案失败: {}", e.getMessage(), e);
-            throw new RuntimeException("提交答案失败: " + e.getMessage());
+            logger.error("提交答案失敗: {}", e.getMessage(), e);
+            throw new RuntimeException("提交答案失敗: " + e.getMessage());
         }
     }
 
     
     /**
-     * 将前端传来的答案数据转换为实体对象
-     * @param answerData 前端答案数据（单个问题）
-     * @param userId 用户ID（parentUserId）
-     * @param userType 用户类型
-     * @param studentUserId 学生用户ID
-     * @return 答案实体对象
+     * 將前端傳來的答案數據轉換爲實體對象
+     * @param answerData 前端答案數據（單個問題）
+     * @param userId 用戶ID（parentUserId）
+     * @param userType 用戶類型
+     * @param studentUserId 學生用戶ID
+     * @return 答案實體對象
      */
     private NotificationAnswer convertToNotificationAnswer(AnswerItemVO answerData, String userId, String userType, String studentUserId) {
         NotificationAnswer answer = new NotificationAnswer();
         
-        // 设置通知ID
+        // 設置通知ID
         answer.setNotificationId(answerData.getNotificationId());
         
-        // 设置问题ID
+        // 設置問題ID
         answer.setQuestionId(answerData.getQuestionId());
         
-        // 设置答案数据（JSON格式）
+        // 設置答案數據（JSON格式）
         Object answerDataObj = answerData.getAnswerData();
         if (answerDataObj instanceof List) {
-            // 如果是数组，转换为JSON字符串
+            // 如果是數組，轉換爲JSON字符串
             answer.setAnswerData(JSON.toJSONString(answerDataObj));
         } else if (answerDataObj instanceof String) {
-            // 如果已经是字符串，直接使用
+            // 如果已經是字符串，直接使用
             answer.setAnswerData((String) answerDataObj);
         }
         
-        // 设置用户ID和类型
+        // 設置用戶ID和類型
         answer.setUserId(userId);
         answer.setUserType(userType);
         
-        // 设置学生用户ID
+        // 設置學生用戶ID
         answer.setStudentUserId(studentUserId);
         
-        // 设置创建时间
+        // 設置創建時間
         answer.setCreateTime(LocalDateTime.now());
         
         return answer;
     }
     
     /**
-     * 根据家长ID获取对应的学生ID
-     * @param parentUserId 家长用户ID
-     * @return 学生用户ID（如果有多个学生，返回第一个）
+     * 根據家長ID獲取對應的學生ID
+     * @param parentUserId 家長用戶ID
+     * @return 學生用戶ID（如果有多個學生，返回第一個）
      */
     @Override
     public String getStudentUserIdByParentId(String parentUserId) {
         try {
             List<ParentStudentRelation> relations = parentStudentRelationMapper.selectByParentId(parentUserId);
             if (relations == null || relations.isEmpty()) {
-                logger.warn("家长 {} 未绑定任何学生", parentUserId);
+                logger.warn("家長 {} 未綁定任何學生", parentUserId);
                 return null;
             }
-            // 返回第一个学生的ID
+            // 返回第一個學生的ID
             return relations.get(0).getStudentUserId();
         } catch (Exception e) {
-            logger.error("查询家长学生关系失败: {}", e.getMessage(), e);
+            logger.error("查詢家長學生關係失敗: {}", e.getMessage(), e);
             return null;
         }
     }
     
     /**
-     * 检查学生是否已回答该通知的问题
+     * 檢查學生是否已回答該通知的問題
      * @param notificationId 通知ID
-     * @param questionId 问题ID
-     * @param studentUserId 学生用户ID
+     * @param questionId 問題ID
+     * @param studentUserId 學生用戶ID
      * @return true-已回答，false-未回答
      */
     @Override
@@ -150,26 +150,26 @@ public class NotificationAnswerServiceImpl implements INotificationAnswerService
             int count = notificationAnswerMapper.checkStudentAnswerExists(notificationId, questionId, studentUserId);
             return count > 0;
         } catch (Exception e) {
-            logger.error("检查学生答案失败: {}", e.getMessage(), e);
+            logger.error("檢查學生答案失敗: {}", e.getMessage(), e);
             return false;
         }
     }
     
     /**
-     * 查询用户对该通知的回答（只有一条记录）
+     * 查詢用戶對該通知的回答（只有一條記錄）
      * @param notificationId 通知ID
-     * @param studentUserId 学生用户ID
-     * @return 答案对象（只有一条记录）
+     * @param studentUserId 學生用戶ID
+     * @return 答案對象（只有一條記錄）
      */
     @Override
     public NotificationAnswer getUserAnswer(Long notificationId, String studentUserId) {
         try {
             List<NotificationAnswer> answers = notificationAnswerMapper.selectUserAnswers(notificationId, studentUserId);
-            // 只返回第一条记录
+            // 只返回第一條記錄
             return (answers != null && !answers.isEmpty()) ? answers.get(0) : null;
         } catch (Exception e) {
-            logger.error("查询用户答案失败: {}", e.getMessage(), e);
-            throw new RuntimeException("查询用户答案失败: " + e.getMessage());
+            logger.error("查詢用戶答案失敗: {}", e.getMessage(), e);
+            throw new RuntimeException("查詢用戶答案失敗: " + e.getMessage());
         }
     }
 }

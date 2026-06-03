@@ -83,12 +83,12 @@ export default {
     }
   },
   async mounted() {
-    // 检查URL参数中是否有token（来自微信授权回调）
+    // 檢查URL參數中是否有token（來自微信授權回調）
     this.checkTokenFromUrl();
 
-    // 根据配置决定是否执行Token验证
+    // 根據配置決定是否執行Token驗證
     if (settings.enableTokenAuth) {
-      // 检查是否存在token，如果没有则重定向到登录页面
+      // 檢查是否存在token，如果沒有則重定向到登錄頁面
       this.checkToken();
     }
 
@@ -101,16 +101,16 @@ export default {
     // 獲取使用者資訊（包含 userType）
     this.fetchUserInfo();
 
-    // 监听学生切换事件
+    // 監聽學生切換事件
     window.addEventListener('studentChanged', this.handleStudentChanged);
   },
   beforeUnmount() {
-    // 移除事件监听器
+    // 移除事件監聽器
     window.removeEventListener('studentChanged', this.handleStudentChanged);
   },
 
   methods: {
-    // 检查URL参数中的token和userType
+    // 檢查URL參數中的token和userType
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
@@ -118,7 +118,7 @@ export default {
       const state = urlParams.get('state');
 
       if (token) {
-        // 保存token到本地存储，同时记录过期时间 (7天)
+        // 保存token到本地存儲，同時記錄過期時間 (7天)
         localStorage.setItem('token', token);
         localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
 
@@ -131,7 +131,7 @@ export default {
           this.userType = null;
         }
 
-        // 清除URL中的参数，避免在地址栏显示敏感信息
+        // 清除URL中的參數，避免在地址欄顯示敏感信息
         urlParams.delete('token');
         urlParams.delete('userType');
         if (state) urlParams.delete('state');
@@ -201,19 +201,19 @@ export default {
       }
     },
 
-    // 检查是否存在token
+    // 檢查是否存在token
     checkToken() {
       const token = localStorage.getItem('token');
       if (!token) {
-        // 如果没有token，重定向到登录页面
+        // 如果沒有token，重定向到登錄頁面
         this.$router.push('/login');
       }
     },
 
-    // 获取未读通知数量
+    // 獲取未讀通知數量
     async fetchUnreadCount() {
       try {
-        // 从localStorage获取当前选中的学生ID
+        // 從localStorage獲取當前選中的學生ID
         const studentUserId = localStorage.getItem('currentStudentUserId');
 
         const params = {};
@@ -227,10 +227,10 @@ export default {
         const res = response.data;
         if (res.code === 200 && res.data) {
           this.unreadCount = res.data.unreadCount || 0;
-          console.log('设置未读数量为:', this.unreadCount); // 调试信息
+          console.log('設置未讀數量爲:', this.unreadCount); // 調試信息
         }
       } catch (error) {
-        console.error('获取未读通知数量失败:', error);
+        console.error('獲取未讀通知數量失敗:', error);
       }
     },
 
@@ -255,7 +255,7 @@ export default {
       this.$router.push('/handbook');
     },
     goToParentNotice() {
-      // 跳转到家校通知页面
+      // 跳轉到家校通知頁面
       this.$router.push('/notice');
     },
     goToCalendar() {
@@ -500,7 +500,7 @@ export default {
   letter-spacing: 0.5px;
 }
 
-/* 未读通知徽章样式 - 放回右上角 */
+/* 未讀通知徽章樣式 - 放回右上角 */
 .unread-badge {
   position: absolute;
   top: -12px;
@@ -522,7 +522,7 @@ export default {
   z-index: 10;
 }
 
-/* 徽章脉冲动画 */
+/* 徽章脈衝動畫 */
 @keyframes badgeBounce {
   0%, 100% {
     transform: translateY(0);

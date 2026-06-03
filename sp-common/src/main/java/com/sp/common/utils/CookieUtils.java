@@ -8,15 +8,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Cookie工具类
+ * Cookie工具類
  *
  */
 public class CookieUtils
 {
     /**
-     * 设置 Cookie（生成时间为1天）
+     * 設置 Cookie（生成時間爲1天）
      * 
-     * @param name 名称
+     * @param name 名稱
      * @param value 值
      */
     public static void setCookie(HttpServletResponse response, String name, String value)
@@ -25,9 +25,9 @@ public class CookieUtils
     }
 
     /**
-     * 设置 Cookie
+     * 設置 Cookie
      * 
-     * @param name 名称
+     * @param name 名稱
      * @param value 值
      */
     public static void setCookie(HttpServletResponse response, String name, String value, String path)
@@ -36,11 +36,11 @@ public class CookieUtils
     }
 
     /**
-     * 设置 Cookie
+     * 設置 Cookie
      * 
-     * @param name 名称
+     * @param name 名稱
      * @param value 值
-     * @param maxAge 生存时间（单位秒）
+     * @param maxAge 生存時間（單位秒）
      */
     public static void setCookie(HttpServletResponse response, String name, String value, int maxAge)
     {
@@ -48,11 +48,11 @@ public class CookieUtils
     }
 
     /**
-     * 设置 Cookie
+     * 設置 Cookie
      * 
-     * @param name 名称
+     * @param name 名稱
      * @param value 值
-     * @param maxAge 生存时间（单位秒）
+     * @param maxAge 生存時間（單位秒）
      */
     public static void setCookie(HttpServletResponse response, String name, String value, String path, int maxAge)
     {
@@ -71,9 +71,9 @@ public class CookieUtils
     }
 
     /**
-     * 获得指定Cookie的值
+     * 獲得指定Cookie的值
      * 
-     * @param name 名称
+     * @param name 名稱
      * @return 值
      */
     public static String getCookie(HttpServletRequest request, String name)
@@ -82,9 +82,9 @@ public class CookieUtils
     }
 
     /**
-     * 获得指定Cookie的值，并删除。
+     * 獲得指定Cookie的值，並刪除。
      * 
-     * @param name 名称
+     * @param name 名稱
      * @return 值
      */
     public static String getCookie(HttpServletRequest request, HttpServletResponse response, String name)
@@ -93,10 +93,10 @@ public class CookieUtils
     }
 
     /**
-     * 获得指定Cookie的值
+     * 獲得指定Cookie的值
      * 
-     * @param request 请求对象
-     * @param response 响应对象
+     * @param request 請求對象
+     * @param response 響應對象
      * @param name 名字
      * @param isRemove 是否移除
      * @return 值

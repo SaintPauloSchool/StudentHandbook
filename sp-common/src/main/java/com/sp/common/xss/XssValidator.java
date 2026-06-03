@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 自定义xss校验注解实现
+ * 自定義xss校驗註解實現
  *
  */
 public class XssValidator implements ConstraintValidator<Xss, String>

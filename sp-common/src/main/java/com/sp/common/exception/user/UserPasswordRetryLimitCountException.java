@@ -1,7 +1,7 @@
 package com.sp.common.exception.user;
 
 /**
- * 用户错误记数异常类
+ * 用戶錯誤記數異常類
  *
  */
 public class UserPasswordRetryLimitCountException extends UserException

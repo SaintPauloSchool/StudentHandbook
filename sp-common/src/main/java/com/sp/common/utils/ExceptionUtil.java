@@ -5,13 +5,13 @@ import java.io.StringWriter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
- * 错误信息处理类。
+ * 錯誤信息處理類。
  *
  */
 public class ExceptionUtil
 {
     /**
-     * 获取exception的详细错误信息。
+     * 獲取exception的詳細錯誤信息。
      */
     public static String getExceptionMessage(Throwable e)
     {
@@ -37,11 +37,11 @@ public class ExceptionUtil
     }
 
     /**
-     * 检测异常e被触发的原因是不是因为异常cause。
+     * 檢測異常e被觸發的原因是不是因爲異常cause。
      * 
-     * @param e 捕获的异常。
-     * @param cause 异常触发原因。
-     * @return 如果异常e是由cause类异常触发，则返回true；否则返回false。
+     * @param e 捕獲的異常。
+     * @param cause 異常觸發原因。
+     * @return 如果異常e是由cause類異常觸發，則返回true；否則返回false。
      */
     public static boolean isCausedBy(final Throwable e, final Class<? extends Throwable> cause)
     {

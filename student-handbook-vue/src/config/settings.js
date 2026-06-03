@@ -1,12 +1,12 @@
-// 前端全局配置设置
+// 前端全局配置設置
 export default {
-    // 微信验证开关
+    // 微信驗證開關
     enableWeChatAuth: true,
 
-    // Token验证开关
+    // Token驗證開關
     enableTokenAuth: true,
 
-    // 登录页面路径
+    // 登錄頁面路徑
     loginPath: '/login',
 
     // 校園系統跳轉URL (根據環境區分)
@@ -18,14 +18,14 @@ export default {
     // API 安全校驗密鑰
     appSecret: 'HVc1D4MU69UDMr1g',
 
-    // 学生ID加密盐值（用于微信消息通知跳转）
+    // 學生ID加密鹽值（用於微信消息通知跳轉）
     studentIdEncryptionSalt: '5nQtaatpcOs9iKsM',
 
-    // 企业微信配置
+    // 企業微信配置
     wechat: {
-        corpId: 'ww04fad852e91fd490', // 企业微信应用ID
-        agentId: '1000033', // 企业微信应用agentId
-        // 授权回调地址 (由于只在生产环境走真实微信授权，这里配置生产环境的回调地址)
+        corpId: 'ww04fad852e91fd490', // 企業微信應用ID
+        agentId: '1000033', // 企業微信應用agentId
+        // 授權回調地址 (由於只在生產環境走真實微信授權，這裡配置生產環境的回調地址)
         redirectUri: 'https://mo-stu-sys.org-assistant.com/sp-api/wechat/oauth/callback'
     }
 }

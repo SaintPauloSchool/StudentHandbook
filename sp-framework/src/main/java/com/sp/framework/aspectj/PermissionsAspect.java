@@ -9,7 +9,7 @@ import com.sp.common.core.context.PermissionContextHolder;
 import com.sp.common.utils.StringUtils;
 
 /**
- * 自定义权限拦截器，将权限字符串放到当前请求中以便用于多个角色匹配符合要求的权限
+ * 自定義權限攔截器，將權限字符串放到當前請求中以便用於多個角色匹配符合要求的權限
  *
  */
 @Aspect
@@ -24,9 +24,9 @@ public class PermissionsAspect
 
     protected void handleRequiresPermissions(final JoinPoint joinPoint, PreAuthorize preAuthorize)
     {
-        // 提取权限表达式中的权限字符串
+        // 提取權限表達式中的權限字符串
         String permissionExpression = preAuthorize.value();
-        // 简单提取权限名称（假设格式为"hasAuthority('permission')"）
+        // 簡單提取權限名稱（假設格式爲"hasAuthority('permission')"）
         if (permissionExpression.startsWith("hasAuthority('") && permissionExpression.endsWith("')")) {
             String permission = permissionExpression.substring(14, permissionExpression.length() - 2);
             PermissionContextHolder.setContext(permission);

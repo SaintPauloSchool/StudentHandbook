@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 /**
- * TokenService实现类
+ * TokenService實現類
  *
  */
 @Service
@@ -37,18 +37,18 @@ public class TokenServiceImpl implements TokenService {
     @Override
     @Transactional
     public String createToken(String userId, Integer userType) {
-        // 先检查该userId是否存在未过期的token
+        // 先檢查該userId是否存在未過期的token
         Token existingToken = this.tokenMapper.selectValidTokenByUserId(userId, LocalDateTime.now());
-        // 如果存在未过期的token，返回现有的token
+        // 如果存在未過期的token，返回現有的token
         if (existingToken != null) {
-            logger.info("用户userId： {} ， 返回token: {}", userId, existingToken.getToken());
+            logger.info("用戶userId： {} ， 返回token: {}", userId, existingToken.getToken());
             return existingToken.getToken();
         }
         
-        // 先删除该用户之前的token
+        // 先刪除該用戶之前的token
         this.tokenMapper.deleteByUserId(userId);
 
-        // 创建新token
+        // 創建新token
         String tokenValue = UUID.randomUUID().toString();
 
         Token token = new Token();
@@ -59,10 +59,10 @@ public class TokenServiceImpl implements TokenService {
         token.setUpdateTime(LocalDateTime.now());
         token.setExpireTime(LocalDateTime.now().plusDays(expireTimeInDays));
 
-        // 使用自定义的insertToken方法
+        // 使用自定義的insertToken方法
         this.tokenMapper.insertToken(token);
 
-        logger.info("用户userId： {} ， 生成token: {}", userId, tokenValue);
+        logger.info("用戶userId： {} ， 生成token: {}", userId, tokenValue);
         return tokenValue;
     }
     
@@ -85,9 +85,9 @@ public class TokenServiceImpl implements TokenService {
             return null;
         }
         
-        // 检查token是否过期
+        // 檢查token是否過期
         if (token.getExpireTime().isBefore(LocalDateTime.now())) {
-            // 删除过期token
+            // 刪除過期token
             this.tokenMapper.deleteById(token.getId());
             return null;
         }

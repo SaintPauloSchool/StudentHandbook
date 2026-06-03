@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
-    <!-- 定义日志文件的存储地址 -->
+    <!-- 定義日誌文件的存儲地址 -->
     <property name="LOG_HOME" value="./logs" />
     
-    <!-- 定义日志输出格式 -->
+    <!-- 定義日誌輸出格式 -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n" />
     
-    <!-- 彩色日志格式 -->
+    <!-- 彩色日誌格式 -->
     <property name="CONSOLE_LOG_PATTERN"
               value="%red(%d{yyyy-MM-dd HH:mm:ss.SSS}) %green([%thread]) %highlight(%-5level) %boldMagenta(%logger{50}) - %yellow(%X{title}) %cyan(%X{user}) %boldBlue(%msg%n)" />
     
-    <!-- 控制台输出 -->
+    <!-- 控制臺輸出 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
@@ -18,22 +18,22 @@
         </encoder>
     </appender>
     
-    <!-- INFO级别日志文件 -->
+    <!-- INFO級別日誌文件 -->
     <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!-- 正在记录的日志文件的路径及名称 -->
+        <!-- 正在記錄的日誌文件的路徑及名稱 -->
         <file>${LOG_HOME}/info.log</file>
-        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
+        <!-- 日誌記錄器的滾動策略，按日期，按大小記錄 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- 归档的日志文件的路径 -->
+            <!-- 歸檔的日誌文件的路徑 -->
             <fileNamePattern>${LOG_HOME}/info/info.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <!-- 除按日志记录之外，还配置每个日志文件不能超过100MB -->
+                <!-- 除按日誌記錄之外，還配置每個日誌文件不能超過100MB -->
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
-            <!--日志文件保留天数-->
+            <!--日誌文件保留天數-->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
-        <!-- 过滤器，只记录INFO级别的日志 -->
+        <!-- 過濾器，只記錄INFO級別的日誌 -->
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>INFO</level>
             <onMatch>ACCEPT</onMatch>
@@ -45,7 +45,7 @@
         </encoder>
     </appender>
     
-    <!-- WARN级别日志文件 -->
+    <!-- WARN級別日誌文件 -->
     <appender name="WARN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/warn.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -66,7 +66,7 @@
         </encoder>
     </appender>
     
-    <!-- ERROR级别日志文件 -->
+    <!-- ERROR級別日誌文件 -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/error.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -87,7 +87,7 @@
         </encoder>
     </appender>
     
-    <!-- DEBUG级别日志文件 -->
+    <!-- DEBUG級別日誌文件 -->
     <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/debug.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -108,7 +108,7 @@
         </encoder>
     </appender>
     
-    <!-- 所有日志级别文件 -->
+    <!-- 所有日誌級別文件 -->
     <appender name="ALL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/all.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -124,7 +124,7 @@
         </encoder>
     </appender>
     
-    <!-- 操作日志文件 -->
+    <!-- 操作日誌文件 -->
     <appender name="OPER_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/oper.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -135,12 +135,12 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 标题:%X{title} 操作对象:%X{operObj} 操作结果:%X{operResult} %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 標題:%X{title} 操作對象:%X{operObj} 操作結果:%X{operResult} %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
     
-    <!-- 业务日志文件 -->
+    <!-- 業務日誌文件 -->
     <appender name="BUSINESS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/business.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -151,12 +151,12 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 模块:%X{module} 类型:%X{businessType} 内容:%X{content} %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 模塊:%X{module} 類型:%X{businessType} 內容:%X{content} %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
     
-    <!-- 安全日志文件 -->
+    <!-- 安全日誌文件 -->
     <appender name="SECURITY_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/security.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -167,12 +167,12 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 操作:%X{action} 用户:%X{user} IP:%X{ip} 状态:%X{status} %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 操作:%X{action} 用戶:%X{user} IP:%X{ip} 狀態:%X{status} %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
     
-    <!-- 性能日志文件 -->
+    <!-- 性能日誌文件 -->
     <appender name="PERFORMANCE_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/performance.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -183,12 +183,12 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 方法:%X{method} 耗时:%X{time}ms 参数:%X{params} %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 方法:%X{method} 耗時:%X{time}ms 參數:%X{params} %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
     
-    <!-- 异常日志文件 -->
+    <!-- 異常日誌文件 -->
     <appender name="EXCEPTION_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/exception.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -199,12 +199,12 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 异常:%X{exception} 消息:%X{message} %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level - 異常:%X{exception} 消息:%X{message} %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
     
-    <!-- 异步输出 -->
+    <!-- 異步輸出 -->
     <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
         <discardingThreshold>0</discardingThreshold>
         <queueSize>512</queueSize>
@@ -282,7 +282,7 @@
         <appender-ref ref="EXCEPTION_LOG_FILE" />
     </appender>
     
-    <!-- 日志输出级别 -->
+    <!-- 日誌輸出級別 -->
     <root level="INFO">
         <appender-ref ref="ASYNC_STDOUT" />
         <appender-ref ref="ASYNC_INFO_FILE" />
@@ -292,7 +292,7 @@
         <appender-ref ref="ASYNC_ALL_FILE" />
     </root>
     
-    <!-- 为com.sp包下的类设置日志级别 -->
+    <!-- 爲com.sp包下的類設置日誌級別 -->
     <logger name="com.sp" level="DEBUG" additivity="false">
         <appender-ref ref="ASYNC_STDOUT" />
         <appender-ref ref="ASYNC_INFO_FILE" />
@@ -302,40 +302,40 @@
         <appender-ref ref="ASYNC_ALL_FILE" />
     </logger>
     
-    <!-- 为操作日志设置专用记录器 -->
+    <!-- 爲操作日誌設置專用記錄器 -->
     <logger name="oper_log" level="INFO" additivity="false">
         <appender-ref ref="ASYNC_STDOUT" />
         <appender-ref ref="ASYNC_OPER_LOG_FILE" />
     </logger>
     
-    <!-- 为业务日志设置专用记录器 -->
+    <!-- 爲業務日誌設置專用記錄器 -->
     <logger name="business_log" level="INFO" additivity="false">
         <appender-ref ref="ASYNC_STDOUT" />
         <appender-ref ref="ASYNC_BUSINESS_LOG_FILE" />
     </logger>
     
-    <!-- 为安全日志设置专用记录器 -->
+    <!-- 爲安全日誌設置專用記錄器 -->
     <logger name="security_log" level="INFO" additivity="false">
         <appender-ref ref="ASYNC_STDOUT" />
         <appender-ref ref="ASYNC_SECURITY_LOG_FILE" />
     </logger>
     
-    <!-- 为性能日志设置专用记录器 -->
+    <!-- 爲性能日誌設置專用記錄器 -->
     <logger name="performance_log" level="INFO" additivity="false">
         <appender-ref ref="ASYNC_STDOUT" />
         <appender-ref ref="ASYNC_PERFORMANCE_LOG_FILE" />
     </logger>
     
-    <!-- 为异常日志设置专用记录器 -->
+    <!-- 爲異常日誌設置專用記錄器 -->
     <logger name="exception_log" level="ERROR" additivity="false">
         <appender-ref ref="ASYNC_STDOUT" />
         <appender-ref ref="ASYNC_EXCEPTION_LOG_FILE" />
     </logger>
     
-    <!-- 为Spring框架设置日志级别 -->
+    <!-- 爲Spring框架設置日誌級別 -->
     <logger name="org.springframework" level="INFO" />
     
-    <!-- 为MyBatis设置日志级别 -->
+    <!-- 爲MyBatis設置日誌級別 -->
     <logger name="org.mybatis" level="DEBUG" />
     <logger name="java.sql" level="DEBUG" />
     <logger name="com.sp.system.mapper" level="DEBUG" />

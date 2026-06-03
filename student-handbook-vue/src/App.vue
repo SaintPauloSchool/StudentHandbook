@@ -32,7 +32,7 @@ html, body {
   padding-top: 0; /* 移除頂部內邊距 */
 }
 
-/* 全新设计 - 现代化学生选择对话框样式 */
+/* 全新設計 - 現代化學生選擇對話框樣式 */
 .custom-student-dialog .el-dialog {
   border-radius: 24px !important;
   overflow: hidden;
@@ -44,7 +44,7 @@ html, body {
   border-image: linear-gradient(135deg, rgba(96, 165, 250, 0.8), rgba(59, 130, 246, 0.8)) 1 !important;
 }
 
-/* 专门针对关闭按钮的样式 */
+/* 專門針對關閉按鈕的樣式 */
 .custom-student-dialog .el-dialog__headerbtn {
   top: 18px !important;
   right: 20px !important;
@@ -94,7 +94,7 @@ html, body {
   background: transparent !important;
 }
 
-/* 移动设备对话框样式 */
+/* 移動設備對話框樣式 */
 @media (max-width: 768px) {
   .custom-student-dialog .el-dialog {
     width: 92% !important;
@@ -122,12 +122,12 @@ html, body {
   }
 }
 
-/* 覆盖Element Plus默认背景 */
+/* 覆蓋Element Plus默認背景 */
 .custom-student-dialog .el-overlay {
   background: linear-gradient(135deg, rgba(21, 94, 236, 0.7), rgba(12, 74, 160, 0.8)) !important;
 }
 
-/* 对话框动画效果 */
+/* 對話框動畫效果 */
 .custom-student-dialog .el-dialog {
   animation: dialogScaleIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) !important;
 }

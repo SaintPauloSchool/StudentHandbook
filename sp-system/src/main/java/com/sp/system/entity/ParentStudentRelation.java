@@ -3,31 +3,31 @@ package com.sp.system.entity;
 import com.sp.common.core.domain.BaseEntity;
 
 /**
- * 家长学生关系实体类
+ * 家長學生關係實體類
  *
  */
 public class ParentStudentRelation extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
-    /** 主键ID */
+    /** 主鍵ID */
     private Long id;
 
-    /** 家长用户ID */
+    /** 家長用戶ID */
     private String parentUserId;
 
-    /** 学生用户ID */
+    /** 學生用戶ID */
     private String studentUserId;
 
-    /** 学生姓名 */
+    /** 學生姓名 */
     private String studentName;
 
-    /** 关系描述 */
+    /** 關係描述 */
     private String relationDesc;
 
-    /** 家长手机号 */
+    /** 家長手機號 */
     private String mobile;
 
-    /** 家长外部用户ID */
+    /** 家長外部用戶ID */
     private String externalUserid;
 
     public Long getId() {

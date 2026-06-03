@@ -3,38 +3,38 @@ package com.sp.system.entity;
 import java.time.LocalDateTime;
 
 /**
- * 用户通知阅读状态表实体类
+ * 用戶通知閱讀狀態表實體類
  */
 public class NotificationUserReadRecord {
 
-    /** 阅读记录ID */
+    /** 閱讀記錄ID */
     private Long readId;
 
-    /** 发送记录ID */
+    /** 發送記錄ID */
     private Long sendRecordId;
 
-    /** 用户ID */
+    /** 用戶ID */
     private String userId;
 
-    /** 用户类型（1学生 2家长 3教师） */
+    /** 用戶類型（1學生 2家長 3教師） */
     private String userType;
 
-    /** 是否已读（0未读 1已读） */
+    /** 是否已讀（0未讀 1已讀） */
     private String isRead;
 
-    /** 阅读时间 */
+    /** 閱讀時間 */
     private LocalDateTime readTime;
 
-    /** 回复状态（0未回复 1已回复） */
+    /** 回復狀態（0未回復 1已回復） */
     private String replyStatus;
 
-    /** 回复时间 */
+    /** 回復時間 */
     private LocalDateTime replyTime;
 
     /** 企業微信發送狀態（0發送失敗 1發送成功） */
     private String sendStatus;
 
-    /** 创建时间 */
+    /** 創建時間 */
     private LocalDateTime createTime;
 
     public Long getReadId() {

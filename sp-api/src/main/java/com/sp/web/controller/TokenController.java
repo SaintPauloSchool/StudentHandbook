@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Token 相关接口
+ * Token 相關接口
  */
 @RestController
 @RequestMapping("/system/token")
@@ -28,8 +28,8 @@ public class TokenController extends BaseController {
     private TokenService tokenService;
 
     /**
-     * 校验当前 Token 是否有效（未过期）
-     * 前端在跳转到外部系统（如校园系统）前可先调用此接口确认 Token 是否仍然有效
+     * 校驗當前 Token 是否有效（未過期）
+     * 前端在跳轉到外部系統（如校園系統）前可先調用此接口確認 Token 是否仍然有效
      */
     @Anonymous
     @GetMapping("/validate")
@@ -54,7 +54,7 @@ public class TokenController extends BaseController {
                 return AjaxResult.error("token_expired");
             }
         } catch (Exception e) {
-            logger.error("validate token 失败: {}", e.getMessage());
+            logger.error("validate token 失敗: {}", e.getMessage());
             return AjaxResult.error("token_error");
         }
     }

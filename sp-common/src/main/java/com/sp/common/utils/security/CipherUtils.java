@@ -5,17 +5,17 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.KeyGenerator;
 
 /**
- * 对称密钥密码算法工具类
+ * 對稱密鑰密碼算法工具類
  *
  */
 public class CipherUtils
 {
     /**
-     * 生成随机秘钥
+     * 生成隨機祕鑰
      *
-     * @param keyBitSize 字节大小
-     * @param algorithmName 算法名称
-     * @return 创建密匙
+     * @param keyBitSize 字節大小
+     * @param algorithmName 算法名稱
+     * @return 創建密匙
      */
     public static Key generateNewKey(int keyBitSize, String algorithmName)
     {

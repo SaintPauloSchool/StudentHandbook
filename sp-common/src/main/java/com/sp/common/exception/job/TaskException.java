@@ -1,7 +1,7 @@
 package com.sp.common.exception.job;
 
 /**
- * 计划策略异常
+ * 計劃策略異常
  *
  */
 public class TaskException extends Exception

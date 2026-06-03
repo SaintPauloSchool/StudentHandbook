@@ -3,38 +3,38 @@ package com.sp.framework.web.domain.server;
 import com.sp.common.utils.Arith;
 
 /**
- * CPU相关信息
+ * CPU相關信息
  *
  */
 public class Cpu
 {
     /**
-     * 核心数
+     * 核心數
      */
     private int cpuNum;
 
     /**
-     * CPU总的使用率
+     * CPU總的使用率
      */
     private double total;
 
     /**
-     * CPU系统使用率
+     * CPU系統使用率
      */
     private double sys;
 
     /**
-     * CPU用户使用率
+     * CPU用戶使用率
      */
     private double used;
 
     /**
-     * CPU当前等待率
+     * CPU當前等待率
      */
     private double wait;
 
     /**
-     * CPU当前空闲率
+     * CPU當前空閒率
      */
     private double free;
 

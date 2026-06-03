@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 企业微信获取部门列表定时任务
- * 每天凌晨 1 点执行，调用企业微信接口获取部门和成员数据并同步到数据库（以企业微信数据为准，进行增删改）
+ * 企業微信獲取部門列表定時任務
+ * 每天凌晨 1 點執行，調用企業微信接口獲取部門和成員數據並同步到數據庫（以企業微信數據為準，進行增刪改）
  */
 @Component
 public class WecomSchoolDepartmentTask {
@@ -33,35 +33,35 @@ public class WecomSchoolDepartmentTask {
     private static final AtomicBoolean isExecuting = new AtomicBoolean(false);
 
     /**
-     * 每天凌晨 1 点执行（北京时间）
+     * 每天凌晨 1 點執行（北京時間）
      */
     //@Scheduled(cron = "0 0 1 * * ?", zone = "Asia/Shanghai")
     public void syncWecomSchoolDepartments() {
         if (!isExecuting.compareAndSet(false, true)) {
-            logger.info("任务已在执行中，跳过本次执行");
+            logger.info("任務已在執行中，跳過本次執行");
             return;
         }
 
         try {
-            logger.info("开始执行定时任务 - 同步部门和成员数据");
-            // 获取 access_token
+            logger.info("開始執行定時任務 - 同步部門和成員數據");
+            // 獲取 access_token
             String accessToken = weChatWorkSchoolUtils.getAccessToken();
-            // 获取并同步部门数据
+            // 獲取並同步部門數據
             JSONArray departmentIdArray = wecomSchoolDepartmentService.fetchAndSaveAllDepartments(accessToken);
-            // 部门数据如果为空
+            // 部門數據如果爲空
             if (departmentIdArray == null || departmentIdArray.isEmpty()) {
-                logger.warn("未获取到部门数据");
+                logger.warn("未獲取到部門數據");
                 return;
             }
             //
-            logger.info("成功同步 {} 个部门", departmentIdArray.size());
-            // 获取并同步成员数据
+            logger.info("成功同步 {} 個部門", departmentIdArray.size());
+            // 獲取並同步成員數據
             int totalMembers = wecomSchoolDepartmentMemberService.fetchAndSaveAllMembers(departmentIdArray, accessToken);
             //
-            logger.info("总共同步 {} 个成员", totalMembers);
-            logger.info("定时任务执行完成");
+            logger.info("總共同步 {} 個成員", totalMembers);
+            logger.info("定時任務執行完成");
         } catch (Exception e) {
-            logger.error("执行定时任务失败", e);
+            logger.error("執行定時任務失敗", e);
         } finally {
             isExecuting.set(false);
         }

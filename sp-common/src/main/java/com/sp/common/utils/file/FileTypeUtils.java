@@ -4,17 +4,17 @@ import java.io.File;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 文件类型工具类
+ * 文件類型工具類
  *
  */
 public class FileTypeUtils
 {
     /**
-     * 获取文件类型
+     * 獲取文件類型
      * <p>
      * 
      * @param file 文件名
-     * @return 后缀（不含".")
+     * @return 後綴（不含".")
      */
     public static String getFileType(File file)
     {
@@ -26,11 +26,11 @@ public class FileTypeUtils
     }
 
     /**
-     * 获取文件类型
+     * 獲取文件類型
      * <p>
      *
      * @param fileName 文件名
-     * @return 后缀（不含".")
+     * @return 後綴（不含".")
      */
     public static String getFileType(String fileName)
     {
@@ -43,10 +43,10 @@ public class FileTypeUtils
     }
 
     /**
-     * 获取文件类型
+     * 獲取文件類型
      * 
-     * @param photoByte 文件字节码
-     * @return 后缀（不含".")
+     * @param photoByte 文件字節碼
+     * @return 後綴（不含".")
      */
     public static String getFileExtendName(byte[] photoByte)
     {

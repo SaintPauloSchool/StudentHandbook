@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 通知Service实现类
+ * 通知Service實現類
  */
 @Service
 public class NotificationServiceImpl implements INotificationService {
@@ -25,17 +25,17 @@ public class NotificationServiceImpl implements INotificationService {
     private NotificationQuestionMapper notificationQuestionMapper;
 
     /**
-     * 根据ID查询通知详情（包含问题列表）
+     * 根據ID查詢通知詳情（包含問題列表）
      */
     @Override
     public Map<String, Object> selectNotificationDetail(Long notificationId) {
-        // 查询通知详情
+        // 查詢通知詳情
         Notification notification = notificationMapper.selectNotificationById(notificationId);
 
         if (notification == null) {
             return null;
         }
-        // 查询问题列表
+        // 查詢問題列表
         List<NotificationQuestion> questions =
                 notificationQuestionMapper.selectQuestionsByNotificationId(notificationId);
 

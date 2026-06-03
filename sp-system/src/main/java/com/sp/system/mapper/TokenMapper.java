@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  */
 public interface TokenMapper {
     /**
-     * 根据token值查询Token信息
+     * 根據token值查詢Token信息
      *
      * @param tokenValue token值
      * @return Token信息
@@ -19,10 +19,10 @@ public interface TokenMapper {
     Token selectByTokenValue(@Param("tokenValue") String tokenValue);
 
     /**
-     * 根据用户ID删除Token
+     * 根據用戶ID刪除Token
      *
-     * @param userId 用户ID
-     * @return 删除记录数
+     * @param userId 用戶ID
+     * @return 刪除記錄數
      */
     int deleteByUserId(@Param("userId") String userId);
     
@@ -30,23 +30,23 @@ public interface TokenMapper {
      * 插入Token信息
      * 
      * @param token Token信息
-     * @return 插入记录数
+     * @return 插入記錄數
      */
     int insertToken(Token token);
     
     /**
-     * 根据ID删除Token
+     * 根據ID刪除Token
      * 
      * @param id Token ID
-     * @return 删除记录数
+     * @return 刪除記錄數
      */
     int deleteById(@Param("id") Long id);
     
     /**
-     * 根据用户ID查找未过期的Token
+     * 根據用戶ID查找未過期的Token
      * 
-     * @param userId 用户ID
-     * @param currentTime 当前时间
+     * @param userId 用戶ID
+     * @param currentTime 當前時間
      * @return Token信息
      */
     Token selectValidTokenByUserId(@Param("userId") String userId, @Param("currentTime") LocalDateTime currentTime);

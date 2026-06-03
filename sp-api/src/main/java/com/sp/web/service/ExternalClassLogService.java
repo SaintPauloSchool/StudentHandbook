@@ -15,14 +15,14 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * 外部课程日志数据服务 - 用于定时任务从外部数据库获取数据
+ * 外部課程日誌數據服務 - 用於定時任務從外部數據庫獲取數據
  */
 @Service
 public class ExternalClassLogService {
 
     private static final Logger logger = LoggerFactory.getLogger(ExternalClassLogService.class);
 
-    // 源数据库配置
+    // 源數據庫配置
     @Value("${data.transfer.source.host:10.32.64.25}")
     private String sourceHost;
 
@@ -43,13 +43,13 @@ public class ExternalClassLogService {
 
     @PostConstruct
     public void init() {
-        // 初始化源数据库连接
+        // 初始化源數據庫連接
         this.sourceDataSource = createDataSource(sourceHost, sourcePort, sourceDatabase, sourceUsername, sourcePassword);
         this.sourceJdbcTemplate = new JdbcTemplate(sourceDataSource);
     }
 
     /**
-     * 创建数据源
+     * 創建數據源
      */
     private DataSource createDataSource(String host, String port, String database, String username, String password) {
         com.alibaba.druid.pool.DruidDataSource dataSource = new com.alibaba.druid.pool.DruidDataSource();
@@ -58,16 +58,16 @@ public class ExternalClassLogService {
         dataSource.setPassword(password);
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
-        // 配置 Druid 连接池属性
+        // 配置 Druid 連接池屬性
         dataSource.setInitialSize(2);
         dataSource.setMinIdle(2);
-        dataSource.setMaxActive(5); // 限制连接数，避免过多连接
+        dataSource.setMaxActive(5); // 限制連接數，避免過多連接
         dataSource.setMaxWait(10000);
         dataSource.setTimeBetweenEvictionRunsMillis(60000);
         dataSource.setMinEvictableIdleTimeMillis(300000);
         dataSource.setValidationQuery("SELECT 1");
         dataSource.setTestWhileIdle(true);
-        dataSource.setTestOnBorrow(true); // 更改此行以确保连接可用
+        dataSource.setTestOnBorrow(true); // 更改此行以確保連接可用
         dataSource.setTestOnReturn(false);
         dataSource.setPoolPreparedStatements(true);
         dataSource.setMaxPoolPreparedStatementPerConnectionSize(20);
@@ -76,21 +76,21 @@ public class ExternalClassLogService {
     }
 
     /**
-     * 从外部数据库获取所有ClassLog数据
+     * 從外部數據庫獲取所有ClassLog數據
      */
     public List<ClassLog> getAllClassLogsFromExternal() {
         try {
             String sql = "SELECT distinct id, student_class, teacher, course, course_type, content, start_date, end_date FROM class_log_temp WHERE start_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) ORDER BY start_date";
             return sourceJdbcTemplate.query(sql, new ClassLogRowMapper());
         } catch (Exception e) {
-            logger.error("从外部数据库获取课程日志数据失败: {}", e.getMessage());
-            // 返回空列表而不是抛出异常
+            logger.error("從外部數據庫獲取課程日誌數據失敗: {}", e.getMessage());
+            // 返回空列表而不是拋出異常
             return java.util.Collections.emptyList();
         }
     }
 
     /**
-     * RowMapper 用于将结果集映射到 ClassLog 对象
+     * RowMapper 用於將結果集映射到 ClassLog 對象
      */
     private static class ClassLogRowMapper implements RowMapper<ClassLog> {
         @Override

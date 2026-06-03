@@ -62,7 +62,7 @@
               <div class="category-row">
                 <span
                     class="category-badge"
-                    :class="{ 'exam-badge': categoryGroup.category === '測驗' || categoryGroup.category === '考试' }"
+                    :class="{ 'exam-badge': categoryGroup.category === '測驗' || categoryGroup.category === '考試' }"
                 >
                   {{ categoryGroup.category }}
                 </span>
@@ -83,7 +83,7 @@
       </div>
       <!-- 空狀態 -->
       <div v-if="paginatedGroupedHandbookList.length === 0 && !loading" class="empty-state">
-        <p class="no-data-text">暂无数据</p>
+        <p class="no-data-text">暫無數據</p>
       </div>
     </div>
     <!-- 回到頂部按鈕 -->
@@ -386,20 +386,20 @@ export default {
 
       //按時間分組，使用class_log表的字段
       data.forEach(item => {
-        // 过滤非'功課'和'測驗'类型的条目
+        // 過濾非'功課'和'測驗'類型的條目
         if (item.courseType !== '功課' && item.courseType !== '測驗') {
           return;
         }
 
-        // 使用startDate作为分组键
+        // 使用startDate作爲分組鍵
         const timeKey = item.startDate || item.updateDate || '未設定日期';
         if (!grouped[timeKey]) {
           grouped[timeKey] = {
-            timeRange: timeKey, // 使用日期作为卡片标题
+            timeRange: timeKey, // 使用日期作爲卡片標題
             entries: [],
             categories: {} // 用於存儲類別分組
           };
-          order.push(timeKey); // 记录原始顺序
+          order.push(timeKey); // 記錄原始順序
         }
 
         //添加條目到總列表
@@ -1005,7 +1005,7 @@ export default {
   box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
 }
 
-/* 自定义模态对话框样式 */
+/* 自定義模態對話框樣式 */
 .custom-modal-overlay {
   position: fixed;
   top: 0;
@@ -1082,7 +1082,7 @@ export default {
   padding: 0 25px 25px;
 }
 
-/* 手机端适配 */
+/* 手機端適配 */
 @media (max-width: 768px) {
   .custom-student-dialog {
     width: 90%;

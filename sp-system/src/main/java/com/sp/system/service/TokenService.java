@@ -8,7 +8,7 @@ import com.sp.system.entity.Token;
  */
 public interface TokenService {
     /**
-     * 验证token是否有效
+     * 驗證token是否有效
      *
      * @param tokenValue token值
      * @return 是否有效
@@ -16,27 +16,27 @@ public interface TokenService {
     boolean validateToken(String tokenValue);
 
     /**
-     * 创建新的token
+     * 創建新的token
      *
-     * @param userId 用户ID
-     * @param userType 用户类型 (1: parent, 0: student, 2: staff)
+     * @param userId 用戶ID
+     * @param userType 用戶類型 (1: parent, 0: student, 2: staff)
      * @return token值
      */
     String createToken(String userId, Integer userType);
     
     /**
-     * 根据token值获取用户ID
+     * 根據token值獲取用戶ID
      *
      * @param tokenValue token值
-     * @return 用户ID
+     * @return 用戶ID
      */
     String getUserIdByToken(String tokenValue);
 
     /**
-     * 根据token值获取完整的Token实体
+     * 根據token值獲取完整的Token實體
      *
      * @param tokenValue token值
-     * @return Token实体，如果无效或过期则返回null
+     * @return Token實體，如果無效或過期則返回null
      */
     Token getTokenInfo(String tokenValue);
 }

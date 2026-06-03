@@ -5,66 +5,66 @@ import com.sp.system.entity.vo.NotificationWithReadStatusVO;
 import java.util.List;
 
 /**
- * 通知用户阅读记录 Service 接口
+ * 通知用戶閱讀記錄 Service 接口
  * <p>
- * 负责与 {@code notification_user_read_record} 及关联表相关的业务逻辑：
+ * 負責與 {@code notification_user_read_record} 及關聯表相關的業務邏輯：
  * <ul>
- *   <li>查询当前用户的通知列表（含阅读状态）</li>
- *   <li>标记通知为已读</li>
+ *   <li>查詢當前用戶的通知列表（含閱讀狀態）</li>
+ *   <li>標記通知爲已讀</li>
  * </ul>
  */
 public interface INotificationUserReadRecordService {
 
     /**
-     * 分页查询发送给当前用户的已发布通知列表（附带阅读状态）
+     * 分頁查詢發送給當前用戶的已發布通知列表（附帶閱讀狀態）
      *
-     * @param pageNum  页码（从 1 开始）
-     * @param pageSize 每页数量
-     * @param userId   当前家长用户ID
-     * @param studentUserId 学生用户ID（可为null）
+     * @param pageNum  頁碼（從 1 開始）
+     * @param pageSize 每頁數量
+     * @param userId   當前家長用戶ID
+     * @param studentUserId 學生用戶ID（可爲null）
      * @return 通知列表（含 isRead、readId、sendRecordId 字段）
      */
     List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId, String studentUserId);
 
     /**
-     * 查询发送给当前用户的已发布通知总数
+     * 查詢發送給當前用戶的已發布通知總數
      *
-     * @param userId 当前家长用户ID
-     * @param studentUserId 学生用户ID（可为null）
-     * @return 总数
+     * @param userId 當前家長用戶ID
+     * @param studentUserId 學生用戶ID（可爲null）
+     * @return 總數
      */
     int countPublishedNotificationsForUser(String userId, String studentUserId);
 
     /**
-     * 查询发送给当前用户的未读通知数量
+     * 查詢發送給當前用戶的未讀通知數量
      *
-     * @param userId 当前家长用户ID
-     * @param studentUserId 学生用户ID（可为null）
-     * @return 未读数量
+     * @param userId 當前家長用戶ID
+     * @param studentUserId 學生用戶ID（可爲null）
+     * @return 未讀數量
      */
     int countUnreadNotificationsForUser(String userId, String studentUserId);
 
     /**
-     * 将指定通知对当前用户标记为已读
+     * 將指定通知對當前用戶標記爲已讀
      * <p>
-     * 若该用户的阅读记录存在且为未读（is_read='0'），则更新为已读并记录阅读时间；
-     * 若记录不存在或已是已读状态，则忽略。
+     * 若該用戶的閱讀記錄存在且爲未讀（is_read='0'），則更新爲已讀並記錄閱讀時間；
+     * 若記錄不存在或已是已讀狀態，則忽略。
      *
      * @param notificationId 通知ID
-     * @param userId         当前家长用户ID
-     * @param studentUserId  学生用户ID（可为null）
+     * @param userId         當前家長用戶ID
+     * @param studentUserId  學生用戶ID（可爲null）
      */
     void markAsRead(Long notificationId, String userId, String studentUserId);
 
     /**
-     * 将指定通知对当前用户标记为已回复
+     * 將指定通知對當前用戶標記爲已回復
      * <p>
-     * 若该用户的阅读记录存在且为未回复（reply_status='0'），则更新为已回复并记录回复时间；
-     * 若记录不存在或已回复，则忽略。
+     * 若該用戶的閱讀記錄存在且爲未回復（reply_status='0'），則更新爲已回復並記錄回復時間；
+     * 若記錄不存在或已回復，則忽略。
      *
      * @param notificationId 通知ID
-     * @param userId         当前家长用户ID
-     * @param studentUserId  学生用户ID
+     * @param userId         當前家長用戶ID
+     * @param studentUserId  學生用戶ID
      */
     void markAsReplied(Long notificationId, String userId, String studentUserId);
 }

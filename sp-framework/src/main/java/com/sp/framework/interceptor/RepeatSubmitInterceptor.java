@@ -12,7 +12,7 @@ import com.sp.common.core.domain.AjaxResult;
 import com.sp.common.utils.ServletUtils;
 
 /**
- * 防止重复提交拦截器
+ * 防止重複提交攔截器
  *
  */
 @Component
@@ -44,11 +44,11 @@ public abstract class RepeatSubmitInterceptor implements HandlerInterceptor
     }
 
     /**
-     * 验证是否重复提交由子类实现具体的防重复提交的规则
+     * 驗證是否重複提交由子類實現具體的防重複提交的規則
      *
-     * @param request 请求对象
-     * @param annotation 防复注解
-     * @return 结果
+     * @param request 請求對象
+     * @param annotation 防復註解
+     * @return 結果
      */
     public abstract boolean isRepeatSubmit(HttpServletRequest request, RepeatSubmit annotation) throws Exception;
 }

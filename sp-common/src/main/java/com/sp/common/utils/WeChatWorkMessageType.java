@@ -1,7 +1,7 @@
 package com.sp.common.utils;
 
 /**
- * 企业微信消息类型枚举
+ * 企業微信消息類型枚舉
  */
 public enum WeChatWorkMessageType {
     
@@ -11,17 +11,17 @@ public enum WeChatWorkMessageType {
     TEXT("text"),
     
     /**
-     * 图片消息
+     * 圖片消息
      */
     IMAGE("image"),
     
     /**
-     * 语音消息
+     * 語音消息
      */
     VOICE("voice"),
     
     /**
-     * 视频消息
+     * 視頻消息
      */
     VIDEO("video"),
     
@@ -36,12 +36,12 @@ public enum WeChatWorkMessageType {
     TEXTCARD("textcard"),
     
     /**
-     * 图文消息
+     * 圖文消息
      */
     NEWS("news"),
     
     /**
-     * 图文消息（mpnews）
+     * 圖文消息（mpnews）
      */
     MPNEWS("mpnews"),
     
