@@ -423,6 +423,7 @@ export default {
       logicFormStates: {}, // 邏輯表單狀態緩存
       showCenterToast: false,
       showCompleteDialog: false, // 是否顯示自訂完成彈窗
+      activeCompleteQuestion: null, // 當前完成的邏輯表單問題對象
       toastMessage: '',
       errorMessage: '', // 錯誤信息
       isFromWechatLink: false, // 是否從微信鏈接進入（帶有sid參數）
@@ -1140,7 +1141,7 @@ export default {
       const allowedMimeTypes  = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp'];
       const fileExt = file.name.split('.').pop().toLowerCase();
       const isHeic  = fileExt === 'heic' || fileExt === 'heif' ||
-                      file.type === 'image/heic' || file.type === 'image/heif';
+          file.type === 'image/heic' || file.type === 'image/heif';
 
       if (isHeic) {
         this.showToast('不支援 HEIF/HEIC 格式。請在 iPhone「設定 → 相機 → 格式」中選擇「相容性最高」後重新拍照上傳', 'warning');
@@ -1328,7 +1329,7 @@ export default {
       if (jumpToEnd) {
         if (!state.isComplete) {
           state.isComplete = true;
-          this.showCompletePopup();
+          this.showCompletePopup(question);
         } else {
           state.isComplete = true;
         }
@@ -1351,7 +1352,7 @@ export default {
       if (!nextId) {
         if (!state.isComplete) {
           state.isComplete = true;
-          this.showCompletePopup();
+          this.showCompletePopup(question);
         } else {
           state.isComplete = true;
         }
@@ -1802,13 +1803,20 @@ export default {
     },
 
     // 顯示表單完成彈窗
-    showCompletePopup() {
+    showCompletePopup(question) {
       this.showCompleteDialog = true;
+      this.activeCompleteQuestion = question;
     },
 
     // 關閉表單完成彈窗
     closeCompleteDialog() {
       this.showCompleteDialog = false;
+      if (this.activeCompleteQuestion) {
+        const state = this.getLogicFormState(this.activeCompleteQuestion);
+        if (state) {
+          state.isComplete = false; // 重置完成狀態，使「完成作答」按鈕重新顯示出來，方便用戶修改
+        }
+      }
     },
 
     // 平滑滾動到提交按鈕
