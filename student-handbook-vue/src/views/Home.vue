@@ -56,6 +56,11 @@
       </div>
     </div>
 
+    <!-- 頁尾版權資訊 -->
+    <div class="footer-info">
+      ©2017-2024 Saint Paul School, Macau 澳門聖保祿學校 All rights reserved | {{ version }}
+    </div>
+
     <!-- 共用切換學生彈窗元件 -->
     <StudentSwitchDialog v-model="studentDialogVisible" @switched="onStudentSwitched" />
   </div>
@@ -79,7 +84,8 @@ export default {
       isNavigatingToCampus: false,
       userType: cachedUserType !== null ? parseInt(cachedUserType) : null,
       currentStudentName: localStorage.getItem('currentStudentName') || '', // 當前學生姓名
-      studentDialogVisible: false // 切換彈窗是否顯示
+      studentDialogVisible: false, // 切換彈窗是否顯示
+      version: settings.version // 系統版本號
     }
   },
   async mounted() {
@@ -601,5 +607,16 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.footer-info {
+  margin-top: auto;
+  padding-top: 40px;
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
+  width: 100%;
 }
 </style>
