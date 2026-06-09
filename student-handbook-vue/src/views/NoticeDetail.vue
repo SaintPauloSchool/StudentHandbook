@@ -232,7 +232,12 @@
                         <el-icon><ArrowLeft /></el-icon> 返回上一題
                       </button>
                       <button class="next-step-btn" v-if="!getLogicFormState(question).isComplete" @click="handleLogicNext(question)">
-                        下一題 <el-icon><ArrowRight /></el-icon>
+                        <template v-if="isLastQuestion(question)">
+                          完成作答 <el-icon><Check /></el-icon>
+                        </template>
+                        <template v-else>
+                          下一題 <el-icon><ArrowRight /></el-icon>
+                        </template>
                       </button>
                     </div>
                   </div>
@@ -334,16 +339,7 @@
             </div> <!-- 結束 normal-question-wrapper -->
           </div>
 
-          <!-- 提交按鈕 - 未過期且未提交時顯示 -->
-          <div class="submit-section" v-if="!hasSubmitted && !isExpired">
-            <button class="submit-button" @click="submitAnswers" :disabled="submitting">
-              <span v-if="!submitting">提交回答</span>
-              <span v-else class="submitting-text">
-              <span class="loading-spinner"></span>
-              正在提交...
-            </span>
-            </button>
-          </div>
+
 
           <!-- 已提交提示 - 已提交時顯示（無論是否過期） -->
           <div class="submitted-hint" v-if="hasSubmitted">
@@ -375,8 +371,14 @@
           <span class="dialog-success-icon">🎉</span>
         </div>
         <h3 class="dialog-title">問題表單已填寫完畢</h3>
-        <p class="dialog-message">您已完成所有題目的填寫，請點擊下方的「提交回答」按鈕完成作答。</p>
-        <button class="dialog-confirm-btn" @click="closeCompleteDialog">確定</button>
+        <p class="dialog-message">您已完成所有題目的填寫，請確認是否提交回答。</p>
+        <div class="dialog-action-buttons">
+          <button class="dialog-cancel-btn" @click="closeCompleteDialog">返回修改</button>
+          <button class="dialog-submit-btn" @click="submitAnswers" :disabled="submitting">
+            <span v-if="!submitting">提交回答</span>
+            <span v-else>正在提交...</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -453,6 +455,9 @@ export default {
         }
         return []
       }
+    },
+    hasLogicQuestion() {
+      return this.questions && this.questions.some(q => q.questionType === '5');
     },
 
   },
@@ -1211,6 +1216,45 @@ export default {
     },
 
 
+    // 判斷是否為最後一題
+    isLastQuestion(question) {
+      const state = this.getLogicFormState(question);
+      const currentNode = this.getActiveNode(question);
+      if (!currentNode) return false;
+      const nodeData = currentNode.node;
+
+      const logicData = this.getLogicFormData(question);
+      if (!logicData) return false;
+      const allNodes = logicData.allNodes;
+
+      // 檢查當前選中的選項是否有跳轉到結束的邏輯
+      const answerData = state.answers[nodeData.id];
+      let jumpToEnd = false;
+      if (nodeData.logicRuleList && nodeData.logicRuleList.length > 0 && Array.isArray(answerData) && !['3'].includes(String(nodeData.type))) {
+        for (let rule of nodeData.logicRuleList) {
+          if (answerData.includes(rule.optionIndex) && rule.jumpTarget === 'end') {
+            jumpToEnd = true;
+            break;
+          }
+        }
+      }
+      if (jumpToEnd) {
+        return true;
+      }
+
+      // 檢查物理順序後面是否還有可見節點
+      const currentIdx = allNodes.findIndex(n => n.node.id === nodeData.id);
+      let nextId = null;
+      for (let i = currentIdx + 1; i < allNodes.length; i++) {
+        const candidateId = allNodes[i].node.id;
+        if (this.isNodeVisible(candidateId, question)) {
+          nextId = candidateId;
+          break;
+        }
+      }
+      return !nextId;
+    },
+
     // 下一題
     handleLogicNext(question) {
       const state = this.getLogicFormState(question);
@@ -1518,6 +1562,7 @@ export default {
         ElMessage.error('網絡錯誤，請稍後重試');
       } finally {
         this.submitting = false;
+        this.showCompleteDialog = false;
       }
     },
 
@@ -1761,10 +1806,9 @@ export default {
       this.showCompleteDialog = true;
     },
 
-    // 關閉表單完成彈窗並平滑滾動到提交按鈕
+    // 關閉表單完成彈窗
     closeCompleteDialog() {
       this.showCompleteDialog = false;
-      this.scrollToSubmitButton();
     },
 
     // 平滑滾動到提交按鈕
@@ -2790,13 +2834,42 @@ export default {
   margin: 0 0 24px 0;
 }
 
-.dialog-confirm-btn {
+.dialog-action-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.dialog-cancel-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px 0;
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dialog-cancel-btn:hover {
+  background: #e2e8f0;
+  color: #334155;
+  transform: translateY(-1px);
+}
+
+.dialog-cancel-btn:active {
+  transform: translateY(1px);
+}
+
+.dialog-submit-btn {
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: #ffffff;
   border: none;
   border-radius: 10px;
   padding: 12px 0;
-  width: 100%;
+  flex: 1;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -2804,13 +2877,20 @@ export default {
   box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
 }
 
-.dialog-confirm-btn:hover {
+.dialog-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.4);
 }
 
-.dialog-confirm-btn:active {
+.dialog-submit-btn:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.dialog-submit-btn:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .question-item {
