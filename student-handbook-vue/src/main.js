@@ -2,73 +2,68 @@ import {createApp} from 'vue'
 import App from './App.vue'
 import router from './router'
 import settings from '@/config/settings'
-import { checkAndClearCache } from '@/utils/versionCheck'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhTw from 'element-plus/es/locale/lang/zh-tw'
 
-const isReloading = await checkAndClearCache().catch(() => false);
+const app = createApp(App)
 
-if (!isReloading) {
-    const app = createApp(App)
+app.use(ElementPlus, {
+    locale: zhTw,
+})
 
-    app.use(ElementPlus, {
-        locale: zhTw,
-    })
+router.beforeEach((to, from, next) => {
+    if (settings.enableTokenAuth) {
+        const publicPages = ['/', '/login', '/register']
+        const isPublicPage = publicPages.includes(to.path)
+        const token = localStorage.getItem('token')
 
-    router.beforeEach((to, from, next) => {
-        if (settings.enableTokenAuth) {
-            const publicPages = ['/', '/login', '/register']
-            const isPublicPage = publicPages.includes(to.path)
-            const token = localStorage.getItem('token')
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('token');
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const tokenFromUrl = urlParams.get('token');
+        if (tokenFromUrl) {
+            localStorage.setItem('token', tokenFromUrl);
+            urlParams.delete('token');
+            const newUrl = window.location.pathname +
+                (urlParams.toString() ? '?' + urlParams.toString() : '') +
+                window.location.hash;
+            window.history.replaceState({}, document.title, newUrl);
 
-            if (tokenFromUrl) {
-                localStorage.setItem('token', tokenFromUrl);
-                urlParams.delete('token');
-                const newUrl = window.location.pathname +
-                    (urlParams.toString() ? '?' + urlParams.toString() : '') +
-                    window.location.hash;
-                window.history.replaceState({}, document.title, newUrl);
-
-                const redirectUrl = sessionStorage.getItem('redirect_url');
-                if (redirectUrl) {
-                    sessionStorage.removeItem('redirect_url');
-                    next(redirectUrl);
-                    return;
-                } else if (to.path === '/login') {
-                    next('/');
-                    return;
-                }
-
-                next();
+            const redirectUrl = sessionStorage.getItem('redirect_url');
+            if (redirectUrl) {
+                sessionStorage.removeItem('redirect_url');
+                next(redirectUrl);
+                return;
+            } else if (to.path === '/login') {
+                next('/');
                 return;
             }
 
-            if (isPublicPage) {
+            next();
+            return;
+        }
+
+        if (isPublicPage) {
+            next()
+        } else {
+            if (token) {
                 next()
             } else {
-                if (token) {
-                    next()
-                } else {
-                    sessionStorage.setItem('redirect_url', to.fullPath)
-                    next('/login')
-                }
+                sessionStorage.setItem('redirect_url', to.fullPath)
+                next('/login')
             }
-        } else {
-            next();
         }
-    })
-
-    app.use(router)
-    app.mount('#app')
-
-    if (settings.enableWeChatAuth && navigator.userAgent.includes('MicroMessenger')) {
-        const script = document.createElement('script');
-        script.src = 'https://res.wx.qq.com/open/js/jweixin-1.2.0.js';
-        document.head.appendChild(script);
+    } else {
+        next();
     }
+})
+
+app.use(router)
+app.mount('#app')
+
+if (settings.enableWeChatAuth && navigator.userAgent.includes('MicroMessenger')) {
+    const script = document.createElement('script');
+    script.src = 'https://res.wx.qq.com/open/js/jweixin-1.2.0.js';
+    document.head.appendChild(script);
 }

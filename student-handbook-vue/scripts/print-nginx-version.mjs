@@ -1,5 +1,5 @@
 /**
- * 構建後執行，讀取 dist/version.json 並輸出 Nginx 需同步的版本號與配置片段。
+ * 構建後執行，讀取 dist/version.json 並輸出 Nginx 版本號。
  *
  * 用法：
  *   npm run build && npm run nginx-version
@@ -11,7 +11,6 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const versionFile = path.resolve(__dirname, '../dist/version.json');
-const snippetFile = path.resolve(__dirname, '../deploy/nginx-cache-bust.conf');
 
 if (!fs.existsSync(versionFile)) {
   console.error('找不到 dist/version.json，請先執行 npm run build');
@@ -19,20 +18,19 @@ if (!fs.existsSync(versionFile)) {
 }
 
 const { version } = JSON.parse(fs.readFileSync(versionFile, 'utf-8'));
-const snippet = fs.readFileSync(snippetFile, 'utf-8');
 
 console.log('');
 console.log('=== Student Handbook 發版 ===');
 console.log(`version: ${version}`);
+console.log(`訪問路徑前綴: /${version}/`);
 console.log('');
-console.log('【1】Nginx server 級：更新 $app_version（prod + dev 各一處）');
-console.log('');
+console.log('【1】Nginx：prod + dev 各更新一行');
 console.log(`    set $app_version "${version}";`);
 console.log('');
-console.log('【2】Nginx location / 內：用下方片段【替换】所有旧的版本跳转');
-console.log('    必须删除：if ($request_uri = /) 以及 set $fix_v / arg_v != app_version');
-console.log('    关键：用相对路径 $uri?_v=  ，不要用 $scheme://$host（HTTPS 会死循环）');
+console.log('【2】Nginx：用 deploy/nginx-full-example.conf 替換配置');
+console.log('    ★ 刪除所有舊的 ?_v= / need_v / fix_v 邏輯');
+console.log('    ★ 改用路徑版本號 /' + version + '/  不再用 query');
 console.log('');
-console.log(snippet);
 console.log('【3】部署 dist/ → nginx -t && nginx -s reload');
+console.log('【4】企微測試：打開後 URL 應為 /' + version + '/');
 console.log('');
