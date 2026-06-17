@@ -29,7 +29,7 @@ const config = fs.readFileSync(templateFile, 'utf-8').replaceAll('REPLACE_VERSIO
 console.log('');
 console.log('=== Student Handbook 發版 ===');
 console.log(`version: ${version}`);
-console.log(`微信訪問後 URL 應為: /${version}/`);
+console.log(`微信訪問後 URL 應為: /${version}/ （只有一個版本號，不要出現 /${version}/${version}/）`);
 console.log('');
 console.log('【重要】必須同時完成以下三步，缺一都會出問題：');
 console.log('  1. 用下方配置【整份替換】 sp-api 中的兩個 server');
