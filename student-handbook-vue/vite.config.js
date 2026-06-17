@@ -3,37 +3,53 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import fs from 'fs'
 
-// Vite 插件：每次構建時自動生成 version.json（包含構建時間戳）
+function createBuildVersion() {
+    return new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)
+}
+
+// 構建時生成 version.json，並在 index.html 注入同步版本腳本（不依賴外部 JS，搶在 module 之前執行）
 function generateVersionPlugin() {
+    let buildVersion = ''
+
     return {
         name: 'generate-version',
         buildStart() {
-            const version = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14); // e.g. 20260617174500
-            const content = JSON.stringify({ version }, null, 2);
-            // 寫入 public/version.json，這樣 Vite 會把它複製到 dist/ 根目錄
-            fs.writeFileSync(resolve(__dirname, 'public', 'version.json'), content, 'utf-8');
-            console.log(`[version] Generated version.json → ${version}`);
+            buildVersion = createBuildVersion()
+            const publicDir = resolve(__dirname, 'public')
+            if (!fs.existsSync(publicDir)) {
+                fs.mkdirSync(publicDir, { recursive: true })
+            }
+            fs.writeFileSync(
+                resolve(publicDir, 'version.json'),
+                JSON.stringify({ version: buildVersion }, null, 2),
+                'utf-8'
+            )
+            console.log(`[version] Generated version.json → ${buildVersion}`)
+        },
+        transformIndexHtml: {
+            order: 'post',
+            handler(html) {
+                if (!buildVersion) {
+                    buildVersion = createBuildVersion()
+                }
+                const inlineScript = `<script>(function(){var v="${buildVersion}",f="_v",k="__app_cache_version",p=new URLSearchParams(location.search),c=p.get(f);if(c===v){try{localStorage.setItem(k,v)}catch(e){}return}try{localStorage.setItem(k,v)}catch(e){}p.set(f,v);location.replace(location.pathname+"?"+p+location.hash)})();</script>`
+                return html.replace('</head>', `    ${inlineScript}\n  </head>`)
+            }
         }
     }
 }
 
 export default defineConfig(({ mode }) => {
-    // 前後端分離後，前端服務在Nginx直接使用根路徑作爲基礎路徑
-    const base = '/';
-
     return {
         plugins: [vue(), generateVersionPlugin()],
-        // 根據環境設置基礎路徑
-        base: base,
+        base: '/',
         resolve: {
             alias: {
                 '@': resolve(__dirname, 'src')
             }
         },
         build: {
-            // 關閉 sourcemap，防止源碼泄漏
             sourcemap: false,
-            // 確保資源路徑正確
             assetsDir: 'assets',
             rollupOptions: {
                 output: {
@@ -57,7 +73,6 @@ export default defineConfig(({ mode }) => {
             include: ['element-plus']
         },
         esbuild: {
-            // 生產環境下移除 console.log 和 debugger
             drop: mode === 'production' ? ['console', 'debugger'] : []
         }
     }
