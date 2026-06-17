@@ -5,6 +5,12 @@ import Login from '../views/Login.vue'
 import ParentNotice from '../views/ParentNotice.vue'
 import NoticeDetail from '../views/NoticeDetail.vue'
 
+// Nginx 會把 /20260617115111/ 轉給前端，瀏覽器 URL 帶版本前綴，Router base 需自動識別
+function detectVersionBase() {
+    const m = window.location.pathname.match(/^\/(\d{14})(?=\/|$)/)
+    return m ? `/${m[1]}/` : '/'
+}
+
 const routes = [
     {
         path: '/',
@@ -40,7 +46,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory('/'),
+    history: createWebHistory(detectVersionBase()),
     routes,
     scrollBehavior(to, from, savedPosition) {
         if (savedPosition) {
