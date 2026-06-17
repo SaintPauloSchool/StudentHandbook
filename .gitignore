@@ -1849,3 +1849,7 @@ student-handbook-vue *.lock
 /student-handbook-vue/node/node_modules/npm/LICENSE
 /student-handbook-vue/node/node_modules/npm/package.json
 /student-handbook-vue/node/node_modules/npm/README.md
+
+# Vue 前端自動生成文件（不提交）
+student-handbook-vue/public/version.json
+student-handbook-vue/node/node_modules/
