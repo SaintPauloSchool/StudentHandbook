@@ -333,12 +333,14 @@ export default {
 
         // 根據後端返回的數據結構處理數據
         let rawData = [];
-        if (response.data && response.data.rows) {
+        if (response.data && Array.isArray(response.data.rows)) {
           rawData = response.data.rows;
         } else if (Array.isArray(response.data)) {
           rawData = response.data;
+        } else if (response.data && Array.isArray(response.data.data)) {
+          rawData = response.data.data;
         } else {
-          rawData = response.data;
+          rawData = []; // 防止非陣列數據傳入 forEach 導致報錯
         }
 
         // 根據指定方法分組數據
@@ -383,9 +385,10 @@ export default {
     groupDataByTimeWithoutSort(data) {
       const grouped = {};
       const order = []; // 保存原始順序
+      const dataArray = Array.isArray(data) ? data : []; // 防止非陣列導致 forEach 報錯
 
       //按時間分組，使用class_log表的字段
-      data.forEach(item => {
+      dataArray.forEach(item => {
         // 過濾非'功課'和'測驗'類型的條目
         if (item.courseType !== '功課' && item.courseType !== '測驗') {
           return;
