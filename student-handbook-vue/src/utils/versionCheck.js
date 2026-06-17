@@ -1,10 +1,11 @@
 /**
- * 版本檢查：拉取 /version.json，確保 URL 帶 ?_v= 以繞過微信 WebView 頁面緩存。
- * 首次部署後，仍握有舊 index.html 的用戶需清一次微信緩存。
+ * 版本檢查：以 /version.json 為準，確保 URL 帶正確 ?_v=。
+ * Nginx 僅在 _v 缺失時補版本號；_v 過期時由此處更新，避免與 Nginx 互相 302 死循環。
  */
 
 export const VERSION_KEY = '__app_cache_version';
 export const RELOAD_FLAG = '_v';
+const LOOP_GUARD_KEY = '__v_redirect_ts';
 
 export async function checkAndClearCache() {
   try {
@@ -19,12 +20,20 @@ export async function checkAndClearCache() {
     const storedVersion = localStorage.getItem(VERSION_KEY);
 
     if (currentV === serverVersion && storedVersion === serverVersion) {
+      sessionStorage.removeItem(LOOP_GUARD_KEY);
       return;
     }
 
     localStorage.setItem(VERSION_KEY, serverVersion);
 
     if (currentV !== serverVersion) {
+      const lastRedirect = sessionStorage.getItem(LOOP_GUARD_KEY);
+      if (lastRedirect && Date.now() - parseInt(lastRedirect, 10) < 5000) {
+        console.warn('[versionCheck] 检测到重定向循环，已停止（请检查 Nginx $app_version 是否与 version.json 一致）');
+        return;
+      }
+
+      sessionStorage.setItem(LOOP_GUARD_KEY, Date.now().toString());
       urlParams.set(RELOAD_FLAG, serverVersion);
       const newUrl = window.location.pathname + '?' + urlParams.toString() + window.location.hash;
       window.location.replace(newUrl);
