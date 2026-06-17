@@ -7,30 +7,32 @@ function createBuildVersion() {
     return new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)
 }
 
-// 構建時生成 version.json（版本號唯一來源，與 Nginx $app_version 保持一致）
-function generateVersionPlugin() {
+function generateVersionPlugin(version) {
     return {
         name: 'generate-version',
         buildStart() {
-            const buildVersion = createBuildVersion()
             const publicDir = resolve(__dirname, 'public')
             if (!fs.existsSync(publicDir)) {
                 fs.mkdirSync(publicDir, { recursive: true })
             }
             fs.writeFileSync(
                 resolve(publicDir, 'version.json'),
-                JSON.stringify({ version: buildVersion }, null, 2),
+                JSON.stringify({ version }, null, 2),
                 'utf-8'
             )
-            console.log(`[version] Generated version.json → ${buildVersion}`)
+            console.log(`[version] base=/${version}/  version.json → ${version}`)
         }
     }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
+    const buildVersion = createBuildVersion()
+    const useVersionedBase = command === 'build'
+    const base = useVersionedBase ? `/${buildVersion}/` : '/'
+
     return {
-        plugins: [vue(), generateVersionPlugin()],
-        base: '/',
+        plugins: [vue(), generateVersionPlugin(buildVersion)],
+        base,
         resolve: {
             alias: {
                 '@': resolve(__dirname, 'src')
