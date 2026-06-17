@@ -20,19 +20,17 @@ function generateVersionPlugin(version) {
                 JSON.stringify({ version }, null, 2),
                 'utf-8'
             )
-            console.log(`[version] base=/${version}/  version.json → ${version}`)
+            console.log(`[version] version.json → ${version}`)
         }
     }
 }
 
 export default defineConfig(({ command, mode }) => {
     const buildVersion = createBuildVersion()
-    const useVersionedBase = command === 'build'
-    const base = useVersionedBase ? `/${buildVersion}/` : '/'
 
     return {
         plugins: [vue(), generateVersionPlugin(buildVersion)],
-        base,
+        base: '/',
         resolve: {
             alias: {
                 '@': resolve(__dirname, 'src')
