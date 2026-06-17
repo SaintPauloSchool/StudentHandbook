@@ -167,7 +167,7 @@ export default {
           if (state && state.startsWith('campus_notice_')) {
             window.location.replace(campusUrl);
           } else {
-            window.open(campusUrl, '_blank');
+            this.openCampusUrl(campusUrl);
           }
         } else {
           ElMessage.success('登錄成功');
@@ -283,9 +283,9 @@ export default {
         // 呼叫後端驗證 token 是否在資料庫中真的有效（防止被手動改過期或被撤銷）
         const response = await service.get(API_ENDPOINTS.VALIDATE_TOKEN);
         if (response.data.code === 200) {
-          // Token 確實有效，直接開新分頁跳轉
+          // Token 確實有效，跳轉到校園系統
           const url = `${settings.campusSystemUrl}?token=${encodeURIComponent(token)}`;
-          window.open(url, '_blank');
+          this.openCampusUrl(url);
         } else {
           // Token 無效，重新授權
           this.reAuthAndOpenCampus();
@@ -296,6 +296,15 @@ export default {
         this.reAuthAndOpenCampus();
       } finally {
         this.isNavigatingToCampus = false;
+      }
+    },
+    // 企微/微信 WebView 不支援 window.open，需用同頁跳轉
+    openCampusUrl(url) {
+      const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+      if (isWeChat) {
+        window.location.href = url;
+      } else {
+        window.open(url, '_blank');
       }
     },
     reAuthAndOpenCampus() {
