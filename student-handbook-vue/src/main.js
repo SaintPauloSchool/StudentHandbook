@@ -2,18 +2,30 @@ import {createApp} from 'vue'
 import App from './App.vue'
 import router from './router'
 import settings from '@/config/settings' // 導入全局配置設置
+import { checkAndClearCache } from '@/utils/versionCheck'
 
 // Element Plus imports
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhTw from 'element-plus/es/locale/lang/zh-tw'
 
+// ── 版本檢查（必須在 Vue 掛載前完成）──────────────────────────
+// 從服務器拉取 /version.json（no-store 強制繞過 WebView 緩存）
+// 若版本號與 localStorage 不同，立即 replace 到帶 ?_v= 的新 URL
+// WeChat WebView 遇到新 URL 必須重新從服務器拉 index.html，從而載入新代碼
+const isReloading = await checkAndClearCache().catch(() => false);
+if (isReloading) {
+    // 正在重載，停止後續 Vue 初始化，避免閃爍
+    throw new Error('[版本更新] 頁面即將重載，停止 Vue 初始化');
+}
+// ─────────────────────────────────────────────────────────────
+
 // 創建Vue應用實例
 const app = createApp(App)
 
 // 使用Element Plus
 app.use(ElementPlus, {
-  locale: zhTw,
+    locale: zhTw,
 })
 
 // 配置路由守衛，確保訪問受保護頁面時已登錄
@@ -38,7 +50,7 @@ router.beforeEach((to, from, next) => {
                 (urlParams.toString() ? '?' + urlParams.toString() : '') +
                 window.location.hash;
             window.history.replaceState({}, document.title, newUrl);
-            
+
             // 如果之前有保存的跳轉路徑，則跳轉過去
             const redirectUrl = sessionStorage.getItem('redirect_url');
             if (redirectUrl) {
@@ -50,7 +62,7 @@ router.beforeEach((to, from, next) => {
                 next('/');
                 return;
             }
-            
+
             // 有token，允許訪問
             next();
             return;
