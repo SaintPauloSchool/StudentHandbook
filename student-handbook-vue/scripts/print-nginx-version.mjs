@@ -29,8 +29,9 @@ console.log('【1】Nginx server 級：更新 $app_version（prod + dev 各一�
 console.log('');
 console.log(`    set $app_version "${version}";`);
 console.log('');
-console.log('【2】Nginx location / 內、try_files 之前：用下方片段【替换】旧的版本跳转');
-console.log('    （必须删除 if ($request_uri = /) 以及 if ($arg_v != $app_version) 旧逻辑）');
+console.log('【2】Nginx location / 內：用下方片段【替换】所有旧的版本跳转');
+console.log('    必须删除：if ($request_uri = /) 以及 set $fix_v / arg_v != app_version');
+console.log('    关键：用相对路径 $uri?_v=  ，不要用 $scheme://$host（HTTPS 会死循环）');
 console.log('');
 console.log(snippet);
 console.log('【3】部署 dist/ → nginx -t && nginx -s reload');
