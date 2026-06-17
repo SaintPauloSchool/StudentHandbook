@@ -7,14 +7,12 @@ function createBuildVersion() {
     return new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)
 }
 
-// 構建時生成 version.json，並在 index.html 注入同步版本腳本（不依賴外部 JS，搶在 module 之前執行）
+// 構建時生成 version.json（版本號唯一來源，與 Nginx $app_version 保持一致）
 function generateVersionPlugin() {
-    let buildVersion = ''
-
     return {
         name: 'generate-version',
         buildStart() {
-            buildVersion = createBuildVersion()
+            const buildVersion = createBuildVersion()
             const publicDir = resolve(__dirname, 'public')
             if (!fs.existsSync(publicDir)) {
                 fs.mkdirSync(publicDir, { recursive: true })
@@ -25,16 +23,6 @@ function generateVersionPlugin() {
                 'utf-8'
             )
             console.log(`[version] Generated version.json → ${buildVersion}`)
-        },
-        transformIndexHtml: {
-            order: 'post',
-            handler(html) {
-                if (!buildVersion) {
-                    buildVersion = createBuildVersion()
-                }
-                const inlineScript = `<script>(function(){var v="${buildVersion}",f="_v",k="__app_cache_version",p=new URLSearchParams(location.search),c=p.get(f);if(c===v){try{localStorage.setItem(k,v)}catch(e){}return}try{localStorage.setItem(k,v)}catch(e){}p.set(f,v);location.replace(location.pathname+"?"+p+location.hash)})();</script>`
-                return html.replace('</head>', `    ${inlineScript}\n  </head>`)
-            }
         }
     }
 }
