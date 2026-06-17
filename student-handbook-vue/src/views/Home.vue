@@ -102,10 +102,10 @@ export default {
     await this.ensureDefaultStudent();
 
     // ② 有了正確的 studentUserId 後，再拉未讀數，確保數字對應正確的學生
-    this.fetchUnreadCount();
+    await this.fetchUnreadCount();
 
     // 獲取使用者資訊（包含 userType）
-    this.fetchUserInfo();
+    await this.fetchUserInfo();
 
     // 監聽學生切換事件
     window.addEventListener('studentChanged', this.handleStudentChanged);
@@ -116,28 +116,24 @@ export default {
   },
 
   methods: {
-    // 檢查URL參數中的token和userType
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
+      const tokenFromUrl = urlParams.get('token');
       const urlUserType = urlParams.get('userType');
       const state = urlParams.get('state');
 
-      if (token) {
-        // 保存token到本地存儲，同時記錄過期時間 (7天)
-        localStorage.setItem('token', token);
+      if (tokenFromUrl) {
+        localStorage.setItem('token', tokenFromUrl);
         localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
 
-        // 如果URL中有傳遞 userType，直接保存並使用，避免按鈕閃爍
         if (urlUserType !== null) {
           this.userType = parseInt(urlUserType);
           localStorage.setItem('userType', this.userType);
         } else {
-          localStorage.removeItem('userType'); // 登入時清除舊的 userType
+          localStorage.removeItem('userType');
           this.userType = null;
         }
 
-        // 清除URL中的參數，避免在地址欄顯示敏感信息
         urlParams.delete('token');
         urlParams.delete('userType');
         if (state) urlParams.delete('state');
@@ -145,33 +141,36 @@ export default {
             (urlParams.toString() ? '?' + urlParams.toString() : '') +
             window.location.hash;
         window.history.replaceState({}, document.title, newUrl);
+      }
 
-        // 若之前是因為 token 過期後重新授權，授權完成後自動打開校園系統
-        if (sessionStorage.getItem('pendingCampusRedirect') === 'true' || (state && state.startsWith('campus_notice_'))) {
-          sessionStorage.removeItem('pendingCampusRedirect');
+      const pendingCampus = sessionStorage.getItem('pendingCampusRedirect') === 'true';
+      const campusNotice = state && state.startsWith('campus_notice_');
+      if (pendingCampus || campusNotice) {
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-          let targetUrl = settings.campusSystemUrl;
-          if (state && state.startsWith('campus_notice_')) {
-            const noticeId = state.replace('campus_notice_', '');
-            if (noticeId !== 'root') {
-              // 確保 URL 結尾有斜線或者處理拼接
-              const baseUrl = settings.campusSystemUrl.endsWith('/') ? settings.campusSystemUrl : settings.campusSystemUrl + '/';
-              targetUrl = `${baseUrl}${noticeId}`;
-            }
+        sessionStorage.removeItem('pendingCampusRedirect');
+
+        let targetUrl = settings.campusSystemUrl;
+        if (campusNotice) {
+          const noticeId = state.replace('campus_notice_', '');
+          if (noticeId !== 'root') {
+            const baseUrl = settings.campusSystemUrl.endsWith('/') ? settings.campusSystemUrl : settings.campusSystemUrl + '/';
+            targetUrl = `${baseUrl}${noticeId}`;
           }
-
-          const campusUrl = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
-          console.log('重新授權完成，自動跳轉到校園系統:', campusUrl);
-
-          // 如果是直接點擊通知進來的，直接替換當前頁面；否則是原本的打開新分頁
-          if (state && state.startsWith('campus_notice_')) {
-            window.location.replace(campusUrl);
-          } else {
-            this.openCampusUrl(campusUrl);
-          }
-        } else {
-          ElMessage.success('登錄成功');
         }
+
+        const campusUrl = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
+        if (campusNotice) {
+          window.location.replace(campusUrl);
+        } else {
+          this.openCampusUrl(campusUrl);
+        }
+        return;
+      }
+
+      if (tokenFromUrl) {
+        ElMessage.success('登錄成功');
       }
     },
 
