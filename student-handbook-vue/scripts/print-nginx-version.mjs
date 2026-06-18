@@ -42,6 +42,6 @@ console.log('【防死循環】以下場景均應 ≤3 次跳轉後穩定，不�
 console.log('  / → /' + version + '/ → 200');
 console.log('  /舊版本/ → /' + version + '/ → 200');
 console.log('  /' + version + '/舊版本/ → /' + version + '/ → 200');
-console.log('  /' + version + '/notice → 200（不重定向到自己）');
+console.log('  /' + version + '/' + version + '/login → /' + version + '/login → 200');
 console.log('');
 console.log(config);
