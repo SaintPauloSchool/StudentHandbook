@@ -27,6 +27,7 @@ import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 導入全局配置設置
 import { baseURL } from '@/config/api.js' // 導入 API 基礎路徑
+import {normalizeRedirectUrl} from '@/utils/path.js'
 
 export default {
   name: 'Login',
@@ -86,8 +87,7 @@ export default {
         // 獲取之前保存的重定向地址
         const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
         sessionStorage.removeItem('redirect_url');
-        // 跳轉
-        this.$router.push(redirectUrl);
+        this.$router.push(normalizeRedirectUrl(redirectUrl));
         return true; // ← 告知調用方已處理，無需繼續登錄流程
       }
       return false;
@@ -121,8 +121,7 @@ export default {
             // 獲取之前保存的重定向地址
             const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
             sessionStorage.removeItem('redirect_url');
-            // 跳轉
-            this.$router.push(redirectUrl);
+            this.$router.push(normalizeRedirectUrl(redirectUrl));
           } else {
             ElMessage.error(response.data.msg || '登錄失敗');
           }
