@@ -3,6 +3,7 @@ import axios from 'axios'
 import {ElMessage} from 'element-plus' // 導入Element Plus的消息組件
 import settings from '@/config/settings' // 導入全局配置設置
 import MD5 from 'crypto-js/md5' // 導入 MD5 用於計算籤名
+import {stripVersionPrefix, versionedPath} from '@/utils/path.js'
 
 // 生成唯一標識符(UUID的簡易實現)
 const generateNonce = () => {
@@ -78,9 +79,13 @@ service.interceptors.response.use(
                 // token過期/無效，跳轉到登錄頁面
                 localStorage.removeItem('token')
                 // 記住當前的 URL 以便登錄後跳轉回去
-                sessionStorage.setItem('redirect_url', window.location.pathname + window.location.search + window.location.hash)
-                // 重定向到登錄頁面
-                window.location.href = '/login'
+                sessionStorage.setItem(
+                    'redirect_url',
+                    stripVersionPrefix(window.location.pathname) +
+                    window.location.search +
+                    window.location.hash
+                )
+                window.location.href = versionedPath('/login')
                 ElMessage.error('請先登錄')
             } else if (error.response && error.response.status === 403) {
                 // 無權限訪問
