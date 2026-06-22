@@ -27,10 +27,15 @@ function generateVersionPlugin(version) {
 
 export default defineConfig(({ command, mode }) => {
     const buildVersion = createBuildVersion()
+    const isBuild = command === 'build'
 
     return {
         plugins: [vue(), generateVersionPlugin(buildVersion)],
-        base: '/',
+        // 方案 A：構建產物資源路徑帶版本號 /20260618025000/assets/...
+        base: isBuild ? `/${buildVersion}/` : '/',
+        define: {
+            __BUILD_VERSION__: JSON.stringify(buildVersion),
+        },
         resolve: {
             alias: {
                 '@': resolve(__dirname, 'src')

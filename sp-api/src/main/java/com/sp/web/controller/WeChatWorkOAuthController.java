@@ -2,6 +2,7 @@ package com.sp.web.controller;
 
 import com.sp.common.annotation.Anonymous;
 import com.sp.common.core.controller.BaseController;
+import com.sp.common.utils.StringUtils;
 import com.sp.common.utils.WeChatWorkOAuth2Utils;
 import com.alibaba.fastjson.JSONObject;
 
@@ -45,6 +46,26 @@ public class WeChatWorkOAuthController extends BaseController {
     @Value("${sp.frontend.url}")
     private String frontendUrl;
 
+    @Value("${sp.frontend.version:}")
+    private String frontendVersion;
+
+    private String buildFrontendRedirect(String pathWithQuery) throws IOException {
+        String base = frontendUrl.replaceAll("/+$", "");
+        if (StringUtils.isNotEmpty(frontendVersion)) {
+            base = base + "/" + frontendVersion.trim();
+        }
+        if (pathWithQuery == null || pathWithQuery.isEmpty()) {
+            pathWithQuery = "/";
+        } else if (!pathWithQuery.startsWith("/")) {
+            pathWithQuery = "/" + pathWithQuery;
+        }
+        return base + pathWithQuery;
+    }
+
+    private void redirectToFrontend(HttpServletResponse response, String pathWithQuery) throws IOException {
+        response.sendRedirect(buildFrontendRedirect(pathWithQuery));
+    }
+
     /**
      * 企業微信授權回調處理
      * 此接口專門用於處理企業微信應用的網頁授權回調
@@ -72,7 +93,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 String token = tokenService.createToken(devParentUserId, 1);
                 logger.info("開發環境模擬登錄，生成token: {}", token);
                 // 重定向回 dev 前端（帶完整 host:port，避免跳到 prod 的 port 80）
-                response.sendRedirect(frontendUrl + "/?token=" + token + "&userType=1");
+                response.sendRedirect(buildFrontendRedirect("/?token=" + token + "&userType=1"));
                 return;
             }
 
@@ -87,7 +108,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 if (savedState == null || !savedState.equals(state)) {
                     logger.warn("state參數驗證失敗，可能遭遇CSRF攻擊");
                     // 返回錯誤頁面
-                    response.sendRedirect(frontendUrl + "/login?error=invalid_state");
+                    redirectToFrontend(response, "/login?error=invalid_state");
                     return;
                 }
             }
@@ -132,7 +153,7 @@ public class WeChatWorkOAuthController extends BaseController {
             // 檢查是否獲取到有效的用戶信息
             if (userId == null) {
                 logger.error("無法獲取有效的用戶信息，授權失敗");
-                response.sendRedirect(frontendUrl + "/login?error=user_info_failed&message=" +
+                redirectToFrontend(response, "/login?error=user_info_failed&message=" +
                         URLEncoder.encode("無法獲取用戶信息，請聯繫學校管理員", "UTF-8"));
                 return;
             }
@@ -148,7 +169,7 @@ public class WeChatWorkOAuthController extends BaseController {
                 if (!departmentParentBindingService.checkHasBoundStudents(userId)) {
                     logger.warn("家長用戶 {} 不存在有效的學生關聯，授權失敗", userId);
                     // 重定向到錯誤頁面
-                    response.sendRedirect(frontendUrl + "/login?error=authorization_failed&message=" +
+                    redirectToFrontend(response, "/login?error=authorization_failed&message=" +
                             URLEncoder.encode("家長賬戶未關聯任何學生，請聯繫學校管理員確認", "UTF-8"));
                     return;
                 }
@@ -160,7 +181,7 @@ public class WeChatWorkOAuthController extends BaseController {
                     userType == 0 ? "學生" : (userType == 1 ? "家長" : "員工"), token);
 
             // 重定向到前端頁面並帶上 userType，方便前端立刻決定顯示哪些按鈕。同時帶上 state 以便處理通知跳轉
-            String redirectUrl = frontendUrl + "/?token=" + token + "&userType=" + userType;
+            String redirectUrl = buildFrontendRedirect("/?token=" + token + "&userType=" + userType);
             if (state != null && !state.isEmpty()) {
                 redirectUrl += "&state=" + URLEncoder.encode(state, "UTF-8");
             }
@@ -169,7 +190,7 @@ public class WeChatWorkOAuthController extends BaseController {
             logger.error("處理企業微信家校授權回調時發生錯誤", e);
             try {
                 // 重定向到錯誤頁面
-                response.sendRedirect(frontendUrl + "/login?error=internal_error&message=" +
+                redirectToFrontend(response, "/login?error=internal_error&message=" +
                         URLEncoder.encode(e.getMessage(), "UTF-8"));
             } catch (IOException ioException) {
                 logger.error("重定向失敗", ioException);
