@@ -6,7 +6,7 @@ sp:
   frontend:
     url: http://tals-wcapp.esp.edu.mo
     # 與本次發版 nginx REPLACE_VERSION、dist 目錄名一致（14 位時間戳）
-    version: ""
+    version: "20260622082430"
 
 # 生產環境的數據庫配置
 server:
