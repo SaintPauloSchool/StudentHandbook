@@ -5,6 +5,8 @@ sp:
   # 前端訪問地址（用於後端登錄完成後 redirect 回前端）
   frontend:
     url: http://tals-wcapp.esp.edu.mo
+    # 與本次發版 nginx REPLACE_VERSION、dist 目錄名一致（14 位時間戳）
+    version: ""
 
 # 生產環境的數據庫配置
 server:
