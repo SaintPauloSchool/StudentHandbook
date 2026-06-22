@@ -48,6 +48,7 @@ nbdist/
 # Vue project specific ignores
 student-handbook-vue/node_modules/
 student-handbook-vue/dist/
+student-handbook-vue/deploy-out/
 student-handbook-vue/.DS_Store
 student-handbook-vue/.vscode/
 student-handbook-vue/.idea/

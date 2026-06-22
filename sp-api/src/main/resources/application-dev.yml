@@ -9,6 +9,8 @@ sp:
   frontend:
     url: http://localhost:3000/
     #url: http://10.32.96.55:8082
+    # 本地 dev 無版本前綴，留空即可
+    version: ""
 
 spring:
   datasource:
