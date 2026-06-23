@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import settings from '@/config/settings'
 import {getDoubledVersionFix, normalizeRedirectUrl} from '@/utils/path.js'
+import {saveTokenFromUrl} from '@/utils/wechat.js'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -32,16 +33,8 @@ router.beforeEach((to, from, next) => {
         const token = localStorage.getItem('token')
 
         const urlParams = new URLSearchParams(window.location.search);
-        const tokenFromUrl = urlParams.get('token');
 
-        if (tokenFromUrl) {
-            localStorage.setItem('token', tokenFromUrl);
-            urlParams.delete('token');
-            const newUrl = window.location.pathname +
-                (urlParams.toString() ? '?' + urlParams.toString() : '') +
-                window.location.hash;
-            window.history.replaceState({}, document.title, newUrl);
-
+        if (saveTokenFromUrl(urlParams)) {
             const redirectUrl = sessionStorage.getItem('redirect_url');
             if (redirectUrl) {
                 sessionStorage.removeItem('redirect_url');

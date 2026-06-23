@@ -26,8 +26,9 @@
 import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 導入全局配置設置
-import { baseURL } from '@/config/api.js' // 導入 API 基礎路徑
+import { baseURL, API_ENDPOINTS } from '@/config/api.js' // 導入 API 基礎路徑
 import {normalizeRedirectUrl} from '@/utils/path.js'
+import {isWeChatEnv, saveTokenFromUrl} from '@/utils/wechat.js'
 
 export default {
   name: 'Login',
@@ -38,7 +39,7 @@ export default {
       errorMessage: '無法進入系統，請聯繫學校管理員！！'
     }
   },
-  mounted() {
+  async mounted() {
     // 檢查URL參數，看是否是錯誤狀態
     this.checkUrlError();
 
@@ -54,41 +55,61 @@ export default {
     }
 
     // 檢查URL參數中的授權code
-    this.checkWeChatAuthCode();
+    if (await this.checkWeChatAuthCode()) {
+      return;
+    }
 
-    // 根據配置決定是否執行微信登錄流程
     if (settings.enableWeChatAuth) {
-      // 自動觸發微信登錄流程
-      this.autoWechatLogin();
+      if (await this.tryExistingToken()) {
+        return;
+      }
+
+      if (isWeChatEnv()) {
+        await this.autoWechatLogin();
+      }
     } else {
-      // 如果未啓用微信驗證，則直接跳轉到首頁
       this.$router.push('/');
     }
   },
   methods: {
+    async tryExistingToken() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return false;
+      }
+
+      const expire = localStorage.getItem('token_expire');
+      if (expire && Date.now() > parseInt(expire, 10)) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('token_expire');
+        return false;
+      }
+
+      try {
+        const response = await service.get(API_ENDPOINTS.VALIDATE_TOKEN);
+        if (response.data.code === 200) {
+          const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
+          sessionStorage.removeItem('redirect_url');
+          this.$router.push(normalizeRedirectUrl(redirectUrl));
+          return true;
+        }
+      } catch (error) {
+        console.warn('本地 token 已失效:', error);
+      }
+
+      return false;
+    },
+
     // 檢查URL參數中的token，找到則保存並返回 true（通知 mounted 提前結束）
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
 
-      if (token) {
-        // 保存token到本地存儲，同時記錄過期時間 (7天)
-        localStorage.setItem('token', token);
-        localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
-
-        // 清除URL中的token參數，避免在地址欄顯示敏感信息
-        urlParams.delete('token');
-        const newUrl = window.location.pathname +
-            (urlParams.toString() ? '?' + urlParams.toString() : '') +
-            window.location.hash;
-        window.history.replaceState({}, document.title, newUrl);
-
+      if (saveTokenFromUrl(urlParams)) {
         ElMessage.success('登錄成功');
-        // 獲取之前保存的重定向地址
         const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
         sessionStorage.removeItem('redirect_url');
         this.$router.push(normalizeRedirectUrl(redirectUrl));
-        return true; // ← 告知調用方已處理，無需繼續登錄流程
+        return true;
       }
       return false;
     },
@@ -115,10 +136,7 @@ export default {
           const response = await service.get(`${baseURL}/wechat/oauth/callback?code=${code}&state=${state || 'default'}`);
 
           if (response.data.code === 200) {
-            // 由於request.js中的響應攔截器已經處理了token的保存
-            // 這裡不再需要手動保存token
             ElMessage.success('登錄成功');
-            // 獲取之前保存的重定向地址
             const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
             sessionStorage.removeItem('redirect_url');
             this.$router.push(normalizeRedirectUrl(redirectUrl));
@@ -131,7 +149,9 @@ export default {
         } finally {
           this.loginLoading = false;
         }
+        return true;
       }
+      return false;
     },
 
     // 檢查URL參數，確定是否顯示錯誤
@@ -152,10 +172,10 @@ export default {
       this.showError = false;
       this.errorMessage = '授權失敗無法進入系統，請聯繫學校管理員';
       if (settings.enableWeChatAuth) {
-        // 重新觸發微信登錄
-        this.autoWechatLogin();
+        if (isWeChatEnv()) {
+          this.autoWechatLogin();
+        }
       } else {
-        // 如果未啓用微信驗證，則直接跳轉到首頁
         this.$router.push('/');
       }
     },
@@ -178,17 +198,10 @@ export default {
         return;
       }
 
-      // 檢查是否在微信環境中
-      const isWeChat = navigator.userAgent.includes('MicroMessenger');
-
-      if (isWeChat) {
+      // 僅在微信內自動發起 OAuth
+      if (isWeChatEnv()) {
         console.log('在微信環境中，自動觸發微信授權');
-
-        // 嘗試通過OAuth2方式獲取用戶信息
         await this.getWeChatUserInfoByOAuth(state);
-      } else {
-        console.log('非微信環境，顯示提示信息');
-        ElMessage.warning('請在微信或企業微信環境中打開應用');
       }
     },
 

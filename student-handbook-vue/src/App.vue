@@ -9,7 +9,6 @@
 </template>
 
 <script setup>
-// 移除直接導入的StudentHandbook組件
 </script>
 
 <style>
