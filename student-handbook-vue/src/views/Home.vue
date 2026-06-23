@@ -73,6 +73,7 @@ import settings from '@/config/settings'
 import { API_ENDPOINTS, baseURL } from '@/config/api.js'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 import { User } from '@element-plus/icons-vue'
+import { isWeChatEnv, saveTokenFromUrl } from '@/utils/wechat.js'
 
 export default {
   name: 'Home',
@@ -118,29 +119,16 @@ export default {
   methods: {
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
-      const tokenFromUrl = urlParams.get('token');
-      const urlUserType = urlParams.get('userType');
       const state = urlParams.get('state');
 
-      if (tokenFromUrl) {
-        localStorage.setItem('token', tokenFromUrl);
-        localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
-
+      if (saveTokenFromUrl(urlParams)) {
+        const urlUserType = localStorage.getItem('userType');
         if (urlUserType !== null) {
-          this.userType = parseInt(urlUserType);
-          localStorage.setItem('userType', this.userType);
+          this.userType = parseInt(urlUserType, 10);
         } else {
-          localStorage.removeItem('userType');
           this.userType = null;
         }
-
-        urlParams.delete('token');
-        urlParams.delete('userType');
-        if (state) urlParams.delete('state');
-        const newUrl = window.location.pathname +
-            (urlParams.toString() ? '?' + urlParams.toString() : '') +
-            window.location.hash;
-        window.history.replaceState({}, document.title, newUrl);
+        ElMessage.success('登錄成功');
       }
 
       const pendingCampus = sessionStorage.getItem('pendingCampusRedirect') === 'true';
@@ -167,10 +155,6 @@ export default {
           this.openCampusUrl(campusUrl);
         }
         return;
-      }
-
-      if (tokenFromUrl) {
-        ElMessage.success('登錄成功');
       }
     },
 
@@ -299,26 +283,27 @@ export default {
     },
     // 企微/微信 WebView 不支援 window.open，需用同頁跳轉
     openCampusUrl(url) {
-      const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
-      if (isWeChat) {
+      if (isWeChatEnv()) {
         window.location.href = url;
       } else {
         window.open(url, '_blank');
       }
     },
     reAuthAndOpenCampus() {
-      // 清除本地舊 token
       localStorage.removeItem('token');
-      // 把目標存在 sessionStorage，授權完成後前端可以根據這個判斷是否需要打開校園系統
       sessionStorage.setItem('pendingCampusRedirect', 'true');
 
       if (import.meta.env.MODE !== 'production') {
-        // 非生產環境走 dev mock 登錄
         window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=dev';
         return;
       }
 
-      // 生產環境：觸發微信重新授權
+      if (!isWeChatEnv()) {
+        ElMessage.warning('請先在微信中登錄後再訪問系統');
+        this.$router.push('/login');
+        return;
+      }
+
       const redirectUri = encodeURIComponent(settings.wechat.redirectUri);
       const corpId = settings.wechat.corpId;
       const agentId = settings.wechat.agentId;
