@@ -5,6 +5,7 @@ import Login from '../views/Login.vue'
 import ParentNotice from '../views/ParentNotice.vue'
 import NoticeDetail from '../views/NoticeDetail.vue'
 import {detectVersionBase} from '@/utils/path'
+import {syncTokenToUrlForWeChatShare} from '@/utils/wechat.js'
 
 const routes = [
     {
@@ -58,6 +59,7 @@ router.afterEach((to, from) => {
     } else {
         to.meta = { fromPath: from.path }
     }
+    syncTokenToUrlForWeChatShare(to.path)
 })
 
 export default router
