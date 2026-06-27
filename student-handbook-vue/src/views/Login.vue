@@ -64,7 +64,7 @@ export default {
         return;
       }
 
-      if (isWeChatEnv()) {
+      if (this.shouldAutoLogin()) {
         await this.autoWechatLogin();
       }
     } else {
@@ -72,6 +72,10 @@ export default {
     }
   },
   methods: {
+    shouldAutoLogin() {
+      return isWeChatEnv() || import.meta.env.MODE !== 'production';
+    },
+
     async tryExistingToken() {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -172,7 +176,7 @@ export default {
       this.showError = false;
       this.errorMessage = '授權失敗無法進入系統，請聯繫學校管理員';
       if (settings.enableWeChatAuth) {
-        if (isWeChatEnv()) {
+        if (this.shouldAutoLogin()) {
           this.autoWechatLogin();
         }
       } else {
