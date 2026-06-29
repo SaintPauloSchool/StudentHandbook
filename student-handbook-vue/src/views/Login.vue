@@ -27,7 +27,6 @@ import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 導入全局配置設置
 import { baseURL, API_ENDPOINTS } from '@/config/api.js' // 導入 API 基礎路徑
-import {normalizeRedirectUrl} from '@/utils/path.js'
 import {isWeChatEnv, saveTokenFromUrl} from '@/utils/wechat.js'
 
 export default {
@@ -94,7 +93,7 @@ export default {
         if (response.data.code === 200) {
           const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
           sessionStorage.removeItem('redirect_url');
-          this.$router.push(normalizeRedirectUrl(redirectUrl));
+          this.$router.push(redirectUrl);
           return true;
         }
       } catch (error) {
@@ -112,7 +111,7 @@ export default {
         ElMessage.success('登錄成功');
         const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
         sessionStorage.removeItem('redirect_url');
-        this.$router.push(normalizeRedirectUrl(redirectUrl));
+        this.$router.push(redirectUrl);
         return true;
       }
       return false;
@@ -143,7 +142,7 @@ export default {
             ElMessage.success('登錄成功');
             const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
             sessionStorage.removeItem('redirect_url');
-            this.$router.push(normalizeRedirectUrl(redirectUrl));
+            this.$router.push(redirectUrl);
           } else {
             ElMessage.error(response.data.msg || '登錄失敗');
           }

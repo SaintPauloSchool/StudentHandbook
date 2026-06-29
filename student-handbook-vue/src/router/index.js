@@ -4,7 +4,6 @@ import StudentHandbook from '../views/StudentHandbook.vue'
 import Login from '../views/Login.vue'
 import ParentNotice from '../views/ParentNotice.vue'
 import NoticeDetail from '../views/NoticeDetail.vue'
-import {detectVersionBase} from '@/utils/path'
 import {syncTokenToUrlForWeChatShare} from '@/utils/wechat.js'
 
 const routes = [
@@ -42,7 +41,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(detectVersionBase()),
+    history: createWebHistory('/'),
     routes,
     scrollBehavior(to, from, savedPosition) {
         if (savedPosition) {

@@ -83,39 +83,220 @@ StudentHandbook/
 ## 部署指南
 
 ### 環境要求
-- Java 8+
+
+- Java 8+（服務器建議 Java 17）
 - Maven 3.5+
-- Node.js 14+
+- Node.js 16+
 - MySQL 5.7+
+- Nginx 1.18+
 
-### 部署步驟 (前後端完全分離)
+### 架構概覽
 
-本系統目前採用前後端完全分離部署架構。
+```
+用戶（微信 / 瀏覽器）
+        │
+        ▼
+   Nginx（固定配置，發版一般不改）
+   ├── /              → 學生手冊 Vue 靜態資源（dist）
+   ├── /sp-api/       → 後端 API（Tomcat / Spring Boot）
+   ├── /profile/      → 上傳文件
+   └── /school-management-system/  → 校園系統（另一套前端）
+```
 
-1. **前端打包與部署 (Nginx 代理)**
-   ```bash
-   cd student-handbook-vue
-   npm install
-   
-   # 打包生產環境文件
-   npm run build
-   ```
-   **發佈說明**：將生成的 `dist` 文件夾上傳至服務器的靜態目錄（如 `/usr/share/nginx/tals-vue/dist`）。並在服務器 Nginx 中的 `location /` 塊指向該目錄，注意添加 `try_files $uri $uri/ /index.html;` 以支持 Vue History 路由。
+**核心原則：前後端獨立發版，互不干擾。**
 
-2. **後端打包與部署 (Tomcat / API 服務)**
-   ```bash
-   # 配置數據庫等信息
-   # 按需修改 sp-api/src/main/resources/application-*.yml
-   
-   # 編譯打包 (純 API 包，不包含前端代碼)
-   mvn clean package
-   ```
-   **發佈說明**：將生成的 `.war` (或 `.jar`) 部署到服務器的 Tomcat 中啟動。在服務器的 Nginx 配置中，通過 `location /sp-api/` 規則，將所有的數據請求 `proxy_pass` 反向代理至 Tomcat 的 `8003` 端口。
+| 組件 | 發版頻率 | 發版時是否改 Nginx |
+|------|----------|-------------------|
+| 前端 `student-handbook-vue` | 有 UI/邏輯變更時 | 否 |
+| 後端 `sp-api` | 有 API/業務變更時 | 否 |
+| Nginx | 僅首次部署或調整路由/緩存時 | — |
 
-### 配置及架構說明
-- **前端部署位置**: Nginx 根路徑 `/` (直接由 Nginx 高效處理 HTML、JS、CSS 等靜態資源)
-- **後端 API 端口**: `8003` (Java Tomcat 負責運算和數據)
-- **API 代理路徑**: `/sp-api/` (所有請求後端的接口調用、微信回調均會被 Nginx 攔截並轉發至後端)
+**緩存策略（全部由 Nginx + Vite 文件名 hash 處理，無需 URL 版本號）：**
+
+- `index.html` → 禁止緩存，每次訪問拉最新入口
+- `/assets/*-[hash].js|css|...` → 長期緩存（hash 變了 URL 自然變，舊緩存不影響）
+
+---
+
+### 環境對照
+
+| 環境 | 訪問地址 | 前端靜態目錄 | 後端端口 | Spring Profile |
+|------|----------|--------------|----------|----------------|
+| 本地開發 | `http://localhost:3000` | Vite dev server | `8002` | `dev` |
+| 測試服 | `http://10.32.96.55:8082` | `/usr/share/nginx/student-handbook/dev/dist` | `8002` | `test` |
+| 生產 | `http://tals-wcapp.esp.edu.mo` | `/usr/share/nginx/student-handbook/prod/dist` | `8003` | `prod` |
+
+後端 OAuth 登錄完成後會 redirect 到 `sp.frontend.url`（見各環境 `application-*.yml`），請確保與實際訪問地址一致。
+
+---
+
+### 一、首次部署（服務器初始化，只需做一次）
+
+#### 1. 創建目錄
+
+```bash
+sudo mkdir -p /usr/share/nginx/student-handbook/prod/dist
+sudo mkdir -p /usr/share/nginx/student-handbook/dev/dist
+```
+
+#### 2. 配置 Nginx
+
+完整示例見：`student-handbook-vue/deploy/nginx-full-example.conf`
+
+將其中學生手冊相關的 `server` 塊合併進服務器現有 Nginx 配置（注意保留已有的 `/sp-api/`、`/school-management-system/` 等規則）。
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+#### 3. 部署後端
+
+```bash
+# 在開發機打包
+mvn clean package -DskipTests
+
+# 上傳 sp-api/target/*.war 到服務器 Tomcat
+# 生產使用 application-prod.yml（端口 8003）
+# 測試使用 application-test.yml（端口 8002）
+```
+
+#### 4. 部署前端
+
+```bash
+cd student-handbook-vue
+npm install
+npm run build
+# 將 dist/ 上傳到對應目錄（見上方環境對照表）
+```
+
+#### 5. 驗證
+
+```bash
+# 首頁可訪問
+curl -sI http://tals-wcapp.esp.edu.mo/ | head -5
+
+# API 可達
+curl -sI http://tals-wcapp.esp.edu.mo/sp-api/ | head -5
+
+# index.html 應帶 no-cache
+curl -sI http://tals-wcapp.esp.edu.mo/index.html | grep -i cache
+```
+
+---
+
+### 二、日常發版：僅前端有變更
+
+```bash
+cd student-handbook-vue
+npm install          # 依賴有變時才需要
+npm run build        # 產出 dist/
+```
+
+**上傳覆蓋服務器目錄：**
+
+```bash
+# 生產示例（按實際登錄方式調整 scp/rsync）
+rsync -avz --delete dist/ user@server:/usr/share/nginx/student-handbook/prod/dist/
+```
+
+完成。無需 reload Nginx，無需重啟後端。
+
+**驗證：** 微信或瀏覽器打開首頁，強制刷新；或查看 `index.html` 引用的 `assets/index-xxxxx.js` 文件名是否已變。
+
+---
+
+### 三、日常發版：僅後端有變更
+
+```bash
+# 在項目根目錄
+mvn clean package -DskipTests
+```
+
+1. 停止 Tomcat 中舊的 `sp-api` 應用
+2. 上傳新 war 並啟動
+3. 確認 `application-prod.yml` / `application-test.yml` 中數據庫、企業微信等配置正確
+
+完成。無需重新 build 前端，無需改 Nginx。
+
+**驗證：**
+
+```bash
+curl -s http://tals-wcapp.esp.edu.mo/sp-api/system/token/validate \
+  -H "Authorization: Bearer <有效token>"
+```
+
+---
+
+### 四、本地開發
+
+**後端：**
+
+```bash
+# IDE 或命令行啟動 sp-api，profile = dev，端口 8002
+# 配置見 sp-api/src/main/resources/application-dev.yml
+# sp.frontend.url 默認 http://localhost:3000/
+```
+
+**前端：**
+
+```bash
+cd student-handbook-vue
+npm install
+npm run dev
+# 訪問 http://localhost:3000
+# Vite 已配置 /sp-api → localhost:8002 代理
+```
+
+非生產環境下，瀏覽器打開 `/login` 會自動走 `code=dev` 模擬登錄，無需微信。
+
+---
+
+### 五、微信登錄與瀏覽器使用
+
+1. 在企業微信 / 微信內打開 `http://tals-wcapp.esp.edu.mo/`
+2. 完成 OAuth，後端 redirect 到 `/?token=xxx`
+3. 在微信內瀏覽時，URL 會保留 token，可用微信自帶「複製鏈接」
+4. 粘貼到 Chrome / Safari 即可在瀏覽器內操作
+
+後端回跳地址配置：`sp.frontend.url`（`application-prod.yml` 等）。
+
+---
+
+### 六、回滾
+
+| 場景 | 做法 |
+|------|------|
+| 前端回滾 | 用上一版 `dist/` 備份覆蓋服務器目錄 |
+| 後端回滾 | 部署上一版 war |
+| Nginx 回滾 | 恢復上一版配置文件後 `nginx -t && reload` |
+
+建議每次前端發版前備份：`cp -r dist dist.bak.$(date +%Y%m%d)`。
+
+---
+
+### 七、常見問題
+
+**Q：發版後微信還是舊頁面？**  
+A：多為微信 WebView 緩存。讓用戶完全退出頁面重新從應用入口打開；`index.html` 已設 no-cache，新入口會拉新 JS。
+
+**Q：需要每次發版改 Nginx 嗎？**  
+A：不需要。除非新增路由前綴（如新子系統）或調整緩存策略。
+
+**Q：舊版帶 `/20260623.../` 時間戳前綴的書籤還能用嗎？**  
+A：已廢棄該方案。請從微信應用入口或根路徑 `http://tals-wcapp.esp.edu.mo/` 重新進入。
+
+---
+
+### 配置要點速查
+
+- **前端 API 前綴**：`/sp-api`（`src/config/api.js`）
+- **Nginx 配置模板**：`student-handbook-vue/deploy/nginx-full-example.conf`
+- **前端認證開關**：`student-handbook-vue/src/config/settings.js`
+- **後端前端回跳**：`sp.frontend.url` in `application-prod.yml` / `application-test.yml` / `application-dev.yml`
+- **企業微信 OAuth 回調**：`https://mo-stu-sys.org-assistant.com/sp-api/wechat/oauth/callback`（生產）
+
+---
 
 ## API 接口
 
