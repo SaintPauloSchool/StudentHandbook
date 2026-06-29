@@ -6,7 +6,6 @@ server:
 sp:
   frontend:
     url: http://10.32.96.55:8082
-    version: ""
 
 spring:
   datasource:

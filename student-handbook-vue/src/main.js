@@ -2,7 +2,6 @@ import {createApp} from 'vue'
 import App from './App.vue'
 import router from './router'
 import settings from '@/config/settings'
-import {getDoubledVersionFix, normalizeRedirectUrl} from '@/utils/path.js'
 import {saveTokenFromUrl} from '@/utils/wechat.js'
 
 import ElementPlus from 'element-plus'
@@ -16,17 +15,6 @@ app.use(ElementPlus, {
 })
 
 router.beforeEach((to, from, next) => {
-    const fixedPath = getDoubledVersionFix()
-    if (fixedPath !== null) {
-        const query = Object.fromEntries(new URLSearchParams(window.location.search))
-        return next({
-            path: fixedPath,
-            query,
-            hash: window.location.hash,
-            replace: true
-        })
-    }
-
     if (settings.enableTokenAuth) {
         const publicPages = ['/', '/login', '/register']
         const isPublicPage = publicPages.includes(to.path)
@@ -38,7 +26,7 @@ router.beforeEach((to, from, next) => {
             const redirectUrl = sessionStorage.getItem('redirect_url');
             if (redirectUrl) {
                 sessionStorage.removeItem('redirect_url');
-                next(normalizeRedirectUrl(redirectUrl));
+                next(redirectUrl);
                 return;
             } else if (to.path === '/login') {
                 next('/');

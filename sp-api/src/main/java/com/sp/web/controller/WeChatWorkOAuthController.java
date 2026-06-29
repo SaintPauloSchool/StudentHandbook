@@ -2,7 +2,6 @@ package com.sp.web.controller;
 
 import com.sp.common.annotation.Anonymous;
 import com.sp.common.core.controller.BaseController;
-import com.sp.common.utils.StringUtils;
 import com.sp.common.utils.WeChatWorkOAuth2Utils;
 import com.alibaba.fastjson.JSONObject;
 
@@ -46,14 +45,8 @@ public class WeChatWorkOAuthController extends BaseController {
     @Value("${sp.frontend.url}")
     private String frontendUrl;
 
-    @Value("${sp.frontend.version:}")
-    private String frontendVersion;
-
     private String buildFrontendRedirect(String pathWithQuery) throws IOException {
         String base = frontendUrl.replaceAll("/+$", "");
-        if (StringUtils.isNotEmpty(frontendVersion)) {
-            base = base + "/" + frontendVersion.trim();
-        }
         if (pathWithQuery == null || pathWithQuery.isEmpty()) {
             pathWithQuery = "/";
         } else if (!pathWithQuery.startsWith("/")) {
