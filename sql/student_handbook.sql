@@ -136,6 +136,7 @@ CREATE TABLE notification_user_read_record (
                                                reply_time          DATETIME        DEFAULT NULL               COMMENT '回覆時間',
                                                send_status         CHAR(1)         DEFAULT '0'                COMMENT '發送狀態（0發送失敗 1發送成功）',
                                                student_user_id     VARCHAR(64)     DEFAULT NULL               COMMENT '關聯的學生ID（當接收者是家長時記錄，若發送給學生本身則與userId相同）',
+                                               department_id       BIGINT(20)      DEFAULT NULL               COMMENT '發送時所屬部門ID',
                                                create_time         DATETIME                                   COMMENT '創建時間',
                                                PRIMARY KEY (read_id),
                                                KEY idx_send_record (send_record_id),
@@ -234,8 +235,8 @@ CREATE TABLE sys_department (
                                 standard_grade      INT             DEFAULT NULL                    COMMENT '標準年級',
                                 order_num           INT             DEFAULT '0'                     COMMENT '排序值',
                                 is_graduated        TINYINT(1)      DEFAULT '0'                     COMMENT '是否畢業：1-是，0-否',
-                                open_group_chat     TINYINT(1)      DEFAULT '0'                     COMMENT '是否開啟班級羣：1-是，0-否',
-                                group_chat_id       VARCHAR(255)    DEFAULT NULL                    COMMENT '班級羣 id',
+                                open_group_chat     TINYINT(1)      DEFAULT '0'                     COMMENT '是否開啟班級群：1-是，0-否',
+                                group_chat_id       VARCHAR(255)    DEFAULT NULL                    COMMENT '班級群 id',
                                 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部門表';
 
@@ -349,7 +350,8 @@ DROP TABLE IF EXISTS sys_token;
 CREATE TABLE `sys_token` (
                              `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主鍵ID',
                              `user_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用戶ID',
-                             `user_type` tinyint(1) DEFAULT NULL COMMENT '用戶類型 (1: parent, 0: student, 2: staff)',
+                             `display_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '顯示名稱',
+                             `user_type` tinyint(1) DEFAULT NULL COMMENT '用戶類型 (1: parent, 0: student, 2: staff, 3: 考勤系統教職員)',
                              `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Token值',
                              `expire_time` datetime NOT NULL COMMENT '過期時間',
                              `create_time` datetime NOT NULL COMMENT '創建時間',
@@ -387,6 +389,7 @@ CREATE TABLE sys_school_department_member (
                                               department_id       BIGINT(20)      NOT NULL                   COMMENT '部門 ID',
                                               open_userid         VARCHAR(100)    DEFAULT NULL               COMMENT '全局唯一 UserID',
                                               type                TINYINT(1)      DEFAULT 1                  COMMENT '類型：1-學校部門通訊錄，2-家校通訊錄',
+                                              student_user_id     VARCHAR(100)    DEFAULT NULL               COMMENT '關聯學生 UserID（家校通訊錄成員）',
                                               create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '創建時間',
                                               update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
                                               PRIMARY KEY (id)
@@ -475,17 +478,8 @@ CREATE TABLE `sys_task_log` (
 -- ----------------------------
 DROP TABLE IF EXISTS sys_student_match;
 CREATE TABLE IF NOT EXISTS sys_student_match (
-     id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主鍵 ID',
-     student_profile_num VARCHAR(50) DEFAULT NULL COMMENT '學生個人編號',
-    adid VARCHAR(50) DEFAULT NULL COMMENT '學生帳號',
-    student_name_local VARCHAR(100) NOT NULL COMMENT '學生姓名',
-    class_name_local VARCHAR(50) NOT NULL COMMENT '班級',
-    class_num VARCHAR(50) DEFAULT NULL COMMENT '班號',
-    id_english_name VARCHAR(150) DEFAULT NULL COMMENT '身份證英文名',
-    english_first_name VARCHAR(100) DEFAULT NULL COMMENT '英文名',
-    english_last_name VARCHAR(100) DEFAULT NULL COMMENT '英文姓',
-    student_id_num VARCHAR(50) DEFAULT NULL COMMENT '學生證編號',
-    student_album_name VARCHAR(255) DEFAULT NULL COMMENT '學生相冊名',
+                                                 id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主鍵 ID',
+                                                 student_profile_num VARCHAR(50) NOT NULL COMMENT '學生個人編號（關聯 student_profiles.student_info）',
     student_user_id_wecom VARCHAR(64) DEFAULT NULL COMMENT '匹配到的企微學生 UserID',
     student_name_wecom VARCHAR(100) DEFAULT NULL COMMENT '匹配到的企微原始學生姓名',
     match_status CHAR(1) NOT NULL DEFAULT '0' COMMENT '匹配狀態 (0: 未匹配, 1: 自動匹配成功, 2: 手動匹配成功)',
@@ -493,22 +487,22 @@ CREATE TABLE IF NOT EXISTS sys_student_match (
     error_msg VARCHAR(500) DEFAULT NULL COMMENT '同步失敗的具體原因',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
     update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
-    PRIMARY KEY (id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='學生數據匹配表';
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_student_profile_num (student_profile_num)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='學生數據匹配表';
 -- ----------------------------
--- 企微成員登入帳號表
+-- 學生考勤記錄表
 -- ----------------------------
-DROP TABLE IF EXISTS wecom_member_account;
-CREATE TABLE `wecom_member_account` (
-                                        `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主鍵 ID',
-                                        `userid` VARCHAR(100) NOT NULL COMMENT '成員 UserID (唯一)',
-                                        `username` VARCHAR(100) NOT NULL COMMENT '登入帳號 (唯一)',
-                                        `password` VARCHAR(100) NOT NULL COMMENT '密碼密文',
-                                        `salt` VARCHAR(50) NOT NULL COMMENT '安全隨機鹽值',
-                                        `status` CHAR(1) DEFAULT '0' COMMENT '帳號狀態（0 正常 1 停用）',
-                                        `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
-                                        `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
-                                        PRIMARY KEY (`id`),
-                                        UNIQUE KEY `uk_userid` (`userid`),
-                                        UNIQUE KEY `uk_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='企微成員登入帳號表';
+DROP TABLE IF EXISTS student_attendance_record;
+CREATE TABLE student_attendance_record (
+                                           id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
+                                           student_id          VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '學生 ID（關聯 student_profiles.student_info.student_id）',
+                                           attendance_status   TINYINT(1)      NOT NULL                   COMMENT '考勤狀態（1: 到校, 2: 請假, 3: 遲到）',
+                                           record_time         DATETIME        NOT NULL                   COMMENT '考勤記錄時間',
+                                           create_by           VARCHAR(64)     DEFAULT ''                 COMMENT '記錄人（教職員姓名）',
+                                           create_time         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
+                                           PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='學生考勤記錄表';
+
+-- 若 sys_token 已存在，補充 display_name 欄位：
+-- ALTER TABLE sys_token ADD COLUMN display_name varchar(64) DEFAULT NULL COMMENT '顯示名稱' AFTER user_id;
