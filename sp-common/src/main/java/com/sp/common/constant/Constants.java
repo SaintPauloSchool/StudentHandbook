@@ -107,15 +107,4 @@ public class Constants
      * LDAPS 遠程方法調用
      */
     public static final String LOOKUP_LDAPS = "ldaps:";
-
-    /**
-     * 定時任務白名單配置（僅允許訪問的包名，如其他需要可以自行添加）
-     */
-    public static final String[] JOB_WHITELIST_STR = { "com.sp.quartz.task" };
-
-    /**
-     * 定時任務違規的字符
-     */
-    public static final String[] JOB_ERROR_STR = { "java.net.URL", "javax.naming.InitialContext", "org.yaml.snakeyaml",
-            "org.springframework", "org.apache", "com.sp.common.utils.file", "com.sp.common.config", "com.sp.generator" };
 }

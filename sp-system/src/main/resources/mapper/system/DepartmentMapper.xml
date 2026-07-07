@@ -16,27 +16,6 @@
         <result property="groupChatId" column="group_chat_id"/>
     </resultMap>
 
-    <insert id="batchInsertDepartments" parameterType="java.util.List">
-        INSERT INTO sys_department (id, parent_id, name, type, register_year, standard_grade,
-        order_num, is_graduated, open_group_chat, group_chat_id)
-        VALUES
-        <foreach collection="list" item="item" separator=",">
-            (#{item.id}, #{item.parentId}, #{item.name}, #{item.type}, #{item.registerYear},
-            #{item.standardGrade}, #{item.order}, #{item.isGraduated}, #{item.openGroupChat},
-            #{item.groupChatId})
-        </foreach>
-        ON DUPLICATE KEY UPDATE
-        parent_id = VALUES(parent_id),
-        name = VALUES(name),
-        type = VALUES(type),
-        register_year = VALUES(register_year),
-        standard_grade = VALUES(standard_grade),
-        order_num = VALUES(order_num),
-        is_graduated = VALUES(is_graduated),
-        open_group_chat = VALUES(open_group_chat),
-        group_chat_id = VALUES(group_chat_id)
-    </insert>
-
     <select id="selectById" parameterType="java.lang.Long" resultMap="DepartmentResultMap">
         SELECT id,
                parent_id,
@@ -50,16 +29,6 @@
                group_chat_id
         FROM sys_department
         WHERE id = #{id}
-    </select>
-
-    <select id="selectClassDepartmentId" resultType="java.lang.Long">
-        SELECT DISTINCT d1.id
-        FROM sys_department d1
-        JOIN sys_department d2 ON d1.parent_id = d2.id
-        JOIN sys_department d3 ON d2.parent_id = d3.id
-        WHERE d3.type = 3 AND d3.name = '2025' AND d3.parent_id = 2
-          AND d2.type = 2 AND d2.name in ('P1', 'P2', 'P3', 'P4', 'P5', 'P6')
-          AND d1.type = 1 AND d1.name like '%家長'
     </select>
 
 </mapper>
