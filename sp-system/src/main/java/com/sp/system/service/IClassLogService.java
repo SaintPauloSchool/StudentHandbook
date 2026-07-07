@@ -1,26 +1,22 @@
 package com.sp.system.service;
 
-import com.sp.system.entity.ClassLog;
-
 import java.util.List;
 
+import com.sp.system.entity.ClassLog;
+
 /**
- * 課程日誌Service接口
+ * 課程日誌 Service 接口
+ * <p>
+ * 按家長 user_id 與學籍 student_id 查詢班級日誌，底層通過 class_section 關聯 class_log。
  */
 public interface IClassLogService {
 
-    /**
-     * 根據家長用戶ID和學生用戶ID獲取當天的課程日誌列表
-     */
-    List<ClassLog> getTodayClassLogListByParentUserId(String parentUserId, String studentUserId);
+    /** 查詢當天功課與測驗日誌 */
+    List<ClassLog> getTodayClassLogListByParentUserId(String parentUserId, String studentId);
 
-    /**
-     * 根據家長用戶ID和學生用戶ID獲取未來七天（不含當天）的課程日誌列表
-     */
-    List<ClassLog> getNextSevenDaysClassLogListByParentUserId(String parentUserId, String studentUserId);
+    /** 查詢未來七天（不含當天）功課與測驗日誌 */
+    List<ClassLog> getNextSevenDaysClassLogListByParentUserId(String parentUserId, String studentId);
 
-    /**
-     * 根據家長用戶ID和學生用戶ID獲取過去一個月的課程日誌列表
-     */
-    List<ClassLog> getPastMonthClassLogListByParentUserId(String parentUserId, String studentUserId);
+    /** 查詢過去一個月（不含當天）功課與測驗日誌 */
+    List<ClassLog> getPastMonthClassLogListByParentUserId(String parentUserId, String studentId);
 }

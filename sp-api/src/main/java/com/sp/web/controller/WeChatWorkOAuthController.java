@@ -6,7 +6,7 @@ import com.sp.common.utils.WeChatWorkOAuth2Utils;
 import com.alibaba.fastjson.JSONObject;
 
 import com.sp.system.service.TokenService;
-import com.sp.system.service.DepartmentParentBindingService;
+import com.sp.system.service.ISchoolFamilyContactService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class WeChatWorkOAuthController extends BaseController {
     private TokenService tokenService;
 
     @Autowired
-    private DepartmentParentBindingService departmentParentBindingService;
+    private ISchoolFamilyContactService schoolFamilyContactService;
 
     @Value("${sp.token.parentUserId}")
     private String devParentUserId;
@@ -158,8 +158,8 @@ public class WeChatWorkOAuthController extends BaseController {
 
             // 如果是家長用戶，驗證家長是否綁定了學生
             if (userType == 1) {
-                // 驗證家長是否綁定了學生（檢查是否在sys_department_parent_binding表中有綁定學生）
-                if (!departmentParentBindingService.checkHasBoundStudents(userId)) {
+                // 驗證家長是否已綁定學生（sys_school_family_contact）
+                if (!schoolFamilyContactService.checkHasBoundStudents(userId)) {
                     logger.warn("家長用戶 {} 不存在有效的學生關聯，授權失敗", userId);
                     // 重定向到錯誤頁面
                     redirectToFrontend(response, "/login?error=authorization_failed&message=" +

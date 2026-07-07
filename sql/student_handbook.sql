@@ -53,8 +53,8 @@ DROP TABLE IF EXISTS notification_receiver;
 CREATE TABLE notification_receiver (
                                        receiver_id         BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '接收關係 ID',
                                        notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
-                                       receive_type        CHAR(1)         NOT NULL                   COMMENT '接收類型（1 班級 2 學生/家長）',
-                                       receive_data        TEXT                                       COMMENT 'receive_ids 接收對象 ID 列表 (JSON 格式)， receive_names 接收對象名稱列表 (JSON 格式)， type = 1 是wecom的數據， type = 2 是自定義的數據',
+                                       receive_type        CHAR(1)         NOT NULL                   COMMENT '接收來源類型（1 WeCom家校通訊錄，2 自定義家校通訊錄）',
+                                       receive_data        LONGTEXT                                   COMMENT '接收家長 parentUserId 列表（JSON 數組），如 ["userid1","userid2"]',
                                        create_time         DATETIME                                   COMMENT '創建時間',
                                        PRIMARY KEY (receiver_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT = '通知接收對象表';
@@ -66,8 +66,8 @@ DROP TABLE IF EXISTS notification_cc;
 CREATE TABLE notification_cc (
                                  cc_id               BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '抄送關係 ID',
                                  notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
-                                 cc_type             CHAR(1)         NOT NULL                   COMMENT '抄送類型（1 教職員工 2 學校通訊錄）',
-                                 cc_data             TEXT            NOT NULL                   COMMENT '抄送數據 (JSON 格式)，格式：[{"cc_ids": [1,2], "type": 1, "cc_names": ["聖保祿學校-054"]}, {"cc_ids": [1,2], "type": 2, "cc_names": ["聖保祿學校"]}]，其中 type 1代表wecom的，type 2代表自定義的',
+                                 cc_type             CHAR(1)         NOT NULL                   COMMENT '抄送來源類型（1 WeCom老師通訊錄，2 自定義老師通訊錄）',
+                                 cc_data             TEXT            NOT NULL                   COMMENT '抄送成員 ID 列表（JSON 數組），如 [1,2,3]',
                                  create_time         DATETIME                                   COMMENT '創建時間',
                                  PRIMARY KEY (cc_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT = '通知抄送對象表';
@@ -128,14 +128,14 @@ DROP TABLE IF EXISTS notification_user_read_record;
 CREATE TABLE notification_user_read_record (
                                                read_id             BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '閱讀記錄ID',
                                                send_record_id      BIGINT(20)      NOT NULL                   COMMENT '發送記錄ID',
-                                               user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID',
-                                               user_type           CHAR(1)         NOT NULL                   COMMENT '用戶類型（1學生 2家長 3教師）',
+                                               user_id             VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用戶ID',
+                                               user_type           CHAR(1)         NOT NULL                   COMMENT '用戶類型（1學生/家長 2教師/職工）',
                                                is_read             CHAR(1)         DEFAULT '0'                COMMENT '是否已讀（0未讀 1已讀）',
                                                read_time           DATETIME        DEFAULT NULL               COMMENT '閱讀時間',
                                                reply_status        CHAR(1)         DEFAULT '0'                COMMENT '回覆狀態（0未回覆 1已回覆）',
                                                reply_time          DATETIME        DEFAULT NULL               COMMENT '回覆時間',
                                                send_status         CHAR(1)         DEFAULT '0'                COMMENT '發送狀態（0發送失敗 1發送成功）',
-                                               student_user_id     VARCHAR(64)     DEFAULT NULL               COMMENT '關聯的學生ID（當接收者是家長時記錄，若發送給學生本身則與userId相同）',
+                                               student_id          VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '關聯的學籍 student_id（student_profiles.student_info.student_id）',
                                                department_id       BIGINT(20)      DEFAULT NULL               COMMENT '發送時所屬部門ID',
                                                create_time         DATETIME                                   COMMENT '創建時間',
                                                PRIMARY KEY (read_id),
@@ -153,7 +153,7 @@ CREATE TABLE notification_reminder_record (
                                               reminder_id         BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '提醒記錄ID',
                                               notification_id     BIGINT(20)      NOT NULL                   COMMENT '原通知ID',
                                               send_record_id      BIGINT(20)      NOT NULL                   COMMENT '原發送記錄ID',
-                                              student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '學生用戶ID',
+                                              student_id          VARCHAR(64)     NOT NULL                   COMMENT '學籍 student_id（student_profiles.student_info.student_id）',
                                               parent_user_ids     TEXT            DEFAULT NULL               COMMENT '未回覆的家長用戶ID列表(JSON格式)',
                                               remind_send_time    DATETIME        DEFAULT NULL               COMMENT '提醒發送時間',
                                               remind_send_status  CHAR(1)         DEFAULT '0'                COMMENT '提醒發送狀態（0待發送 1發送成功 2發送失敗）',
@@ -161,7 +161,7 @@ CREATE TABLE notification_reminder_record (
                                               PRIMARY KEY (reminder_id),
                                               KEY idx_notification (notification_id),
                                               KEY idx_send_record (send_record_id),
-                                              KEY idx_student (student_user_id)
+                                              KEY idx_student (student_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT = '通知提醒記錄表';
 
 -- ----------------------------
@@ -173,8 +173,7 @@ CREATE TABLE notification_answer (
                                      notification_id     BIGINT(20)      NOT NULL                   COMMENT '通知 ID',
                                      question_id         BIGINT(20)      NOT NULL                   COMMENT '問題 ID',
                                      user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶 ID（parentUserId）',
-                                     student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '學生用戶 ID',
-                                     user_type           CHAR(1)         NOT NULL                   COMMENT '用戶類型（1 學生 2 家長 3 教師）',
+                                     student_id          VARCHAR(64)     NOT NULL                   COMMENT '學籍 student_id（student_profiles.student_info.student_id）',
                                      answer_data         JSON            DEFAULT NULL               COMMENT '答案數據（JSON格式，包含nodeId、nodeTitle、nodeType、answerContent、attachmentUrls）',
                                      create_time         DATETIME                                   COMMENT '創建時間',
                                      PRIMARY KEY (answer_id),
@@ -204,13 +203,13 @@ INSERT INTO notification VALUES(
                                    '重要通知'
                                );
 
--- 示例接收對象數據
-INSERT INTO notification_receiver VALUES(1, 1, '1', '[1,2,3]', '["一年級 1 班","一年級 2 班","二年級 1 班"]', NOW());
-INSERT INTO notification_receiver VALUES(2, 1, '2', '[101,102,103]', '["張小明家長","李小紅家長","王小華家長"]', NOW());
+-- 示例接收對象數據（按來源各存一行，receive_data 為 parentUserId JSON 數組）
+INSERT INTO notification_receiver VALUES(1, 1, '1', '["parent_userid_1","parent_userid_2"]', NOW());
+INSERT INTO notification_receiver VALUES(2, 1, '2', '["custom_parent_userid_1"]', NOW());
 
 -- 示例抄送對象數據
-INSERT INTO notification_cc VALUES(1, 1, '1', '[{"cc_ids": [201,202], "type": 1, "cc_names": ["李主任","王副校長"]}]', NOW());
-INSERT INTO notification_cc VALUES(2, 1, '2', '[{"cc_ids": [301], "type": 2, "cc_names": ["校長辦公室"]}]', NOW());
+INSERT INTO notification_cc VALUES(1, 1, '1', '[201,202]', NOW());
+INSERT INTO notification_cc VALUES(2, 1, '2', '[301]', NOW());
 
 -- 示例問題數據
 -- 單選題：第一個問題
@@ -241,36 +240,25 @@ CREATE TABLE sys_department (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部門表';
 
 -- ----------------------------
--- 家長學生關係表
--- ----------------------------
-DROP TABLE IF EXISTS sys_parent_student_relation;
-CREATE TABLE sys_parent_student_relation (
-                                             id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
-                                             parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家長用戶 ID',
-                                             student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '學生用戶 ID',
-                                             student_name        VARCHAR(100)    DEFAULT NULL               COMMENT '學生姓名',
-                                             relation_desc       VARCHAR(50)     DEFAULT '家長'             COMMENT '關係描述',
-                                             mobile              VARCHAR(20)     DEFAULT NULL               COMMENT '家長手機號',
-                                             external_userid     VARCHAR(64)     DEFAULT NULL               COMMENT '家長外部用戶 ID',
-                                             create_time         DATETIME        DEFAULT NULL               COMMENT '創建時間',
-                                             update_time         DATETIME        DEFAULT NULL               COMMENT '更新時間',
-                                             PRIMARY KEY (id),
-                                             UNIQUE KEY uk_parent_student (parent_user_id, student_user_id)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='家長學生關係表';
-
--- ----------------------------
--- 部門家長綁定表
+-- 家校通訊錄表
 -- ----------------------------
 DROP TABLE IF EXISTS sys_department_parent_binding;
-CREATE TABLE sys_department_parent_binding (
-                                               id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
-                                               department_id       BIGINT          NOT NULL                   COMMENT '部門 ID',
-                                               parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家長用戶 ID',
-                                               student_user_id     VARCHAR(64)     DEFAULT NULL               COMMENT '學生用戶 ID',
-                                               create_time         DATETIME        DEFAULT NULL               COMMENT '創建時間',
-                                               update_time         DATETIME        DEFAULT NULL               COMMENT '更新時間',
-                                               PRIMARY KEY (id)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='部門家長綁定表';
+DROP TABLE IF EXISTS sys_parent_student_relation;
+DROP TABLE IF EXISTS sys_school_family_contact;
+CREATE TABLE sys_school_family_contact (
+                                           id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
+                                           department_id       BIGINT          NOT NULL                   COMMENT '部門 ID',
+                                           parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家長用戶 ID',
+                                           student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '學生用戶 ID',
+                                           student_name        VARCHAR(100)    DEFAULT NULL               COMMENT '學生姓名',
+                                           relation_desc       VARCHAR(50)     DEFAULT '家長'             COMMENT '關係描述',
+                                           mobile              VARCHAR(20)     DEFAULT NULL               COMMENT '家長手機號',
+                                           external_userid     VARCHAR(64)     DEFAULT NULL               COMMENT '家長外部用戶 ID',
+                                           create_time         DATETIME        DEFAULT NULL               COMMENT '創建時間',
+                                           update_time         DATETIME        DEFAULT NULL               COMMENT '更新時間',
+                                           PRIMARY KEY (id),
+                                           UNIQUE KEY uk_parent_student_dept (parent_user_id, student_user_id, department_id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='家校通訊錄表';
 
 -- ----------------------------
 -- 課程班級表
@@ -384,12 +372,13 @@ CREATE TABLE sys_school_department (
 DROP TABLE IF EXISTS sys_school_department_member;
 CREATE TABLE sys_school_department_member (
                                               id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
+                                              school_department_id BIGINT(20)     NOT NULL                   COMMENT '自定義部門節點 ID（sys_school_department.id）',
                                               userid              VARCHAR(100)    NOT NULL                   COMMENT '成員 UserID',
                                               name                VARCHAR(255)    DEFAULT NULL               COMMENT '成員名稱',
-                                              department_id       BIGINT(20)      NOT NULL                   COMMENT '部門 ID',
+                                              department_id       BIGINT(20)      DEFAULT NULL               COMMENT '真實班級/部門 ID（選人時 sys_department.id）',
                                               open_userid         VARCHAR(100)    DEFAULT NULL               COMMENT '全局唯一 UserID',
                                               type                TINYINT(1)      DEFAULT 1                  COMMENT '類型：1-學校部門通訊錄，2-家校通訊錄',
-                                              student_user_id     VARCHAR(100)    DEFAULT NULL               COMMENT '關聯學生 UserID（家校通訊錄成員）',
+                                              student_id          VARCHAR(64)     DEFAULT NULL               COMMENT '關聯學籍 student_id（student_profiles.student_info.student_id）',
                                               create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '創建時間',
                                               update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
                                               PRIMARY KEY (id)
@@ -402,9 +391,8 @@ CREATE TABLE `notification_resend_fail_record` (
                                                    `id`              bigint       NOT NULL AUTO_INCREMENT          COMMENT '主鍵ID',
                                                    `notification_id` bigint       NOT NULL                         COMMENT '通知ID',
                                                    `send_record_id`  bigint       NOT NULL                         COMMENT '發送記錄ID',
-                                                   `user_id`         varchar(64)  NOT NULL                         COMMENT '接收用戶ID（家長或學生）',
-                                                   `user_type`       char(1)      NOT NULL DEFAULT '2'             COMMENT '用戶類型（1學生 2家長）',
-                                                   `student_user_id` varchar(64)           DEFAULT NULL            COMMENT '關聯學生ID',
+                                                   `user_id`         varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '接收用戶ID',
+                                                   `student_id`      varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '關聯學生信息表 student_id',
                                                    `fail_reason_1`   varchar(255)          DEFAULT NULL            COMMENT '第1次失敗原因',
                                                    `fail_message_1`  varchar(1000)         DEFAULT NULL            COMMENT '第1次失敗詳細信息',
                                                    `fail_reason_2`   varchar(255)          DEFAULT NULL            COMMENT '第2次失敗原因',
@@ -459,7 +447,7 @@ CREATE TABLE IF NOT EXISTS `calendar_event` (
 DROP TABLE IF EXISTS sys_task_log;
 CREATE TABLE `sys_task_log` (
                                 `log_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '日誌主鍵',
-                                `task_name` varchar(100) NOT NULL COMMENT '任務名稱 (例如: 每日學校通知發送)',
+                                `task_name` varchar(100) NOT NULL COMMENT '任務名稱 (例如: 每日學生手冊通知發送)',
                                 `bean_name` varchar(100) NOT NULL COMMENT 'Spring Bean 名稱 (例如: notificationPublishHandler)',
                                 `method_name` varchar(255) DEFAULT NULL COMMENT '方法名稱',
                                 `status` char(1) DEFAULT '0' COMMENT '執行狀態(0-成功, 1-失敗, 2-部分失敗)',
@@ -479,17 +467,34 @@ CREATE TABLE `sys_task_log` (
 DROP TABLE IF EXISTS sys_student_match;
 CREATE TABLE IF NOT EXISTS sys_student_match (
                                                  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主鍵 ID',
-                                                 student_profile_num VARCHAR(50) NOT NULL COMMENT '學生個人編號（關聯 student_profiles.student_info）',
-    student_user_id_wecom VARCHAR(64) DEFAULT NULL COMMENT '匹配到的企微學生 UserID',
-    student_name_wecom VARCHAR(100) DEFAULT NULL COMMENT '匹配到的企微原始學生姓名',
-    match_status CHAR(1) NOT NULL DEFAULT '0' COMMENT '匹配狀態 (0: 未匹配, 1: 自動匹配成功, 2: 手動匹配成功)',
-    sync_status CHAR(1) NOT NULL DEFAULT '0' COMMENT '企微同步狀態 (0: 未同步, 1: 同步成功, 2: 同步失敗)',
-    error_msg VARCHAR(500) DEFAULT NULL COMMENT '同步失敗的具體原因',
+                                                 student_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '學生 ID（關聯 student_profiles.student_info.student_id）',
+    user_id VARCHAR(64) NOT NULL COMMENT '家校通訊錄家長 user_id（parent_user_id）',
+    student_user_id VARCHAR(64) NOT NULL COMMENT '家校通訊錄學生 user_id（關聯 sys_school_family_contact.student_user_id）',
+    match_status INT NOT NULL COMMENT '匹配狀態 (1: 自動匹配成功, 2: 手動匹配成功)',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
     update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_student_profile_num (student_profile_num)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='學生數據匹配表';
+    UNIQUE KEY uk_student_contact (student_id, user_id, student_user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='學生數據匹配表（學生與家長多對多）';
+-- ----------------------------
+-- 系統公用配置表
+-- ----------------------------
+DROP TABLE IF EXISTS sys_config;
+CREATE TABLE sys_config (
+                            id              BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
+                            config_key      VARCHAR(100)    NOT NULL                   COMMENT '配置鍵（唯一）',
+                            config_name     VARCHAR(200)    NOT NULL                   COMMENT '配置名稱',
+                            config_value    TEXT                                       COMMENT '配置值',
+                            config_group    VARCHAR(50)     DEFAULT 'default'          COMMENT '配置分組',
+                            value_type      VARCHAR(20)     DEFAULT 'string'           COMMENT '值類型：string/number/boolean/json',
+                            remark          VARCHAR(500)    DEFAULT NULL               COMMENT '備註',
+                            create_by       VARCHAR(64)     DEFAULT ''                 COMMENT '創建者',
+                            create_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
+                            update_by       VARCHAR(64)     DEFAULT ''                 COMMENT '更新者',
+                            update_time     DATETIME        DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+                            PRIMARY KEY (id),
+                            UNIQUE KEY uk_config_key (config_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系統公用配置表';
 -- ----------------------------
 -- 學生考勤記錄表
 -- ----------------------------
@@ -506,3 +511,27 @@ CREATE TABLE student_attendance_record (
 
 -- 若 sys_token 已存在，補充 display_name 欄位：
 -- ALTER TABLE sys_token ADD COLUMN display_name varchar(64) DEFAULT NULL COMMENT '顯示名稱' AFTER user_id;
+
+-- 若 sys_school_department_member 仍為 student_user_id，遷移為 student_id：
+-- ALTER TABLE sys_school_department_member
+--   CHANGE COLUMN student_user_id student_id VARCHAR(64) DEFAULT NULL COMMENT '關聯學籍 student_id（student_profiles.student_info.student_id）';
+
+-- 若 sys_school_department_member 尚無 school_department_id，拆分部門綁定與真實班級 ID：
+-- ALTER TABLE sys_school_department_member
+--   ADD COLUMN school_department_id BIGINT DEFAULT NULL COMMENT '自定義部門節點 ID（sys_school_department.id）' AFTER name;
+-- UPDATE sys_school_department_member SET school_department_id = department_id WHERE school_department_id IS NULL;
+-- UPDATE sys_school_department_member SET department_id = NULL;
+-- ALTER TABLE sys_school_department_member
+--   MODIFY COLUMN school_department_id BIGINT NOT NULL COMMENT '自定義部門節點 ID（sys_school_department.id）',
+--   MODIFY COLUMN department_id BIGINT DEFAULT NULL COMMENT '真實班級/部門 ID（選人時 sys_department.id，家校通訊錄必填）';
+
+-- 若通知閱讀/重發表與 student_profiles.student_info JOIN 報 collation 衝突，統一為 utf8mb4_unicode_ci：
+-- ALTER TABLE notification_user_read_record
+--   MODIFY COLUMN user_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+--   MODIFY COLUMN student_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL;
+-- ALTER TABLE notification_resend_fail_record
+--   MODIFY COLUMN user_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+--   MODIFY COLUMN student_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL;
+
+-- 每日學生手冊通知班級範圍（type=1，多選）首次保存時自動寫入 sys_config：
+-- config_key = notice.daily_class_department_ids，config_value 為逗號分隔的部門 ID，如 16770,16771

@@ -6,10 +6,13 @@
         <el-icon class="back-icon"><ArrowLeft /></el-icon>
         返回
       </button>
-      <div class="student-name-display" v-if="currentStudentName">
-        <el-icon class="user-icon" style="flex-shrink: 0;"><User /></el-icon>
-        <span class="student-name-text">{{ currentStudentName }}</span>
-      </div>
+      <StudentChip
+        v-if="currentStudentName"
+        chip-class="student-name-display"
+        :name="currentStudentName"
+        :class-section="currentStudentClassSection"
+        :profile-number="currentStudentProfileNumber"
+      />
     </div>
 
     <!-- 加載狀態 -->
@@ -388,13 +391,15 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
-import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Download, Close, Warning, InfoFilled, Link } from '@element-plus/icons-vue'
+import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Check, Close, Warning, InfoFilled, Link } from '@element-plus/icons-vue'
 import settings from '@/config/settings' // 導入全局配置設置
 import CryptoJS from 'crypto-js' // 導入crypto-js庫用於MD5加密
+import StudentChip from '@/components/StudentChip.vue'
 
 export default {
   name: 'NoticeDetail',
   components: {
+    StudentChip,
     User,
     Clock,
     ArrowLeft,
@@ -403,7 +408,6 @@ export default {
     Select,
     UploadFilled,
     Check,
-    Download,
     Close,
     Warning,
     InfoFilled,
@@ -427,7 +431,9 @@ export default {
       toastMessage: '',
       errorMessage: '', // 錯誤信息
       isFromWechatLink: false, // 是否從微信鏈接進入（帶有sid參數）
-      currentStudentName: localStorage.getItem('currentStudentName') || '' // 學生姓名
+      currentStudentName: localStorage.getItem('currentStudentName') || '',
+      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
+      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
     }
   },
   computed: {
@@ -457,9 +463,6 @@ export default {
         return []
       }
     },
-    hasLogicQuestion() {
-      return this.questions && this.questions.some(q => q.questionType === '5');
-    },
 
   },
   async mounted() {
@@ -473,6 +476,16 @@ export default {
     // MD5加密函數（使用crypto-js庫）
     md5Encrypt(text) {
       return CryptoJS.MD5(text).toString();
+    },
+
+    setCurrentStudent(relation) {
+      localStorage.setItem('currentStudentId', relation.studentId);
+      localStorage.setItem('currentStudentName', relation.studentName);
+      localStorage.setItem('currentStudentClassSection', relation.classSection || '');
+      localStorage.setItem('currentStudentProfileNumber', relation.studentProfileNumber || '');
+      this.currentStudentName = relation.studentName;
+      this.currentStudentClassSection = relation.classSection || '';
+      this.currentStudentProfileNumber = relation.studentProfileNumber || '';
     },
 
     // 加載學生列表，設置默認學生
@@ -508,9 +521,9 @@ export default {
               const encryptionSalt = settings.studentIdEncryptionSalt; // 從配置中獲取加密鹽值
 
               for (const relation of relations) {
-                const studentUserId = relation.studentUserId;
-                // 對學生ID進行MD5加密：studentUserId + salt
-                const encryptedId = this.md5Encrypt(studentUserId + encryptionSalt);
+                const studentId = relation.studentId;
+                // 對學生ID進行MD5加密：studentId + salt
+                const encryptedId = this.md5Encrypt(studentId + encryptionSalt);
 
                 if (encryptedId === urlSid) {
                   matchedStudent = relation;
@@ -519,10 +532,7 @@ export default {
               }
 
               if (matchedStudent) {
-                // 匹配成功，使用匹配到的學生ID和姓名
-                localStorage.setItem('currentStudentUserId', matchedStudent.studentUserId);
-                localStorage.setItem('currentStudentName', matchedStudent.studentName);
-                this.currentStudentName = matchedStudent.studentName;
+                this.setCurrentStudent(matchedStudent);
               } else {
                 // 匹配失敗，設置錯誤信息並停止加載
                 this.errorMessage = '無效的訪問鏈接，無法識別學生信息';
@@ -530,23 +540,24 @@ export default {
               }
             } else {
               // 沒有sid參數，檢查localStorage中是否已有選中的學生
-              const savedStudentUserId = localStorage.getItem('currentStudentUserId');
-              if (savedStudentUserId) {
+              const savedStudentId = localStorage.getItem('currentStudentId');
+              if (savedStudentId) {
                 // 驗證保存的學生ID是否在當前關係中
-                const isValid = relations.some(r => r.studentUserId === savedStudentUserId);
+                const isValid = relations.some(r => r.studentId === savedStudentId);
                 if (!isValid) {
-                  // 如果緩存的學生ID無效，使用第一個學生
-                  localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
-                  localStorage.setItem('currentStudentName', relations[0].studentName);
-                  this.currentStudentName = relations[0].studentName;
+                  this.setCurrentStudent(relations[0]);
                 } else {
-                  this.currentStudentName = localStorage.getItem('currentStudentName');
+                  const rel = relations.find(r => r.studentId === savedStudentId);
+                  if (rel) {
+                    this.setCurrentStudent(rel);
+                  } else {
+                    this.currentStudentName = localStorage.getItem('currentStudentName');
+                    this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || '';
+                    this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || '';
+                  }
                 }
               } else {
-                // 沒有緩存，使用第一個學生作爲默認
-                localStorage.setItem('currentStudentUserId', relations[0].studentUserId);
-                localStorage.setItem('currentStudentName', relations[0].studentName);
-                this.currentStudentName = relations[0].studentName;
+                this.setCurrentStudent(relations[0]);
               }
             }
           } else {
@@ -587,18 +598,18 @@ export default {
       this.loading = true
       try {
         // 從localStorage獲取當前選中的學生ID
-        const studentUserId = localStorage.getItem('currentStudentUserId')
+        const studentId = localStorage.getItem('currentStudentId')
 
         // 如果沒有學生ID，顯示錯誤
-        if (!studentUserId) {
+        if (!studentId) {
           this.errorMessage = '無法獲取學生信息，請重新登錄'
           this.loading = false
           return
         }
 
         const params = {}
-        if (studentUserId) {
-          params.studentUserId = studentUserId
+        if (studentId) {
+          params.studentId = studentId
         }
 
         const response = await service.get(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}`, {
@@ -643,11 +654,11 @@ export default {
     async markAsRead(notificationId) {
       try {
         // 從localStorage獲取當前選中的學生ID
-        const studentUserId = localStorage.getItem('currentStudentUserId')
+        const studentId = localStorage.getItem('currentStudentId')
 
         const params = {}
-        if (studentUserId) {
-          params.studentUserId = studentUserId
+        if (studentId) {
+          params.studentId = studentId
         }
 
         await service.post(`${API_ENDPOINTS.NOTICE_MARK_READ}/${notificationId}/read`, null, {
@@ -1173,16 +1184,16 @@ export default {
         formData.append('file', file);
 
         // 獲取當前選中的學生ID（從localStorage或sessionStorage）
-        const studentUserId = localStorage.getItem('currentStudentUserId') || sessionStorage.getItem('currentStudentUserId');
-        console.log('當前學生ID:', studentUserId);
+        const studentId = localStorage.getItem('currentStudentId');
+        console.log('當前學生ID:', studentId);
 
-        if (!studentUserId) {
+        if (!studentId) {
           this.showToast('請先切換學生後再上傳文件', 'warning');
           event.target.value = '';
           return;
         }
 
-        formData.append('studentUserId', studentUserId);
+        formData.append('studentId', studentId);
 
         // 調用上傳接口（不要手動設置 headers，讓 axios 攔截器自動處理）
         const response = await service.post(API_ENDPOINTS.FILE_UPLOAD, formData);
@@ -1526,8 +1537,8 @@ export default {
         this.submitting = true;
 
         // 從localStorage獲取當前選中的學生ID
-        const studentUserId = localStorage.getItem('currentStudentUserId');
-        if (!studentUserId) {
+        const studentId = localStorage.getItem('currentStudentId');
+        if (!studentId) {
           ElMessage.error('請指定學生ID');
           this.submitting = false;
           return;
@@ -1537,7 +1548,7 @@ export default {
         const notificationId = this.$route.params.id;
         const response = await service.post(`${API_ENDPOINTS.NOTICE_DETAIL}/${notificationId}/submit`, {
           answer: answers[0],  // 只傳單個問題對象
-          studentUserId: studentUserId  // 傳遞學生ID
+          studentId: studentId  // 傳遞學生ID
         });
 
         if (response.data.code === 200) {
@@ -1885,28 +1896,9 @@ export default {
 }
 
 .student-name-display {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  color: #1e293b;
-  border: 1.5px solid rgba(37, 99, 235, 0.35);
-  font-weight: 600;
-  font-size: 14px;
-  user-select: none;
   max-width: 160px;
   min-width: 0;
   flex-shrink: 1;
-  box-sizing: border-box;
-}
-
-.student-name-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
 }
 
 .back-button {

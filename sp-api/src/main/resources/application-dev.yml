@@ -59,6 +59,12 @@ spring:
         url: 
         username: 
         password: 
+      # 學籍庫（student_info 表）
+      student-profiles:
+        enabled: true
+        url: jdbc:mysql://localhost:3306/student_profiles?useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&initialTimeout=2&connectTimeout=60000&socketTimeout=60000
+        username: root
+        password: root
       webStatFilter: 
         enabled: false
       statViewServlet:

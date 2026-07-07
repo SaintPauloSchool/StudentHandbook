@@ -17,7 +17,7 @@
         <result property="createTime"   column="create_time"/>
     </resultMap>
 
-    <!-- 按 notification_id + user_id + student_user_id 聯查 -->
+    <!-- 按 notification_id + user_id + student_id 聯查 -->
     <select id="selectByNotificationAndUser" resultMap="ReadRecordResult">
         SELECT r.read_id, r.send_record_id, r.user_id, r.user_type,
                r.is_read, r.read_time, r.reply_status, r.reply_time, r.send_status, r.create_time
@@ -27,8 +27,8 @@
         WHERE s.notification_id = #{notificationId}
           AND r.user_id = #{userId}
           AND r.send_status = '1'
-        <if test="studentUserId != null and studentUserId != ''">
-          AND r.student_user_id = #{studentUserId}
+        <if test="studentId != null and studentId != ''">
+          AND r.student_id = #{studentId}
         </if>
         LIMIT 1
     </select>
@@ -94,26 +94,10 @@
               AND n.status = '1'
         WHERE r.user_id = #{userId}
           AND r.send_status = '1'
-        <if test="studentUserId != null and studentUserId != ''">
-          AND r.student_user_id = #{studentUserId}
+        <if test="studentId != null and studentId != ''">
+          AND r.student_id = #{studentId}
         </if>
         ORDER BY n.create_time DESC
-        LIMIT #{offset}, #{limit}
-    </select>
-
-    <!-- 已發布通知總數（僅統計發送給當前用戶的通知） -->
-    <select id="countPublishedNotificationsForUser" resultType="int">
-        SELECT COUNT(*)
-        FROM notification_user_read_record r
-        INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
-        INNER JOIN notification n
-               ON n.notification_id = s.notification_id
-              AND n.status = '1'
-        WHERE r.user_id = #{userId}
-          AND r.send_status = '1'
-        <if test="studentUserId != null and studentUserId != ''">
-          AND r.student_user_id = #{studentUserId}
-        </if>
     </select>
 
     <!-- 未讀通知數量（僅統計發送給當前用戶的未讀通知） -->
@@ -125,8 +109,8 @@
         WHERE r.user_id = #{userId}
           AND r.send_status = '1'
           AND (r.is_read = '0' OR r.is_read IS NULL)
-        <if test="studentUserId != null and studentUserId != ''">
-          AND r.student_user_id = #{studentUserId}
+        <if test="studentId != null and studentId != ''">
+          AND r.student_id = #{studentId}
         </if>
     </select>
 
