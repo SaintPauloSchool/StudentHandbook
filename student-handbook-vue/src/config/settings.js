@@ -16,7 +16,8 @@ export default {
     // 只有 production 打包才指向生產地址，其餘（dev/test）均指向測試服
     campusSystemUrl: import.meta.env.MODE === 'production'
         ? 'http://tals-wcapp.esp.edu.mo/school-management-system/'
-        : 'http://localhost:3001/school-management-system/',
+        //: 'http://localhost:3001/school-management-system/',
+        : 'http://10.32.96.55:8082/school-management-system/',
 
     // API 安全校驗密鑰
     appSecret: 'HVc1D4MU69UDMr1g',
