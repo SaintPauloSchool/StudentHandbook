@@ -469,13 +469,27 @@ export default {
     // 組件掛載時立即滾動到頂部
     window.scrollTo(0, 0)
     // 加載時獲取學生列表，設置默認學生
-    await this.loadStudentList()
+    const studentReady = await this.loadStudentList()
+    if (!studentReady) {
+      return
+    }
     await this.loadNoticeDetail()
   },
   methods: {
     // MD5加密函數（使用crypto-js庫）
     md5Encrypt(text) {
       return CryptoJS.MD5(text).toString();
+    },
+
+    /** sid 與學生列表匹配（僅使用學籍 student_id） */
+    matchStudentBySid(relations, urlSid) {
+      const encryptionSalt = settings.studentIdEncryptionSalt
+      for (const relation of relations) {
+        if (this.md5Encrypt(relation.studentId + encryptionSalt) === urlSid) {
+          return relation
+        }
+      }
+      return null
     },
 
     setCurrentStudent(relation) {
@@ -488,7 +502,7 @@ export default {
       this.currentStudentProfileNumber = relation.studentProfileNumber || '';
     },
 
-    // 加載學生列表，設置默認學生
+    // 加載學生列表，設置默認學生；返回 false 表示無法繼續加載通知詳情
     async loadStudentList() {
       try {
         // 檢查是否啓用Token驗證
@@ -498,7 +512,9 @@ export default {
 
           if (!token) {
             console.warn('未找到token，無法獲取學生列表');
-            return;
+            this.errorMessage = '無法獲取學生信息，請重新登錄';
+            this.loading = false;
+            return false;
           }
         }
 
@@ -516,27 +532,14 @@ export default {
               // 標記爲從微信鏈接進入
               this.isFromWechatLink = true;
 
-              // 遍歷學生列表，對每個學生ID進行MD5加密並匹配
-              let matchedStudent = null;
-              const encryptionSalt = settings.studentIdEncryptionSalt; // 從配置中獲取加密鹽值
-
-              for (const relation of relations) {
-                const studentId = relation.studentId;
-                // 對學生ID進行MD5加密：studentId + salt
-                const encryptedId = this.md5Encrypt(studentId + encryptionSalt);
-
-                if (encryptedId === urlSid) {
-                  matchedStudent = relation;
-                  break;
-                }
-              }
+              const matchedStudent = this.matchStudentBySid(relations, urlSid);
 
               if (matchedStudent) {
                 this.setCurrentStudent(matchedStudent);
               } else {
-                // 匹配失敗，設置錯誤信息並停止加載
                 this.errorMessage = '無效的訪問鏈接，無法識別學生信息';
                 this.loading = false;
+                return false;
               }
             } else {
               // 沒有sid參數，檢查localStorage中是否已有選中的學生
@@ -563,12 +566,14 @@ export default {
           } else {
             console.warn('當前帳號未關聯任何學生');
           }
+          return true
         } else {
           console.error('獲取學生列表失敗:', response.data.msg);
         }
       } catch (error) {
         console.error('獲取學生列表失敗:', error);
       }
+      return false
     },
 
     // 返回上一頁或通知列表
