@@ -363,7 +363,10 @@ export default {
 
 <style scoped>
 .notice-container {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background-color: #f5f9ff;
   padding: 0;
 }
@@ -373,11 +376,10 @@ export default {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: start;
+  flex-shrink: 0;
   padding: 15px 20px;
   background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
   box-shadow: 0 4px 6px rgba(125, 211, 252, 0.2);
-  position: sticky;
-  top: 0;
   z-index: 100;
 }
 
@@ -530,11 +532,15 @@ export default {
 
 /* 通知列表 */
 .notice-list {
+  flex: 1;
+  min-height: 0;
   padding: 20px 25px;
   max-width: 1200px;
   margin: 0 auto;
-  height: calc(100vh - 80px);
+  width: 100%;
+  box-sizing: border-box;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .notice-item {
