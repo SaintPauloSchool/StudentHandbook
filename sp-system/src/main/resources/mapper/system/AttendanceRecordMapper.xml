@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sp.system.mapper.AttendanceRecordMapper">
+
+    <resultMap id="AttendanceRecordVOResult" type="com.sp.system.entity.vo.AttendanceRecordVO">
+        <result property="id" column="id"/>
+        <result property="accessDatetime" column="access_datetime"/>
+        <result property="direction" column="direction"/>
+        <result property="classSection" column="class_section"/>
+        <result property="studentName" column="id_name"/>
+    </resultMap>
+
+    <select id="selectByStudentId" resultMap="AttendanceRecordVOResult">
+        SELECT ar.id,
+               ar.access_datetime,
+               ar.direction,
+               si.class_section,
+               si.id_name
+        FROM attendance_record ar
+        INNER JOIN ${studentProfilesDatabase}.student_info si
+            ON si.student_id COLLATE utf8mb4_unicode_ci = ar.employee_id
+        WHERE ar.employee_id = #{studentId}
+        <if test="accessDate != null and accessDate != ''">
+            AND ar.access_date = #{accessDate}
+        </if>
+        ORDER BY ar.access_datetime DESC, ar.id DESC
+    </select>
+
+</mapper>

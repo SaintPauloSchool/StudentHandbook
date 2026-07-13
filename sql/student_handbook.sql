@@ -213,7 +213,7 @@ INSERT INTO notification_cc VALUES(2, 1, '2', '[301]', NOW());
 
 -- 示例問題數據
 -- 單選題：第一個問題
-INSERT INTO notification_question VALUES(1, 1, NULL, '您是否支持舉辦運動會？', '1', '["支持","不支持"]', '1', 1, NULL, NULL, NULL, NULL, NOW());
+INSERT INTO notification_question VALUES(1, 1, NULL, '您是否支援舉辦運動會？', '1', '["支援","不支援"]', '1', 1, NULL, NULL, NULL, NULL, NOW());
 
 -- 第二個問題：多選題
 INSERT INTO notification_question VALUES(2, 1, NULL, '請選擇您想參加的項目（可多選）', '2', '["跑步","跳遠","投擲","其他"]', '0', 2, NULL, NULL, NULL, NULL, NOW());
@@ -261,32 +261,17 @@ CREATE TABLE sys_school_family_contact (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='家校通訊錄表';
 
 -- ----------------------------
--- 課程班級表
+-- 班級對照表
 -- ----------------------------
 DROP TABLE IF EXISTS class_section;
 CREATE TABLE class_section (
                                id                  BIGINT          NOT NULL AUTO_INCREMENT,
                                class_section_dsedj VARCHAR(8)      NOT NULL,
                                class_section_sp    VARCHAR(8)      NOT NULL,
+                               division            TINYINT         NOT NULL DEFAULT 0 COMMENT '學部（0幼稚園 1小學 2中學）',
                                PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='課程班級';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='班級對照';
 
-INSERT INTO class_section VALUES
-                              (1,'I 1_A_家長','K1A'),(2,'I 1_B_家長','K1B'),(3,'I 1_C_家長','K1C'),(4,'I 1_D_家長','K1D'),(5,'I 1_E_家長','K1E'),(6,'I 1_F_家長','K1F'),
-                              (7,'I 2_A_家長','K2A'),(8,'I 2_B_家長','K2B'),(9,'I 2_C_家長','K2C'),(10,'I 2_D_家長','K2D'),(11,'I 2_E_家長','K2E'),(12,'I 2_F_家長','K2F'),
-                              (13,'I 3_A_家長','K3A'),(14,'I 3_B_家長','K3B'),(15,'I 3_C_家長','K3C'),(16,'I 3_D_家長','K3D'),(17,'I 3_E_家長','K3E'),(18,'I 3_F_家長','K3F'),
-                              (19,'P1_A_家長','P1A'),(20,'P1_B_家長','P1B'),(21,'P1_C_家長','P1C'),(22,'P1_D_家長','P1D'),(23,'P1_E_家長','P1E'),(24,'P1_F_家長','P1F'),
-                              (25,'P2_A_家長','P2A'),(26,'P2_B_家長','P2B'),(27,'P2_C_家長','P2C'),(28,'P2_D_家長','P2D'),(29,'P2_E_家長','P2E'),(30,'P2_F_家長','P2F'),
-                              (31,'P3_A_家長','P3A'),(32,'P3_B_家長','P3B'),(33,'P3_C_家長','P3C'),(34,'P3_D_家長','P3D'),(35,'P3_E_家長','P3E'),(36,'P3_F_家長','P3F'),
-                              (37,'P4_A_家長','P4A'),(38,'P4_B_家長','P4B'),(39,'P4_C_家長','P4C'),(40,'P4_D_家長','P4D'),(41,'P4_E_家長','P4E'),(42,'P4_F_家長','P4F'),
-                              (43,'P5_A_家長','P5A'),(44,'P5_B_家長','P5B'),(45,'P5_C_家長','P5C'),(46,'P5_D_家長','P5D'),(47,'P5_E_家長','P5E'),(48,'P5_F_家長','P5F'),
-                              (49,'P6_A_家長','P6A'),(50,'P6_B_家長','P6B'),(51,'P6_C_家長','P6C'),(52,'P6_D_家長','P6D'),(53,'P6_E_家長','P6E'),(54,'P6_F_家長','P6F'),
-                              (55,'SG1_A_家長','F1A'),(56,'SG1_B_家長','F1B'),(57,'SG1_C_家長','F1C'),(58,'SG1_D_家長','F1D'),(59,'SG1_E_家長','F1E'),(60,'SG1_F_家長','F1F'),
-                              (61,'SG2_A_家長','F2A'),(62,'SG2_B_家長','F2B'),(63,'SG2_C_家長','F2C'),(64,'SG2_D_家長','F2D'),(65,'SG2_E_家長','F2E'),(66,'SG2_F_家長','F2F'),
-                              (67,'SG3_A_家長','F3A'),(68,'SG3_B_家長','F3B'),(69,'SG3_C_家長','F3C'),(70,'SG3_D_家長','F3D'),(71,'SG3_E_家長','F3E'),(72,'SG3_F_家長','F3F'),
-                              (73,'SC1_A_家長','F4A'),(74,'SC1_B_家長','F4B'),(75,'SC1_C_家長','F4C'),(76,'SC1_D_家長','F4D'),(77,'SC1_E_家長','F4E'),(78,'SC1_F_家長','F4F'),
-                              (79,'SC2_A_家長','F5A'),(80,'SC2_B_家長','F5B'),(81,'SC2_C_家長','F5C'),(82,'SC2_D_家長','F5D'),(83,'SC2_E_家長','F5E'),(84,'SC2_F_家長','F5F'),
-                              (85,'SC3_A_家長','F6A'),(86,'SC3_B_家長','F6B'),(87,'SC3_C_家長','F6C'),(88,'SC3_D_家長','F6D'),(89,'SC3_E_家長','F6E'),(90,'SC3_F_家長','F6F');
 -- ----------------------------
 -- 部門管理員表
 -- ----------------------------
@@ -392,13 +377,13 @@ CREATE TABLE `notification_resend_fail_record` (
                                                    `notification_id` bigint       NOT NULL                         COMMENT '通知ID',
                                                    `send_record_id`  bigint       NOT NULL                         COMMENT '發送記錄ID',
                                                    `user_id`         varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '接收用戶ID',
-                                                   `student_id`      varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '關聯學生信息表 student_id',
+                                                   `student_id`      varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '關聯學生資訊表 student_id',
                                                    `fail_reason_1`   varchar(255)          DEFAULT NULL            COMMENT '第1次失敗原因',
-                                                   `fail_message_1`  varchar(1000)         DEFAULT NULL            COMMENT '第1次失敗詳細信息',
+                                                   `fail_message_1`  varchar(1000)         DEFAULT NULL            COMMENT '第1次失敗詳細資訊',
                                                    `fail_reason_2`   varchar(255)          DEFAULT NULL            COMMENT '第2次失敗原因',
-                                                   `fail_message_2`  varchar(1000)         DEFAULT NULL            COMMENT '第2次失敗詳細信息',
+                                                   `fail_message_2`  varchar(1000)         DEFAULT NULL            COMMENT '第2次失敗詳細資訊',
                                                    `fail_reason_3`   varchar(255)          DEFAULT NULL            COMMENT '第3次失敗原因',
-                                                   `fail_message_3`  varchar(1000)         DEFAULT NULL            COMMENT '第3次失敗詳細信息',
+                                                   `fail_message_3`  varchar(1000)         DEFAULT NULL            COMMENT '第3次失敗詳細資訊',
                                                    `fail_count`      int          NOT NULL DEFAULT 1               COMMENT '累計失敗次數（最大3次，達到後放棄重發）',
                                                    `status`          char(1)      NOT NULL DEFAULT '0'             COMMENT '狀態：0-待重發 1-已放棄',
                                                    `create_time`     datetime              DEFAULT NULL            COMMENT '首次失敗時間',
@@ -462,6 +447,34 @@ CREATE TABLE `sys_task_log` (
                                 KEY `idx_execution_time` (`execution_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='定時任務執行日誌表';
 -- ----------------------------
+-- 定時任務配置表
+-- ----------------------------
+DROP TABLE IF EXISTS sys_scheduled_task;
+CREATE TABLE `sys_scheduled_task` (
+                                      `id`              bigint(20)   NOT NULL AUTO_INCREMENT COMMENT '主鍵',
+                                      `task_key`        varchar(64)  NOT NULL                COMMENT '任務唯一標識',
+                                      `task_name`       varchar(100) NOT NULL                COMMENT '任務名稱',
+                                      `task_bean`       varchar(100) NOT NULL                COMMENT 'Spring Task Bean 名稱（手動觸發用）',
+                                      `method_name`     varchar(100) NOT NULL DEFAULT 'executeTask' COMMENT 'Task 方法名',
+                                      `cron_expression` varchar(64)  NOT NULL                COMMENT 'Cron 表達式',
+                                      `enabled`         char(1)      NOT NULL DEFAULT '0'    COMMENT '是否啟用（0停用 1啟用）',
+                                      `sort_order`      int(11)      NOT NULL DEFAULT 0      COMMENT '排序',
+                                      `create_time`     datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
+                                      `update_time`     datetime     DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+                                      PRIMARY KEY (`id`),
+                                      UNIQUE KEY `uk_task_key` (`task_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='定時任務配置表';
+
+INSERT INTO sys_scheduled_task (task_key, task_name, task_bean, method_name, cron_expression, enabled, sort_order) VALUES
+   ('failed_task_notifier',       '檢查失敗任務通知',       'failedTaskNotifierTask',       'executeTask', '0 0 9 * * ?',         '0', 1),
+   ('department_sync',            '家校通訊錄部門數據同步', 'departmentSyncTask',           'executeTask', '0 0 0 * * ?',         '0', 2),
+   ('school_family_contact_sync', '家校通訊錄同步',         'schoolFamilyContactSyncTask',  'executeTask', '0 30 0 * * ?',        '0', 3),
+   ('wecom_school_department',    '企業微信部門與成員同步', 'wecomSchoolDepartmentTask',    'executeTask', '0 0 1 * * ?',         '0', 4),
+   ('notification_reminder',      '定時提示家長回復通知',   'notificationReminderTask',     'executeTask', '0 30 9 * * ?',        '0', 5),
+   ('notification_resend',          '定時重新發送失敗通知',   'notificationResendTask',       'executeTask', '0 0 9-18 * * ?',      '0', 6),
+   ('school_notice',              '每日學生手冊通知發送',   'schoolNoticeTask',             'executeTask', '0 0 18 ? * MON-FRI',  '0', 7),
+   ('attendance_notify',          '考勤拍卡通知發送',       'attendanceNotifyTask',         'executeTask', '0 * * * * ?',         '1', 8);
+-- ----------------------------
 -- 學生數據匹配表
 -- ----------------------------
 DROP TABLE IF EXISTS sys_student_match;
@@ -498,40 +511,27 @@ CREATE TABLE sys_config (
 -- ----------------------------
 -- 學生考勤記錄表
 -- ----------------------------
-DROP TABLE IF EXISTS student_attendance_record;
-CREATE TABLE student_attendance_record (
-                                           id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
-                                           student_id          VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '學生 ID（關聯 student_profiles.student_info.student_id）',
-                                           attendance_status   TINYINT(1)      NOT NULL                   COMMENT '考勤狀態（1: 到校, 2: 請假, 3: 遲到）',
-                                           record_time         DATETIME        NOT NULL                   COMMENT '考勤記錄時間',
-                                           create_by           VARCHAR(64)     DEFAULT ''                 COMMENT '記錄人（教職員姓名）',
-                                           create_time         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
-                                           PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='學生考勤記錄表';
-
--- 若 sys_token 已存在，補充 display_name 欄位：
--- ALTER TABLE sys_token ADD COLUMN display_name varchar(64) DEFAULT NULL COMMENT '顯示名稱' AFTER user_id;
-
--- 若 sys_school_department_member 仍為 student_user_id，遷移為 student_id：
--- ALTER TABLE sys_school_department_member
---   CHANGE COLUMN student_user_id student_id VARCHAR(64) DEFAULT NULL COMMENT '關聯學籍 student_id（student_profiles.student_info.student_id）';
-
--- 若 sys_school_department_member 尚無 school_department_id，拆分部門綁定與真實班級 ID：
--- ALTER TABLE sys_school_department_member
---   ADD COLUMN school_department_id BIGINT DEFAULT NULL COMMENT '自定義部門節點 ID（sys_school_department.id）' AFTER name;
--- UPDATE sys_school_department_member SET school_department_id = department_id WHERE school_department_id IS NULL;
--- UPDATE sys_school_department_member SET department_id = NULL;
--- ALTER TABLE sys_school_department_member
---   MODIFY COLUMN school_department_id BIGINT NOT NULL COMMENT '自定義部門節點 ID（sys_school_department.id）',
---   MODIFY COLUMN department_id BIGINT DEFAULT NULL COMMENT '真實班級/部門 ID（選人時 sys_department.id，家校通訊錄必填）';
-
--- 若通知閱讀/重發表與 student_profiles.student_info JOIN 報 collation 衝突，統一為 utf8mb4_unicode_ci：
--- ALTER TABLE notification_user_read_record
---   MODIFY COLUMN user_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
---   MODIFY COLUMN student_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL;
--- ALTER TABLE notification_resend_fail_record
---   MODIFY COLUMN user_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
---   MODIFY COLUMN student_id VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL;
-
--- 每日學生手冊通知班級範圍（type=1，多選）首次保存時自動寫入 sys_config：
--- config_key = notice.daily_class_department_ids，config_value 為逗號分隔的部門 ID，如 16770,16771
+DROP TABLE IF EXISTS attendance_record;
+CREATE TABLE `attendance_record` (
+                                     `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主鍵',
+                                     `employee_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '學生 ID（關聯 student_profiles.student_info.student_id）',
+                                     `access_datetime` datetime DEFAULT NULL COMMENT '進出日期和時間 (yyyy-MM-dd HH:mm:ss)',
+                                     `access_date` date DEFAULT NULL COMMENT '進出日期 (yyyy-MM-dd)',
+                                     `access_time` time DEFAULT NULL COMMENT '進出時間 (HH:mm:ss)',
+                                     `access_result` varchar(24) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '存取結果: 0=失敗, 1=成功',
+                                     `snapshot_image` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '驗證記錄抓拍圖',
+                                     `access_mode` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '存取模式',
+                                     `device_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '裝置名稱',
+                                     `device_serial_number` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '裝置序列號',
+                                     `resource_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '資源名稱',
+                                     `card_reader_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '讀卡器名稱',
+                                     `first_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '名字',
+                                     `last_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '姓',
+                                     `person_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '人員名稱',
+                                     `person_group` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '人員群組',
+                                     `card_number` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '卡號',
+                                     `direction` varchar(24) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '方向: 0=進, 1=出',
+                                     `is_notified` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0' COMMENT '是否已通知（0未通知 1已通知）',
+                                     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '記錄寫入時間',
+                                     PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考勤記錄表'

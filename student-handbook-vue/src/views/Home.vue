@@ -41,6 +41,15 @@
       </div>
 
       <div class="button-wrapper" v-if="userType === 0 || userType === 1 || userType === null">
+        <button class="feature-button attendance-button" @click="goToAttendance">
+          <div class="button-content">
+            <span class="button-icon">🕐</span>
+            <span class="button-text">考勤記錄</span>
+          </div>
+        </button>
+      </div>
+
+      <div class="button-wrapper" v-if="userType === 0 || userType === 1 || userType === null">
         <button class="feature-button info-button" @click="goToCalendar">
           <div class="button-content">
             <span class="button-icon">📅</span>
@@ -255,6 +264,9 @@ export default {
     goToCalendar() {
       // 跳轉到行事曆頁面
       this.$router.push('/calendar');
+    },
+    goToAttendance() {
+      this.$router.push('/attendance');
     },
     async goToCampusSystem() {
       // 跳轉到校園系統（在新分頁開啟），並帶上 token
@@ -572,6 +584,12 @@ export default {
   background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(238, 90, 36, 0.25);
+}
+
+.attendance-button {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+  box-shadow: 0 8px 24px rgba(109, 40, 217, 0.25);
 }
 
 /* 動畫效果 */

@@ -8,8 +8,10 @@ import com.sp.common.enums.BusinessType;
 import com.sp.common.utils.ResponseUtils;
 import com.sp.framework.interceptor.TokenInterceptor;
 import com.sp.system.entity.ClassLog;
+import com.sp.system.entity.vo.AttendanceRecordVO;
 import com.sp.system.entity.vo.StudentRelationVO;
 import com.sp.system.entity.vo.StudentPhotoVO;
+import com.sp.system.service.IAttendanceRecordService;
 import com.sp.system.service.IClassLogService;
 import com.sp.system.service.IStudentPhotoService;
 import com.sp.system.service.IStudentRelationService;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +46,9 @@ public class StudentHandbookController extends BaseController {
 
     @Autowired
     private IStudentPhotoService studentPhotoService;
+
+    @Autowired
+    private IAttendanceRecordService attendanceRecordService;
 
     /** 從 request attribute 取得已驗證的 userId */
     private String getUserId() {
@@ -161,6 +167,34 @@ public class StudentHandbookController extends BaseController {
         } catch (Exception e) {
             logger.error("切換學生失敗: {}", e.getMessage());
             return AjaxResult.error("切換學生失敗: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查詢當前學生的考勤記錄
+     *
+     * @param studentId  學籍 student_id，必填
+     * @param accessDate 進出日期（yyyy-MM-dd），可選
+     */
+    @Log(title = "查詢學生考勤記錄", businessType = BusinessType.SELECT)
+    @GetMapping("/attendance")
+    public TableDataInfo listAttendance(@RequestParam String studentId,
+                                        @RequestParam(required = false) String accessDate) {
+        try {
+            String userId = getUserId();
+            if (userId == null) {
+                return ResponseUtils.createUnauthorizedResponse();
+            }
+            if (studentId == null || studentId.trim().isEmpty()) {
+                return ResponseUtils.createResponseWithMessage(400, Collections.emptyList(), "學生ID不能為空");
+            }
+            String dateFilter = (accessDate != null && !accessDate.trim().isEmpty()) ? accessDate.trim() : null;
+            List<AttendanceRecordVO> records = attendanceRecordService.listByParentAndStudentId(
+                    userId, studentId.trim(), dateFilter);
+            return ResponseUtils.createSuccessResponse(records);
+        } catch (Exception e) {
+            logger.error("獲取考勤記錄失敗: {}", e.getMessage());
+            return ResponseUtils.createErrorResponse();
         }
     }
 

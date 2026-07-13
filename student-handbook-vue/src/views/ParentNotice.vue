@@ -393,6 +393,7 @@ export default {
   justify-self: center;
   display: flex;
   justify-content: center;
+  margin-left: 12px;
 }
 
 .header-right {

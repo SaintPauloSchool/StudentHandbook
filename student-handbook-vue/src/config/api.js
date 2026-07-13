@@ -8,6 +8,7 @@ const apiEndpoints = {
     STUDENT_HANDBOOK_STUDENTS: '/system/handbook/students',
     STUDENT_PHOTO: '/system/handbook/photo',
     SWITCH_STUDENT: '/system/handbook/switchStudent',
+    STUDENT_ATTENDANCE: '/system/handbook/attendance',
     NOTICE_LIST: '/system/notice/list',
     NOTICE_DETAIL: '/system/notice',
     NOTICE_MARK_READ: '/system/notice',  // POST /{id}/read
