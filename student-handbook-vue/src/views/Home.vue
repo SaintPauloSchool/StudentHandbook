@@ -5,10 +5,8 @@
     <div class="student-top-bar" v-if="(userType === 0 || userType === 1) && currentStudentName">
       <StudentChip
         chip-class="student-top-bar-chip"
-        :avatar-size="50"
         :name="currentStudentName"
         :class-section="currentStudentClassSection"
-        :profile-number="currentStudentProfileNumber"
       />
       <button class="switch-student-btn" @click="openStudentSwitchDialog">切換學生</button>
     </div>
@@ -386,17 +384,7 @@ export default {
 }
 
 .student-top-bar :deep(.student-top-bar-chip) {
-  padding: 12px 18px 12px 10px;
-  gap: 14px;
-}
-
-.student-top-bar :deep(.student-top-bar-chip .student-chip__avatar) {
-  width: 50px;
-  height: 50px;
-}
-
-.student-top-bar :deep(.student-top-bar-chip .student-chip__text) {
-  gap: 12px;
+  padding: 8px 12px;
 }
 
 .switch-student-btn {

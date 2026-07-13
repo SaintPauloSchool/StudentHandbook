@@ -14,13 +14,10 @@
           :class="{ 'ssd-option--active': selectedId === rel.studentId }"
           @click="selectedId = rel.studentId"
         >
-          <div class="ssd-avatar">
-            <StudentPhoto :profile-number="rel.studentProfileNumber" :size="48" round />
+          <div class="ssd-class-slot">
+            <span v-if="rel.classSection" class="ssd-class">{{ rel.classSection }}</span>
           </div>
-          <div class="ssd-info">
-            <div v-if="rel.classSection" class="ssd-class">{{ rel.classSection }}</div>
-            <div class="ssd-name">{{ rel.studentName }}</div>
-          </div>
+          <div class="ssd-name">{{ rel.studentName }}</div>
           <div class="ssd-check-slot">
             <span v-if="selectedId === rel.studentId" class="ssd-check">✓</span>
           </div>
@@ -40,14 +37,12 @@
 </template>
 
 <script>
-import StudentPhoto from '@/components/StudentPhoto.vue'
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 
 export default {
   name: 'StudentSwitchDialog',
-  components: { StudentPhoto },
   props: {
     modelValue: {
       type: Boolean,
@@ -206,10 +201,10 @@ export default {
 
 .ssd-option {
   display: grid;
-  grid-template-columns: 48px 1fr 40px;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  column-gap: 10px;
+  padding: 12px 14px;
   border-radius: 14px;
   cursor: pointer;
   transition: background 0.15s, box-shadow 0.15s;
@@ -231,20 +226,9 @@ export default {
   box-shadow: inset 0 0 0 2px #3b82f6;
 }
 
-.ssd-avatar {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ssd-info {
+.ssd-class-slot {
+  justify-self: start;
   min-width: 0;
-  text-align: center;
-  justify-self: center;
-  width: 100%;
 }
 
 .ssd-class {
@@ -252,10 +236,11 @@ export default {
   font-weight: 600;
   color: #2563eb;
   line-height: 1.3;
+  white-space: nowrap;
 }
 
 .ssd-name {
-  margin-top: 2px;
+  text-align: center;
   font-size: 16px;
   font-weight: 600;
   color: #0f172a;
@@ -263,13 +248,15 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.3;
+  min-width: 0;
 }
 
 .ssd-check-slot {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  width: 28px;
   height: 28px;
   justify-self: end;
 }

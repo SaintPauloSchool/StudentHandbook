@@ -35,8 +35,8 @@ html, body {
 .student-chip {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px 8px 8px;
+  justify-content: center;
+  padding: 6px 10px;
   border-radius: 14px;
   background: #f8fafc;
   box-shadow: inset 0 0 0 1px #e2e8f0;
@@ -46,22 +46,13 @@ html, body {
   user-select: none;
 }
 
-.student-chip__avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
 .student-chip__text {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   min-width: 0;
-  flex: 1;
 }
 
 .student-chip__name {
@@ -70,6 +61,7 @@ html, body {
   color: #0f172a;
   line-height: 1.3;
   max-width: 100%;
+  text-align: center;
   word-break: break-all;
 }
 

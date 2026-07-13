@@ -6,7 +6,6 @@ const apiEndpoints = {
     STUDENT_HANDBOOK_TODAY: '/system/handbook/today',
     STUDENT_HANDBOOK_NEXT_SEVEN_DAYS: '/system/handbook/nextSevenDays',
     STUDENT_HANDBOOK_STUDENTS: '/system/handbook/students',
-    STUDENT_PHOTO: '/system/handbook/photo',
     SWITCH_STUDENT: '/system/handbook/switchStudent',
     STUDENT_ATTENDANCE: '/system/handbook/attendance',
     NOTICE_LIST: '/system/notice/list',

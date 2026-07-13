@@ -20,7 +20,6 @@
             chip-class="handbook-student-name"
             :name="currentStudentName"
             :class-section="currentStudentClassSection"
-            :profile-number="currentStudentProfileNumber"
           />
 
           <!-- 用戶切換按鈕 -->

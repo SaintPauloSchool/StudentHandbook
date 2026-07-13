@@ -11,7 +11,6 @@
         chip-class="student-name-display"
         :name="currentStudentName"
         :class-section="currentStudentClassSection"
-        :profile-number="currentStudentProfileNumber"
       />
     </div>
 
