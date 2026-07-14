@@ -143,8 +143,8 @@ export default {
 .ssd-dialog {
   background: #ffffff;
   border-radius: 18px;
-  width: 92%;
-  max-width: 400px;
+  width: 78%;
+  max-width: 320px;
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
   overflow: hidden;
   animation: ssdScaleIn 0.22s ease-out;
@@ -194,8 +194,8 @@ export default {
 }
 
 .ssd-body {
-  padding: 16px 20px;
-  max-height: 55vh;
+  padding: 14px 16px;
+  max-height: 50vh;
   overflow-y: auto;
 }
 
