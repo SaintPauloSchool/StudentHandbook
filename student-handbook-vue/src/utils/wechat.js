@@ -22,6 +22,8 @@ export function saveTokenFromUrl(urlParams = new URLSearchParams(window.location
         return false
     }
 
+    const isNewLogin = localStorage.getItem('token') !== tokenFromUrl
+
     localStorage.setItem('token', tokenFromUrl)
     localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString())
 
@@ -33,7 +35,7 @@ export function saveTokenFromUrl(urlParams = new URLSearchParams(window.location
     if (!isWeChatEnv()) {
         window.history.replaceState({}, document.title, stripTokenFromUrlParams(urlParams))
     }
-    return true
+    return isNewLogin
 }
 
 /**

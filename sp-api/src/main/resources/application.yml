@@ -22,6 +22,14 @@ sp:
   appSecret: HVc1D4MU69UDMr1g
   # app交互時間誤差範圍(毫秒)
   apiTimeRange: 300000
+
+# 學籍系統學生照片（由後端代理，前端不直接訪問）
+student-info:
+  photo:
+    url-template: http://tals-stuinfo.esp.edu.mo:5222/api/v1/resources/students/{studentProfileNumber}/photo
+    connect-timeout-ms: 5000
+    read-timeout-ms: 10000
+
 # 開發環境配置
 server:
   # 服務器的HTTP端口，默認爲8003

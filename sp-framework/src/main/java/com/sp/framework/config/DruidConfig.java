@@ -47,6 +47,15 @@ public class DruidConfig
         return druidProperties.dataSource(dataSource);
     }
 
+    @Bean
+    @ConfigurationProperties("spring.datasource.druid.student-profiles")
+    @ConditionalOnProperty(prefix = "spring.datasource.druid.student-profiles", name = "enabled", havingValue = "true")
+    public DataSource studentProfilesDataSource(DruidProperties druidProperties)
+    {
+        DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
+        return druidProperties.dataSource(dataSource);
+    }
+
     @Bean(name = "dynamicDataSource")
     @Primary
     public DynamicDataSource dataSource(DataSource masterDataSource)
@@ -54,6 +63,7 @@ public class DruidConfig
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put(DataSourceType.MASTER.name(), masterDataSource);
         setDataSource(targetDataSources, DataSourceType.SLAVE.name(), "slaveDataSource");
+        setDataSource(targetDataSources, DataSourceType.STUDENT_PROFILES.name(), "studentProfilesDataSource");
         return new DynamicDataSource(masterDataSource, targetDataSources);
     }
 

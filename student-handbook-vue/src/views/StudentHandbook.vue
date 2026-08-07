@@ -15,10 +15,12 @@
           </el-button>
 
           <!-- 學生姓名顯示 -->
-          <div class="handbook-student-name" v-if="currentStudentName">
-            <el-icon class="handbook-student-icon" style="flex-shrink: 0;"><User /></el-icon>
-            <span class="handbook-student-text">{{ currentStudentName }}</span>
-          </div>
+          <StudentChip
+            v-if="currentStudentName"
+            chip-class="handbook-student-name"
+            :name="currentStudentName"
+            :class-section="currentStudentClassSection"
+          />
 
           <!-- 用戶切換按鈕 -->
           <el-button class="user-switch-btn" type="primary" plain @click="toggleUserMenu">
@@ -100,16 +102,16 @@
 import service from '@/utils/request.js'
 import {API_ENDPOINTS} from '@/config/api.js'
 import {ElMessage} from 'element-plus'
-import settings from '@/config/settings'
-import { HomeFilled, User } from '@element-plus/icons-vue'
+import { HomeFilled } from '@element-plus/icons-vue'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
+import StudentChip from '@/components/StudentChip.vue'
 
 export default {
   name: 'StudentHandbook',
   components: {
     HomeFilled,
-    User,
-    StudentSwitchDialog
+    StudentSwitchDialog,
+    StudentChip
   },
 
   data() {
@@ -118,20 +120,19 @@ export default {
       allGroupedHandbookList: [],
       currentPage: 1,
       pageSize: 7,
-      isMobile: false,
       showBackToTop: false,
       activeButton: 'today',
 
       // 切換學生彈窗（共用元件）
       studentDialogVisible: false,
       currentStudentName: localStorage.getItem('currentStudentName') || '',
-      selectedStudentUserId: localStorage.getItem('currentStudentUserId') || '',
+      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
+      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
+      selectedStudentId: localStorage.getItem('currentStudentId') || '',
 
       // 滑動相關數據
       touchStartX: 0,
-      touchStartY: 0,
-      touchEndX: 0,
-      touchEndY: 0
+      touchEndX: 0
     }
   },
   computed: {
@@ -143,25 +144,15 @@ export default {
     }
   },
   mounted() {
-    this.checkIsMobile()
-    this.activeButton = 'today'; // 初始化時設置當天按鈕為活躍狀態
-    this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
+    this.activeButton = 'today';
+    this.selectedStudentId = localStorage.getItem('currentStudentId') || ''
     this.fetchTodayHandbookList()
-    window.addEventListener('resize', this.checkIsMobile)
-    // 添加滾動事件監聽器
     window.addEventListener('scroll', this.handleScroll)
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.checkIsMobile)
-    // 移除滾動事件監聽器
     window.removeEventListener('scroll', this.handleScroll)
   },
   methods: {
-    //檢查是否為移動設備
-    checkIsMobile() {
-      this.isMobile = window.innerWidth < 768
-    },
-    // 返回首頁
     goHome() {
       this.$router.push('/');
     },
@@ -321,11 +312,11 @@ export default {
     async fetchData(endpoint, groupMethod = 'groupDataByTime') {
       this.loading = true;
       try {
-        // 構建帶有studentUserId參數的URL
+        // 構建帶有studentId參數的URL
         let url = endpoint;
-        if (this.selectedStudentUserId) {
+        if (this.selectedStudentId) {
           const separator = url.includes('?') ? '&' : '?';
-          url += `${separator}studentUserId=${encodeURIComponent(this.selectedStudentUserId)}`;
+          url += `${separator}studentId=${encodeURIComponent(this.selectedStudentId)}`;
         }
         
         // 使用封裝的service實例，確保攜帶token
@@ -474,9 +465,11 @@ export default {
     },
 
     // StudentSwitchDialog 切換成功後的回調
-    onStudentSwitched({ studentUserId, studentName }) {
+    onStudentSwitched({ studentId, studentName, classSection, studentProfileNumber }) {
       this.currentStudentName = studentName;
-      this.selectedStudentUserId = studentUserId;
+      this.currentStudentClassSection = classSection || localStorage.getItem('currentStudentClassSection') || '';
+      this.currentStudentProfileNumber = studentProfileNumber || localStorage.getItem('currentStudentProfileNumber') || '';
+      this.selectedStudentId = studentId;
       // 重新載入當前視圖的學生手冊數據
       const refreshMethods = {
         'today': this.fetchTodayHandbookList,
@@ -531,33 +524,7 @@ export default {
 }
 
 .handbook-student-name {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  color: #1e293b;
-  border: 1.5px solid rgba(37, 99, 235, 0.35);
-  font-weight: 600;
-  font-size: 14px;
-  user-select: none;
   max-width: 160px;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.handbook-student-icon {
-  font-size: 14px;
-  flex-shrink: 0;
-  color: #1e293b;
-}
-
-.handbook-student-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
 }
 
 .navigation-buttons {
@@ -880,215 +847,6 @@ export default {
 
   .card-field {
     font-size: 15px;
-  }
-}
-
-/* 學生選擇項目的樣式 */
-.student-options-group {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 5px 0;
-  align-items: stretch;
-}
-
-.student-list {
-  padding: 10px;
-  border-radius: 8px;
-  background: transparent;
-  border: none; /* 移除邊框 */
-  max-height: unset; /* 移除最大高度限制 */
-  overflow-y: visible; /* 移除滾動條 */
-}
-
-.empty-student-list {
-  text-align: center;
-  padding: 20px;
-}
-
-.no-student-text {
-  font-weight: bold;
-  text-align: center;
-  font-size: 16px;
-  color: #606266;
-  margin: 0;
-}
-
-.student-item-radio {
-  display: block;
-  width: calc(100% - 20px);
-  max-width: 100%;
-  padding: 12px 16px;
-  margin: 8px 0;
-  border: 1px solid #d1e5f5; /* 添加淡藍色框線 */
-  border-radius: 8px;
-  background: transparent; /* 透明背景 */
-  transition: all 0.3s ease;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.student-item-radio:hover {
-  background: #dbeafe; /* 懸停時的淺藍色背景 */
-  border: 1px solid #3b82f6 !important; /* 懸停時的藍色邊框 */
-  color: #1e40af !important; /* 懸停時的深藍色文字 */
-  transform: translateY(-1px);
-}
-
-/* 選中狀態的樣式 */
-.student-item-radio.selected {
-  background: #2563eb !important; /* 選中時的深藍色背景 */
-  border: 2px solid #1d4ed8 !important; /* 選中時的深藍色邊框 */
-  color: white !important; /* 選中時的白色文字 */
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
-  transform: translateY(-2px);
-}
-
-.student-item-radio.selected .student-name {
-  color: white !important;
-  font-weight: 700 !important;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5) !important;
-}
-
-.student-name {
-  font-size: 16px;
-  color: #374151; /* 默認深灰色文字 */
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-
-.dialog-cancel-btn {
-  background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%) !important;
-  border: none !important;
-  color: #1e40af !important;
-  font-weight: 600;
-  padding: 12px 24px !important;
-  font-size: 14px !important;
-  min-width: 100px;
-  margin: 0 8px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2) !important;
-  border-radius: 8px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.dialog-cancel-btn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
-}
-
-.dialog-confirm-btn {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
-  border: none !important;
-  color: white !important;
-  font-weight: 600;
-  padding: 12px 24px !important;
-  font-size: 14px !important;
-  min-width: 100px;
-  margin: 0 8px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2) !important;
-  border-radius: 8px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.dialog-confirm-btn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
-}
-
-/* 自定義模態對話框樣式 */
-.custom-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(12, 74, 160, 0.6) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(8px);
-}
-
-.custom-student-dialog {
-  background: transparent;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  width: 30%;
-  max-width: 90%;
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-.modal-header {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-  padding: 20px;
-  border-radius: 16px 16px 0 0;
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  color: white;
-  font-weight: 700;
-  font-size: 18px;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.3s;
-}
-
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.student-selection-content {
-  padding: 25px;
-  background: transparent;
-  color: white;
-}
-
-.modal-footer {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 20px;
-  padding: 0 25px 25px;
-}
-
-/* 手機端適配 */
-@media (max-width: 768px) {
-  .custom-student-dialog {
-    width: 90%;
   }
 }
 </style>

@@ -1,30 +1,31 @@
 <template>
   <div v-if="modelValue" class="ssd-overlay" @click="close">
     <div class="ssd-dialog" @click.stop>
-      <!-- 標題欄 -->
       <div class="ssd-header">
         <h3 class="ssd-title">請選擇學生</h3>
-        <button class="ssd-close-btn" @click="close">×</button>
+        <button class="ssd-close-btn" @click="close" aria-label="關閉">×</button>
       </div>
 
-      <!-- 學生列表 -->
       <div class="ssd-body">
         <div
           v-for="rel in studentRelations"
-          :key="rel.studentUserId"
+          :key="rel.studentId"
           class="ssd-option"
-          :class="{ 'ssd-option--active': selectedId === rel.studentUserId }"
-          @click="selectedId = rel.studentUserId"
+          :class="{ 'ssd-option--active': selectedId === rel.studentId }"
+          @click="selectedId = rel.studentId"
         >
-          <span class="ssd-avatar">👤</span>
-          <span class="ssd-name">{{ rel.studentName }}</span>
-          <span v-if="selectedId === rel.studentUserId" class="ssd-check">✓</span>
+          <div class="ssd-class-slot">
+            <span v-if="rel.classSection" class="ssd-class">{{ rel.classSection }}</span>
+          </div>
+          <div class="ssd-name">{{ rel.studentName }}</div>
+          <div class="ssd-check-slot">
+            <span v-if="selectedId === rel.studentId" class="ssd-check">✓</span>
+          </div>
         </div>
         <div v-if="studentRelations.length === 0 && !loading" class="ssd-empty">暫無學生數據</div>
         <div v-if="loading" class="ssd-empty">載入中...</div>
       </div>
 
-      <!-- 底部按鈕 -->
       <div class="ssd-footer">
         <button class="ssd-btn ssd-btn--cancel" @click="close">取消</button>
         <button class="ssd-btn ssd-btn--confirm" :disabled="confirming" @click="confirm">
@@ -58,7 +59,6 @@ export default {
     }
   },
   watch: {
-    // 每次打開時重新拉學生列表
     modelValue(val) {
       if (val) this.loadStudents()
     }
@@ -70,11 +70,10 @@ export default {
         const res = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS)
         if (res.data.code === 200 && res.data.data?.length > 0) {
           this.studentRelations = res.data.data
-          // 預選當前學生
-          const savedId = localStorage.getItem('currentStudentUserId')
-          this.selectedId = savedId && this.studentRelations.some(r => r.studentUserId === savedId)
+          const savedId = localStorage.getItem('currentStudentId')
+          this.selectedId = savedId && this.studentRelations.some(r => r.studentId === savedId)
             ? savedId
-            : this.studentRelations[0].studentUserId
+            : this.studentRelations[0].studentId
         } else {
           this.studentRelations = []
         }
@@ -90,7 +89,7 @@ export default {
     },
 
     async confirm() {
-      const rel = this.studentRelations.find(r => r.studentUserId === this.selectedId)
+      const rel = this.studentRelations.find(r => r.studentId === this.selectedId)
       if (!rel) {
         ElMessage.warning('請選擇一個學生')
         return
@@ -98,20 +97,24 @@ export default {
       this.confirming = true
       try {
         const res = await service.post(API_ENDPOINTS.SWITCH_STUDENT, {
-          studentName: rel.studentName,
-          studentUserId: rel.studentUserId
+          studentId: rel.studentId
         })
         if (res.data.code === 200) {
-          // 更新 localStorage
-          localStorage.setItem('currentStudentUserId', rel.studentUserId)
+          localStorage.setItem('currentStudentId', rel.studentId)
           localStorage.setItem('currentStudentName', rel.studentName)
+          localStorage.setItem('currentStudentClassSection', rel.classSection || '')
+          localStorage.setItem('currentStudentProfileNumber', rel.studentProfileNumber || '')
           ElMessage.success({
             message: '已切換至 ' + rel.studentName,
             duration: 1000
           })
           this.close()
-          // 通知父元件
-          this.$emit('switched', { studentUserId: rel.studentUserId, studentName: rel.studentName })
+          this.$emit('switched', {
+            studentId: rel.studentId,
+            studentName: rel.studentName,
+            classSection: rel.classSection || '',
+            studentProfileNumber: rel.studentProfileNumber || ''
+          })
         } else {
           ElMessage.error(res.data.msg || '切換學生失敗')
         }
@@ -126,156 +129,198 @@ export default {
 </script>
 
 <style scoped>
-/* 遮罩 */
 .ssd-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(15, 23, 42, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
-/* 彈窗主體 */
 .ssd-dialog {
-  background: white;
-  border-radius: 20px;
-  width: 88%;
-  max-width: 340px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  border-radius: 18px;
+  width: 78%;
+  max-width: 320px;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
   overflow: hidden;
-  animation: ssdScaleIn 0.28s cubic-bezier(0.23, 1, 0.32, 1);
+  animation: ssdScaleIn 0.22s ease-out;
 }
 
 @keyframes ssdScaleIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
+  from { transform: scale(0.94) translateY(8px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* 標題欄 */
 .ssd-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  padding: 18px 20px;
+  padding: 20px 22px 16px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-bottom: 1px solid #dbeafe;
 }
 
 .ssd-title {
   margin: 0;
-  color: white;
+  color: #0f172a;
   font-size: 18px;
   font-weight: 700;
 }
 
 .ssd-close-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  font-size: 20px;
-  width: 32px;
-  height: 32px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 18px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
   line-height: 1;
+  transition: background 0.15s;
 }
 
 .ssd-close-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: #fef2f2;
+  border-color: #f87171;
+  color: #b91c1c;
 }
 
-/* 學生列表區 */
 .ssd-body {
-  padding: 16px;
+  padding: 14px 16px;
   max-height: 50vh;
   overflow-y: auto;
 }
 
 .ssd-option {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: 12px;
+  column-gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s, box-shadow 0.15s;
   margin-bottom: 8px;
-  border: 2px solid transparent;
   background: #f8fafc;
+  box-shadow: inset 0 0 0 1px #e2e8f0;
 }
 
-.ssd-option:last-child { margin-bottom: 0; }
+.ssd-option:last-child {
+  margin-bottom: 0;
+}
 
 .ssd-option:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: #f1f5f9;
 }
 
 .ssd-option--active {
   background: #eff6ff;
-  border-color: #3b82f6;
+  box-shadow: inset 0 0 0 2px #3b82f6;
 }
 
-.ssd-avatar { font-size: 22px; }
+.ssd-class-slot {
+  justify-self: start;
+  min-width: 0;
+}
+
+.ssd-class {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  line-height: 1.3;
+  white-space: nowrap;
+}
 
 .ssd-name {
-  flex: 1;
+  text-align: center;
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.ssd-check-slot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  justify-self: end;
 }
 
 .ssd-check {
-  color: #2563eb;
-  font-size: 18px;
-  font-weight: 800;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .ssd-empty {
   text-align: center;
   color: #94a3b8;
-  padding: 24px 0;
-  font-size: 15px;
+  padding: 28px 0;
+  font-size: 14px;
 }
 
-/* 底部按鈕 */
 .ssd-footer {
   display: flex;
   gap: 12px;
-  padding: 16px;
-  border-top: 1px solid #f1f5f9;
+  padding: 14px 20px 18px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-top: 1px solid #dbeafe;
 }
 
 .ssd-btn {
   flex: 1;
   padding: 13px;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s, opacity 0.15s;
 }
 
 .ssd-btn--cancel {
-  background: #f1f5f9;
-  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #93c5fd;
+  color: #1e40af;
 }
 
-.ssd-btn--cancel:active { background: #e2e8f0; }
+.ssd-btn--cancel:active {
+  background: #eff6ff;
+  border-color: #60a5fa;
+}
 
 .ssd-btn--confirm {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  border: 1px solid #1d4ed8;
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
 }
 
 .ssd-btn--confirm:active,
-.ssd-btn--confirm:disabled { opacity: 0.8; transform: scale(0.98); }
+.ssd-btn--confirm:disabled {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
 </style>

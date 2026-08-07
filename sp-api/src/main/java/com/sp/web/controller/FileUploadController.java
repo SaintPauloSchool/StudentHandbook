@@ -51,13 +51,13 @@ public class FileUploadController extends BaseController {
     /**
      * 通用文件上傳
      * @param file 上傳的文件
-     * @param studentUserId 學生用戶ID（可選，如果不傳則使用默認學生）
+     * @param studentId 學籍 student_id（必填）
      * @return 文件訪問URL
      */
     @Log(title = "文件上傳", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult uploadFile(@RequestParam("file") MultipartFile file,
-                                 @RequestParam(value = "studentUserId", required = false) String studentUserId,
+                                 @RequestParam(value = "studentId", required = false) String studentId,
                                  HttpServletRequest request) {
 
         // ── 驗證：檔案不能為空 ──
@@ -99,8 +99,8 @@ public class FileUploadController extends BaseController {
             String renamedFileName = null;
 
             if (StringUtils.isNotEmpty(parentUserId)) {
-                // 構建自定義文件名，傳入studentUserId
-                renamedFileName = fileUploadHandler.buildCustomFileName(parentUserId, studentUserId);
+                // 構建自定義文件名，傳入studentId
+                renamedFileName = fileUploadHandler.buildCustomFileName(parentUserId, studentId);
                 if (StringUtils.isNotEmpty(renamedFileName)) {
                     filePath = FileUploadUtils.uploadWithCustomName(file, renamedFileName);
                 } else {

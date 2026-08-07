@@ -3,45 +3,27 @@ package com.sp.system.service;
 import com.sp.system.entity.NotificationAnswer;
 import com.sp.system.entity.vo.AnswerItemVO;
 
-import java.util.List;
-
 /**
- * 通知回答Service接口
+ * 通知回答服務
  */
 public interface INotificationAnswerService {
-    
+
     /**
-     * 將前端傳來的答案數據轉換爲實體對象並保存
-     * @param answerData 前端傳來的答案數據（單個問題）
-     * @param userId 用戶ID（parentUserId）
-     * @param userType 用戶類型
-     * @param studentUserId 學生用戶ID
-     * @return 插入記錄數
-     * @throws RuntimeException 如果學生已經回答過該問題
+     * 提交家長對通知問題的單條回答
+     *
+     * @param answerData 單條回答
+     * @param userId     當前登入家長的 user_id
+     * @param studentId  學籍 student_id
+     * @return 成功插入的記錄數
      */
-    int submitAnswers(AnswerItemVO answerData, String userId, String userType, String studentUserId);
-    
+    int submitAnswers(AnswerItemVO answerData, String userId, String studentId);
+
     /**
-     * 根據家長ID獲取對應的學生ID
-     * @param parentUserId 家長用戶ID
-     * @return 學生用戶ID（如果有多個學生，返回第一個）
+     * 查詢學生在指定通知下的回答（取第一條，適用於單問題通知）
+     *
+     * @param notificationId 通知 ID
+     * @param studentId      學籍 student_id
+     * @return 回答記錄；無數據時返回 null
      */
-    String getStudentUserIdByParentId(String parentUserId);
-    
-    /**
-     * 檢查學生是否已回答該通知的問題
-     * @param notificationId 通知ID
-     * @param questionId 問題ID
-     * @param studentUserId 學生用戶ID
-     * @return true-已回答，false-未回答
-     */
-    boolean checkStudentAnswerExists(Long notificationId, Long questionId, String studentUserId);
-    
-    /**
-     * 查詢用戶對該通知的回答（只有一條記錄）
-     * @param notificationId 通知ID
-     * @param studentUserId 學生用戶ID
-     * @return 答案對象（只有一條記錄）
-     */
-    NotificationAnswer getUserAnswer(Long notificationId, String studentUserId);
+    NotificationAnswer getUserAnswer(Long notificationId, String studentId);
 }
