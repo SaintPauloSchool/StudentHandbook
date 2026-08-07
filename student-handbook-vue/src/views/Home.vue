@@ -3,10 +3,11 @@
 
     <!-- 頂部學生資訊欄：固定在頁面最上方，左姓名右切換 -->
     <div class="student-top-bar" v-if="(userType === 0 || userType === 1) && currentStudentName">
-      <div class="student-name-area">
-        <el-icon class="student-avatar-icon"><User /></el-icon>
-        <span class="student-name-text">{{ currentStudentName }}</span>
-      </div>
+      <StudentChip
+        chip-class="student-top-bar-chip"
+        :name="currentStudentName"
+        :class-section="currentStudentClassSection"
+      />
       <button class="switch-student-btn" @click="openStudentSwitchDialog">切換學生</button>
     </div>
 
@@ -35,6 +36,15 @@
           </div>
         </button>
         <span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+      </div>
+
+      <div class="button-wrapper" v-if="userType === 0 || userType === 1 || userType === null">
+        <button class="feature-button attendance-button" @click="goToAttendance">
+          <div class="button-content">
+            <span class="button-icon">🕐</span>
+            <span class="button-text">考勤記錄</span>
+          </div>
+        </button>
       </div>
 
       <div class="button-wrapper" v-if="userType === 0 || userType === 1 || userType === null">
@@ -72,19 +82,21 @@ import {ElMessage} from 'element-plus'
 import settings from '@/config/settings'
 import { API_ENDPOINTS, baseURL } from '@/config/api.js'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
-import { User } from '@element-plus/icons-vue'
+import StudentChip from '@/components/StudentChip.vue'
 import { isWeChatEnv, saveTokenFromUrl } from '@/utils/wechat.js'
 
 export default {
   name: 'Home',
-  components: { StudentSwitchDialog, User },
+  components: { StudentSwitchDialog, StudentChip },
   data() {
     const cachedUserType = localStorage.getItem('userType');
     return {
       unreadCount: 0,
       isNavigatingToCampus: false,
       userType: cachedUserType !== null ? parseInt(cachedUserType) : null,
-      currentStudentName: localStorage.getItem('currentStudentName') || '', // 當前學生姓名
+      currentStudentName: localStorage.getItem('currentStudentName') || '',
+      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
+      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
       studentDialogVisible: false, // 切換彈窗是否顯示
       version: settings.version // 系統版本號
     }
@@ -102,7 +114,7 @@ export default {
     // ① 先確保默認學生 ID 已存入 localStorage（首次登入時 localStorage 中尚無記錄）
     await this.ensureDefaultStudent();
 
-    // ② 有了正確的 studentUserId 後，再拉未讀數，確保數字對應正確的學生
+    // ② 有了正確的 studentId 後，再拉未讀數，確保數字對應正確的學生
     await this.fetchUnreadCount();
 
     // 獲取使用者資訊（包含 userType）
@@ -161,11 +173,11 @@ export default {
     // ① 首次登入時，確保默認學生已嵌入 localStorage，並同步顯示姓名
     async ensureDefaultStudent() {
       // 如果已經有緬存的學生 ID，直接同步姓名後返回
-      if (localStorage.getItem('currentStudentUserId')) {
+      if (localStorage.getItem('currentStudentId')) {
         this.currentStudentName = localStorage.getItem('currentStudentName') || '';
-        this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || '';
-        // 若只有 ID 沒有姓名，仍需拉一次列表補全
-        if (this.currentStudentName) return;
+        this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || '';
+        this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || '';
+        if (this.currentStudentName && this.currentStudentClassSection && this.currentStudentProfileNumber) return;
       }
 
       try {
@@ -173,16 +185,16 @@ export default {
         if (response.data.code === 200) {
           const relations = response.data.data;
           if (relations && relations.length > 0) {
-            this.studentRelations = relations;
-            const savedId = localStorage.getItem('currentStudentUserId');
-            const matched = savedId ? relations.find(r => r.studentUserId === savedId) : null;
+            const savedId = localStorage.getItem('currentStudentId');
+            const matched = savedId ? relations.find(r => r.studentId === savedId) : null;
             const defaultRel = matched || relations[0];
-            // 設定默認學生
             this.currentStudentName = defaultRel.studentName;
-            this.selectedStudentUserId = defaultRel.studentUserId;
-            localStorage.setItem('currentStudentUserId', defaultRel.studentUserId);
+            this.currentStudentClassSection = defaultRel.classSection || '';
+            this.currentStudentProfileNumber = defaultRel.studentProfileNumber || '';
+            localStorage.setItem('currentStudentId', defaultRel.studentId);
             localStorage.setItem('currentStudentName', defaultRel.studentName);
-            console.log('首頁初始化：設置默認學生', defaultRel.studentName);
+            localStorage.setItem('currentStudentClassSection', defaultRel.classSection || '');
+            localStorage.setItem('currentStudentProfileNumber', defaultRel.studentProfileNumber || '');
           }
         }
       } catch (error) {
@@ -203,11 +215,11 @@ export default {
     async fetchUnreadCount() {
       try {
         // 從localStorage獲取當前選中的學生ID
-        const studentUserId = localStorage.getItem('currentStudentUserId');
+        const studentId = localStorage.getItem('currentStudentId');
 
         const params = {};
-        if (studentUserId) {
-          params.studentUserId = studentUserId;
+        if (studentId) {
+          params.studentId = studentId;
         }
 
         const response = await service.get(API_ENDPOINTS.NOTICE_UNREAD_COUNT, {
@@ -250,6 +262,9 @@ export default {
     goToCalendar() {
       // 跳轉到行事曆頁面
       this.$router.push('/calendar');
+    },
+    goToAttendance() {
+      this.$router.push('/attendance');
     },
     async goToCampusSystem() {
       // 跳轉到校園系統（在新分頁開啟），並帶上 token
@@ -313,6 +328,8 @@ export default {
     // 處理學生切換事件（其他頁面發出的）
     handleStudentChanged() {
       this.currentStudentName = localStorage.getItem('currentStudentName') || '';
+      this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || '';
+      this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || '';
       console.log('學生已切換，重新獲取未讀通知數量');
       this.fetchUnreadCount();
     },
@@ -323,8 +340,10 @@ export default {
     },
 
     // StudentSwitchDialog 切換成功後的回調
-    onStudentSwitched({ studentName }) {
+    onStudentSwitched({ studentName, classSection, studentProfileNumber }) {
       this.currentStudentName = studentName;
+      this.currentStudentClassSection = classSection || localStorage.getItem('currentStudentClassSection') || '';
+      this.currentStudentProfileNumber = studentProfileNumber || localStorage.getItem('currentStudentProfileNumber') || '';
       this.fetchUnreadCount();
     },
   }
@@ -340,7 +359,7 @@ export default {
   min-height: 100vh;
   width: 100%;
   background: #f8fafc;
-  padding: 56px 24px 40px; /* top 留給固定頂部欄的空間 */
+  padding: 96px 24px 40px; /* top 留給固定頂部欄的空間 */
   box-sizing: border-box;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -358,43 +377,19 @@ export default {
   background: white;
   border-bottom: 1.5px solid rgba(64, 158, 255, 0.18);
   box-shadow: 0 2px 12px rgba(26, 115, 232, 0.08);
-  padding: 0 10px;
-  height: 48px;
+  padding: 14px 16px;
+  min-height: 88px;
+  height: auto;
   box-sizing: border-box;
 }
 
-.student-name-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  color: #2563eb;
-  border: 1.5px solid rgba(37, 99, 235, 0.35);
-  user-select: none;
-  overflow: hidden;
-}
-
-.student-avatar-icon {
-  font-size: 15px;
-  flex-shrink: 0;
-  color: #1e293b;
-}
-
-.student-name-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.student-top-bar :deep(.student-top-bar-chip) {
+  padding: 8px 12px;
 }
 
 .switch-student-btn {
   margin-right: 0;
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
@@ -577,6 +572,12 @@ export default {
   background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(238, 90, 36, 0.25);
+}
+
+.attendance-button {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+  box-shadow: 0 8px 24px rgba(109, 40, 217, 0.25);
 }
 
 /* 動畫效果 */

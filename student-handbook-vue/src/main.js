@@ -16,7 +16,7 @@ app.use(ElementPlus, {
 
 router.beforeEach((to, from, next) => {
     if (settings.enableTokenAuth) {
-        const publicPages = ['/', '/login', '/register']
+        const publicPages = ['/', '/login']
         const isPublicPage = publicPages.includes(to.path)
         const token = localStorage.getItem('token')
 

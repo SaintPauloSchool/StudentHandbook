@@ -7,6 +7,7 @@ const apiEndpoints = {
     STUDENT_HANDBOOK_NEXT_SEVEN_DAYS: '/system/handbook/nextSevenDays',
     STUDENT_HANDBOOK_STUDENTS: '/system/handbook/students',
     SWITCH_STUDENT: '/system/handbook/switchStudent',
+    STUDENT_ATTENDANCE: '/system/handbook/attendance',
     NOTICE_LIST: '/system/notice/list',
     NOTICE_DETAIL: '/system/notice',
     NOTICE_MARK_READ: '/system/notice',  // POST /{id}/read
@@ -34,7 +35,3 @@ for (const [key, value] of Object.entries(apiEndpoints)) {
 export { baseURL };
 
 export {API_ENDPOINTS};
-
-export default {
-    API_ENDPOINTS
-};

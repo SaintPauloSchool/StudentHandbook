@@ -16,33 +16,24 @@ import java.util.List;
 public interface INotificationUserReadRecordService {
 
     /**
-     * 分頁查詢發送給當前用戶的已發布通知列表（附帶閱讀狀態）
+     * 查詢發送給當前用戶的已發布通知列表（附帶閱讀狀態）
+     * <p>
+     * 分頁由調用方通過 PageHelper（startPage）控制。
      *
-     * @param pageNum  頁碼（從 1 開始）
-     * @param pageSize 每頁數量
-     * @param userId   當前家長用戶ID
-     * @param studentUserId 學生用戶ID（可爲null）
+     * @param userId    當前家長用戶ID
+     * @param studentId 學生ID（可爲null）
      * @return 通知列表（含 isRead、readId、sendRecordId 字段）
      */
-    List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId, String studentUserId);
-
-    /**
-     * 查詢發送給當前用戶的已發布通知總數
-     *
-     * @param userId 當前家長用戶ID
-     * @param studentUserId 學生用戶ID（可爲null）
-     * @return 總數
-     */
-    int countPublishedNotificationsForUser(String userId, String studentUserId);
+    List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(String userId, String studentId);
 
     /**
      * 查詢發送給當前用戶的未讀通知數量
      *
      * @param userId 當前家長用戶ID
-     * @param studentUserId 學生用戶ID（可爲null）
+     * @param studentId 學籍 student_id（可爲null）
      * @return 未讀數量
      */
-    int countUnreadNotificationsForUser(String userId, String studentUserId);
+    int countUnreadNotificationsForUser(String userId, String studentId);
 
     /**
      * 將指定通知對當前用戶標記爲已讀
@@ -52,9 +43,9 @@ public interface INotificationUserReadRecordService {
      *
      * @param notificationId 通知ID
      * @param userId         當前家長用戶ID
-     * @param studentUserId  學生用戶ID（可爲null）
+     * @param studentId  學籍 student_id（可爲null）
      */
-    void markAsRead(Long notificationId, String userId, String studentUserId);
+    void markAsRead(Long notificationId, String userId, String studentId);
 
     /**
      * 將指定通知對當前用戶標記爲已回復
@@ -64,7 +55,7 @@ public interface INotificationUserReadRecordService {
      *
      * @param notificationId 通知ID
      * @param userId         當前家長用戶ID
-     * @param studentUserId  學生用戶ID
+     * @param studentId  學籍 student_id
      */
-    void markAsReplied(Long notificationId, String userId, String studentUserId);
+    void markAsReplied(Long notificationId, String userId, String studentId);
 }

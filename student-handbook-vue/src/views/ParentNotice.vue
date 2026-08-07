@@ -3,14 +3,17 @@
     <!-- 頂部導航欄 -->
     <div class="header">
       <div class="header-left">
-        <div class="student-name-display">
-          <el-icon class="user-icon"><User /></el-icon>
-          {{ currentStudentName || '未選擇學生' }}
-        </div>
         <button class="back-button" @click="goBack">
           <el-icon class="back-icon"><HomeFilled /></el-icon>
           返回首頁
         </button>
+      </div>
+      <div class="header-center">
+        <StudentChip
+          chip-class="student-name-display"
+          :name="currentStudentName || '未選擇學生'"
+          :class-section="currentStudentClassSection"
+        />
       </div>
       <div class="header-right">
         <button class="user-switch-btn" @click="toggleUserMenu">
@@ -92,8 +95,8 @@ import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, HomeFilled, Refresh } from '@element-plus/icons-vue'
-import settings from '@/config/settings' // 導入全局配置設置
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
+import StudentChip from '@/components/StudentChip.vue'
 
 export default {
   name: 'ParentNotice',
@@ -102,7 +105,8 @@ export default {
     Clock,
     HomeFilled,
     Refresh,
-    StudentSwitchDialog
+    StudentSwitchDialog,
+    StudentChip
   },
   data() {
     return {
@@ -119,13 +123,17 @@ export default {
       // 學生選擇相關
       studentDialogVisible: false,
       currentStudentName: localStorage.getItem('currentStudentName') || '',
-      selectedStudentUserId: localStorage.getItem('currentStudentUserId') || ''
+      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
+      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
+      selectedStudentId: localStorage.getItem('currentStudentId') || ''
     }
   },
   mounted() {
     this.isInitialMount = true
-    this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
+    this.selectedStudentId = localStorage.getItem('currentStudentId') || ''
     this.currentStudentName = localStorage.getItem('currentStudentName') || ''
+    this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || ''
+    this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || ''
     this.loadNoticeList()
   },
   activated() {
@@ -138,8 +146,10 @@ export default {
     
     if (!fromPath.startsWith('/notice/')) {
       // 從首頁或其他地方進入：刷新列表並回到頂部
-      this.selectedStudentUserId = localStorage.getItem('currentStudentUserId') || ''
+      this.selectedStudentId = localStorage.getItem('currentStudentId') || ''
       this.currentStudentName = localStorage.getItem('currentStudentName') || ''
+      this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || ''
+      this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || ''
       this.savedScrollTop = 0
       this.$nextTick(() => {
         if (this.$refs.scrollContainer) {
@@ -193,18 +203,17 @@ export default {
           pageSize: this.pageSize
         }
         // 如果有選中的學生ID，添加到請求參數中
-        if (this.selectedStudentUserId) {
-          params.studentUserId = this.selectedStudentUserId
+        if (this.selectedStudentId) {
+          params.studentId = this.selectedStudentId
         }
         
         const response = await service.get(API_ENDPOINTS.NOTICE_LIST, {
           params: params
         })
-        if (response.data.code === 200) {
-          const data = response.data.data
-          const newList = data.list || []
+        if (response.data.code === 200 || response.data.code === 0) {
+          const data = response.data
+          const newList = data.rows || []
           this.total = data.total || 0
-          this.pageSize = data.pageSize || 10
 
           // 追加數據
           if (reset) {
@@ -334,15 +343,17 @@ export default {
     },
 
     // 學生切換成功的回調
-    onStudentSwitched({ studentUserId, studentName }) {
-      this.selectedStudentUserId = studentUserId;
+    onStudentSwitched({ studentId, studentName, classSection, studentProfileNumber }) {
+      this.selectedStudentId = studentId;
       this.currentStudentName = studentName || localStorage.getItem('currentStudentName') || '';
+      this.currentStudentClassSection = classSection || localStorage.getItem('currentStudentClassSection') || '';
+      this.currentStudentProfileNumber = studentProfileNumber || localStorage.getItem('currentStudentProfileNumber') || '';
       // 刷新通知列表
       this.loadNoticeList(true);
       
       // 通知父組件或全局更新未讀數量
       window.dispatchEvent(new CustomEvent('studentChanged', { 
-        detail: { studentUserId: this.selectedStudentUserId } 
+        detail: { studentId: this.selectedStudentId } 
       }));
     }
   }
@@ -351,32 +362,41 @@ export default {
 
 <style scoped>
 .notice-container {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background-color: #f5f9ff;
   padding: 0;
 }
 
 /* 頂部導航欄 */
 .header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  flex-shrink: 0;
   padding: 15px 20px;
   background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
   box-shadow: 0 4px 6px rgba(125, 211, 252, 0.2);
-  position: sticky;
-  top: 0;
   z-index: 100;
 }
 
 .header-left {
+  justify-self: start;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+}
+
+.header-center {
+  justify-self: center;
+  display: flex;
+  justify-content: center;
+  margin-left: 12px;
 }
 
 .header-right {
+  justify-self: end;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -384,18 +404,7 @@ export default {
 }
 
 .student-name-display {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  color: #1e293b;
-  border: 1.5px solid rgba(37, 99, 235, 0.35);
-  font-weight: 600;
-  font-size: 14px;
-  white-space: nowrap;
-  user-select: none;
+  max-width: 200px;
 }
 
 .back-button {
@@ -523,11 +532,15 @@ export default {
 
 /* 通知列表 */
 .notice-list {
+  flex: 1;
+  min-height: 0;
   padding: 20px 25px;
   max-width: 1200px;
   margin: 0 auto;
-  height: calc(100vh - 80px);
+  width: 100%;
+  box-sizing: border-box;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .notice-item {
@@ -790,8 +803,11 @@ export default {
   }
 
   .header-left {
-    gap: 6px;
     align-items: flex-start;
+  }
+
+  .header-center {
+    padding: 0 8px;
   }
   
   .header-right {
@@ -814,225 +830,6 @@ export default {
   .notice-content {
     font-size: 14px;
     padding: 10px;
-  }
-}
-
-/* 學生選擇項目的樣式 */
-.student-options-group {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 5px 0;
-  align-items: stretch;
-}
-
-.student-list {
-  padding: 10px;
-  border-radius: 8px;
-  background: transparent;
-  border: none; /* 移除邊框 */
-  max-height: unset; /* 移除最大高度限制 */
-  overflow-y: visible; /* 移除滾動條 */
-}
-
-.empty-student-list {
-  text-align: center;
-  padding: 20px;
-}
-
-.no-student-text {
-  font-weight: bold;
-  text-align: center;
-  font-size: 16px;
-  color: #606266;
-  margin: 0;
-}
-
-.student-item-radio {
-  display: block;
-  width: calc(100% - 20px);
-  max-width: 100%;
-  padding: 12px 16px;
-  margin: 8px 0;
-  border: 1px solid #d1e5f5; /* 添加淡藍色框線 */
-  border-radius: 8px;
-  background: transparent; /* 透明背景 */
-  transition: all 0.3s ease;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.student-item-radio:hover {
-  background: #dbeafe; /* 懸停時的淺藍色背景 */
-  border: 1px solid #3b82f6 !important; /* 懸停時的藍色邊框 */
-  color: #1e40af !important; /* 懸停時的深藍色文字 */
-  transform: translateY(-1px);
-}
-
-/* 選中狀態的樣式 */
-.student-item-radio.selected {
-  background: #2563eb !important; /* 選中時的深藍色背景 */
-  border: 2px solid #1d4ed8 !important; /* 選中時的深藍色邊框 */
-  color: white !important; /* 選中時的白色文字 */
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
-  transform: translateY(-2px);
-}
-
-.student-item-radio.selected .student-name {
-  color: white !important;
-  font-weight: 700 !important;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5) !important;
-}
-
-.student-name {
-  font-size: 16px;
-  color: #374151; /* 默認深灰色文字 */
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.dialog-cancel-btn {
-  background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%) !important;
-  border: none !important;
-  color: #1e40af !important;
-  font-weight: 600;
-  padding: 12px 24px !important;
-  font-size: 14px !important;
-  min-width: 100px;
-  margin: 0 8px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2) !important;
-  border-radius: 8px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.dialog-cancel-btn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
-}
-
-.dialog-confirm-btn {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
-  border: none !important;
-  color: white !important;
-  font-weight: 600;
-  padding: 12px 24px !important;
-  font-size: 14px !important;
-  min-width: 100px;
-  margin: 0 8px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2) !important;
-  border-radius: 8px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.dialog-confirm-btn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
-}
-
-/* 自定義模態對話框樣式 */
-.custom-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(12, 74, 160, 0.6) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(8px);
-}
-
-.custom-student-dialog {
-  background: transparent;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  width: 30%;
-  max-width: 90%;
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.modal-header {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-  padding: 20px;
-  border-radius: 16px 16px 0 0;
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  color: white;
-  font-weight: 700;
-  font-size: 18px;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.3s;
-}
-
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.student-selection-content {
-  padding: 25px;
-  background: transparent;
-  color: white;
-}
-
-.modal-footer {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 20px;
-  padding: 0 25px 25px;
-}
-
-/* 手機端適配 */
-@media (max-width: 768px) {
-  .custom-student-dialog {
-    width: 90%;
   }
 }
 </style>

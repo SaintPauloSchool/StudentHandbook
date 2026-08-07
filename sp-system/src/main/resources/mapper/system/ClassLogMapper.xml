@@ -20,42 +20,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT id, student_class, teacher, course, course_type, content, start_date, end_date, update_date
         FROM class_log
     </sql>
-    
-    <select id="selectClassLogsByIds" parameterType="java.util.List" resultMap="ClassLogResult">
-        <include refid="selectClassLogVo"/>
-        WHERE id IN
-        <foreach collection="ids" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </select>
-    
-    <insert id="insertClassLog" parameterType="com.sp.system.entity.ClassLog">
-        INSERT INTO class_log (id, student_class, teacher, course, course_type, content, start_date, end_date, update_date)
-        VALUES (#{id}, #{studentClass}, #{teacher}, #{course}, #{courseType}, #{content}, #{startDate}, #{endDate}, #{updateDate})
-    </insert>
-    
-    <update id="updateClassLogById" parameterType="com.sp.system.entity.ClassLog">
-        UPDATE class_log
-        SET 
-            student_class = #{studentClass},
-            teacher = #{teacher},
-            course = #{course},
-            course_type = #{courseType},
-            content = #{content},
-            start_date = #{startDate},
-            end_date = #{endDate},
-            update_date = #{updateDate}
-        WHERE id = #{id}
-    </update>
-    
-    <select id="selectClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
-        <include refid="selectClassLogVo"/>
-        WHERE student_class = #{studentClass}
-        AND DATE(start_date) >= CURDATE()
-        AND course_type IN ('功課', '測驗')
-        ORDER BY start_date
-    </select>
-    
+
     <select id="selectPastMonthClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
         <include refid="selectClassLogVo"/>
         WHERE student_class = #{studentClass}
@@ -63,7 +28,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         AND course_type IN ('功課', '測驗')
         ORDER BY start_date DESC
     </select>
-    
+
     <select id="selectTodayClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
         <include refid="selectClassLogVo"/>
         WHERE student_class = #{studentClass}
@@ -71,7 +36,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         AND course_type IN ('功課', '測驗')
         ORDER BY start_date
     </select>
-    
+
     <select id="selectNextSevenDaysClassLogByStudentClass" parameterType="java.lang.String" resultMap="ClassLogResult">
         <include refid="selectClassLogVo"/>
         WHERE student_class = #{studentClass}
@@ -79,12 +44,5 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         AND course_type IN ('功課', '測驗')
         ORDER BY start_date
     </select>
-    
-    <select id="selectClassLogByIdAndStudentClass" parameterType="map" resultMap="ClassLogResult">
-        <include refid="selectClassLogVo"/>
-        WHERE id = #{id}
-        AND student_class = #{studentClass}
-        AND course_type IN ('功課', '測驗')
-        LIMIT 1
-    </select>
+
 </mapper>

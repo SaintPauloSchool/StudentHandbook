@@ -7,8 +7,8 @@ sp:
   # 文件上傳路徑（Linux服務器）
   profile: /usr/local/upload
   frontend:
-    url: http://localhost:3000/
-    #url: http://10.32.96.55:8082
+    #url: http://localhost:3000/
+    url: http://10.32.96.55:8082
 
 spring:
   datasource:
@@ -59,6 +59,12 @@ spring:
         url: 
         username: 
         password: 
+      # 學籍庫（student_info 表）
+      student-profiles:
+        enabled: true
+        url: jdbc:mysql://10.32.96.45:3306/student_profiles?useSSL=false&serverTimezone=Asia/Taipei&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&autoReconnect=true&failOverReadOnly=false&maxReconnects=10&initialTimeout=2&connectTimeout=60000&socketTimeout=60000
+        username: dba_user
+        password: StrongP@ssw0rd
       webStatFilter: 
         enabled: false
       statViewServlet:

@@ -17,12 +17,12 @@ public interface NotificationUserReadRecordMapper {
      *
      * @param notificationId 通知ID
      * @param userId         用戶ID
-     * @param studentUserId  學生用戶ID（可爲null）
+     * @param studentId  學籍 student_id（可爲null）
      * @return 閱讀記錄；若不存在則返回null
      */
     NotificationUserReadRecord selectByNotificationAndUser(@Param("notificationId") Long notificationId,
                                                            @Param("userId") String userId,
-                                                           @Param("studentUserId") String studentUserId);
+                                                           @Param("studentId") String studentId);
 
     /**
      * 將指定記錄標記爲已讀
@@ -43,35 +43,24 @@ public interface NotificationUserReadRecordMapper {
     int markAsReplied(@Param("readId") Long readId, @Param("replyTime") LocalDateTime replyTime);
 
     /**
-     * 分頁查詢已發布通知列表（僅返回發送給當前用戶的通知，附帶閱讀狀態）
+     * 查詢已發布通知列表（僅返回發送給當前用戶的通知，附帶閱讀狀態）
+     * <p>
+     * 分頁由 PageHelper 攔截處理，勿在 SQL 中手動 LIMIT。
      *
-     * @param offset 偏移量
-     * @param limit  每頁數量
-     * @param userId 當前家長用戶ID
-     * @param studentUserId 學生用戶ID（可爲null）
+     * @param userId    當前家長用戶ID
+     * @param studentId 學生ID（可爲null）
      * @return 通知列表（含 isRead、readId、sendRecordId 字段）
      */
     List<NotificationWithReadStatusVO> selectPublishedNotificationsForUser(
-            @Param("offset") int offset,
-            @Param("limit") int limit,
             @Param("userId") String userId,
-            @Param("studentUserId") String studentUserId);
-
-    /**
-     * 查詢發送給當前用戶的已發布通知總數
-     *
-     * @param userId 當前家長用戶ID
-     * @param studentUserId 學生用戶ID（可爲null）
-     * @return 總數
-     */
-    int countPublishedNotificationsForUser(@Param("userId") String userId, @Param("studentUserId") String studentUserId);
+            @Param("studentId") String studentId);
 
     /**
      * 查詢發送給當前用戶的未讀通知數量
      *
      * @param userId 當前家長用戶ID
-     * @param studentUserId 學生用戶ID（可爲null）
+     * @param studentId 學籍 student_id（可爲null）
      * @return 未讀數量
      */
-    int countUnreadNotificationsForUser(@Param("userId") String userId, @Param("studentUserId") String studentUserId);
+    int countUnreadNotificationsForUser(@Param("userId") String userId, @Param("studentId") String studentId);
 }

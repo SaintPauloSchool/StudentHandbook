@@ -10,15 +10,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="questionId" column="question_id"/>
         <result property="answerData" column="answer_data"/>
         <result property="userId" column="user_id"/>
-        <result property="userType" column="user_type"/>
+        <result property="studentId" column="student_id"/>
         <result property="createTime" column="create_time"/>
     </resultMap>
 
-    <!-- 批量插入答案（INSERT IGNORE 防止並發重複提交）-->
+    <!-- 批量插入回答（業務層通常單條提交） -->
     <insert id="batchInsertAnswers" parameterType="java.util.List">
-        INSERT IGNORE INTO notification_answer (
+        INSERT INTO notification_answer (
             notification_id, question_id, answer_data,
-            user_id, user_type, student_user_id, create_time
+            user_id, student_id, create_time
         ) VALUES
         <foreach collection="answers" item="item" separator=",">
             (
@@ -26,29 +26,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 #{item.questionId},
                 #{item.answerData},
                 #{item.userId},
-                #{item.userType},
-                #{item.studentUserId},
+                #{item.studentId},
                 #{item.createTime}
             )
         </foreach>
     </insert>
-    
-    <!-- 查詢用戶對該通知的回答（使用student_user_id） -->
-    <select id="selectUserAnswers" resultMap="NotificationAnswerResult">
-        SELECT answer_id, notification_id, question_id, answer_data, user_id, user_type, student_user_id, create_time
+
+    <!-- 提交前查重：同一學生對同一問題只能回答一次 -->
+    <select id="countByNotificationQuestionStudent" resultType="int">
+        SELECT COUNT(1)
         FROM notification_answer
         WHERE notification_id = #{notificationId}
-        AND student_user_id = #{userId}
-        ORDER BY question_id, answer_id
+          AND question_id = #{questionId}
+          AND student_id = #{studentId}
     </select>
-    
-    <!-- 檢查學生是否已回答該問題 -->
-    <select id="checkStudentAnswerExists" resultType="int">
-        SELECT COUNT(*)
+
+    <!-- 按通知 + 學生查詢全部回答 -->
+    <select id="selectUserAnswers" resultMap="NotificationAnswerResult">
+        SELECT answer_id, notification_id, question_id, answer_data, user_id, student_id, create_time
         FROM notification_answer
         WHERE notification_id = #{notificationId}
-        AND question_id = #{questionId}
-        AND student_user_id = #{studentUserId}
+          AND student_id = #{studentId}
+        ORDER BY question_id, answer_id
     </select>
 
 </mapper>

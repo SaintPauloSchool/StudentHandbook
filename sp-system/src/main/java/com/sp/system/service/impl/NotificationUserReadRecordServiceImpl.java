@@ -11,7 +11,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 通知用戶閱讀記錄 Service 實現類
+ * 通知用戶閱讀記錄 Service 實現
+ * <p>
+ * 以 notification_user_read_record 為驅動，查詢發送給家長的通知及閱讀/回覆狀態。
+ * 閱讀記錄在通知發送時創建，標記已讀/已回覆僅做更新。
  */
 @Service
 public class NotificationUserReadRecordServiceImpl implements INotificationUserReadRecordService {
@@ -20,28 +23,27 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
     private NotificationUserReadRecordMapper notificationUserReadRecordMapper;
 
     /**
-     * 分頁查詢發送給當前用戶的已發布通知列表（附帶閱讀狀態）
+     * 查詢發送給當前家長的已發布通知列表（附帶閱讀狀態）
+     * <p>
+     * 分頁由調用方通過 PageHelper 控制；studentId 為空時不過濾學生。
+     *
+     * @param userId    家長 user_id
+     * @param studentId 學籍 student_id，可選
      */
     @Override
-    public List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(int pageNum, int pageSize, String userId, String studentUserId) {
-        int offset = (pageNum - 1) * pageSize;
-        return notificationUserReadRecordMapper.selectPublishedNotificationsForUser(offset, pageSize, userId, studentUserId);
+    public List<NotificationWithReadStatusVO> getPublishedNotificationsForUser(String userId, String studentId) {
+        return notificationUserReadRecordMapper.selectPublishedNotificationsForUser(userId, studentId);
     }
 
     /**
-     * 查詢發送給當前用戶的已發布通知總數
+     * 統計未讀通知數量
+     *
+     * @param userId    家長 user_id
+     * @param studentId 學籍 student_id，可選；為空時統計全部學生
      */
     @Override
-    public int countPublishedNotificationsForUser(String userId, String studentUserId) {
-        return notificationUserReadRecordMapper.countPublishedNotificationsForUser(userId, studentUserId);
-    }
-
-    /**
-     * 查詢發送給當前用戶的未讀通知數量
-     */
-    @Override
-    public int countUnreadNotificationsForUser(String userId, String studentUserId) {
-        return notificationUserReadRecordMapper.countUnreadNotificationsForUser(userId, studentUserId);
+    public int countUnreadNotificationsForUser(String userId, String studentId) {
+        return notificationUserReadRecordMapper.countUnreadNotificationsForUser(userId, studentId);
     }
 
     /**
@@ -51,10 +53,10 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
      * （閱讀記錄由發送時創建，此處不自動插入）。
      */
     @Override
-    public void markAsRead(Long notificationId, String userId, String studentUserId) {
+    public void markAsRead(Long notificationId, String userId, String studentId) {
         // 查詢對應的閱讀記錄
         NotificationUserReadRecord record =
-                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
+                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentId);
         // 若存在且爲未讀則更新
         if (record != null && "0".equals(record.getIsRead())) {
             notificationUserReadRecordMapper.markAsRead(record.getReadId(), LocalDateTime.now());
@@ -67,10 +69,10 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
      * 查詢對應的閱讀記錄，若存在且爲未回復則更新 reply_status='1' 與 reply_time；否則忽略。
      */
     @Override
-    public void markAsReplied(Long notificationId, String userId, String studentUserId) {
-        // 查詢對應的閱讀記錄（根據userId和studentUserId）
+    public void markAsReplied(Long notificationId, String userId, String studentId) {
+        // 查詢對應的閱讀記錄（根據userId和studentId）
         NotificationUserReadRecord record =
-                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentUserId);
+                notificationUserReadRecordMapper.selectByNotificationAndUser(notificationId, userId, studentId);
         // 若存在且爲未回復則更新
         if (record != null && "0".equals(record.getReplyStatus())) {
             notificationUserReadRecordMapper.markAsReplied(record.getReadId(), LocalDateTime.now());

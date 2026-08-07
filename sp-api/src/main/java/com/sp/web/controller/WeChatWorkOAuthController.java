@@ -6,7 +6,7 @@ import com.sp.common.utils.WeChatWorkOAuth2Utils;
 import com.alibaba.fastjson.JSONObject;
 
 import com.sp.system.service.TokenService;
-import com.sp.system.service.DepartmentParentBindingService;
+import com.sp.system.service.ISchoolFamilyContactService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class WeChatWorkOAuthController extends BaseController {
     private TokenService tokenService;
 
     @Autowired
-    private DepartmentParentBindingService departmentParentBindingService;
+    private ISchoolFamilyContactService schoolFamilyContactService;
 
     @Value("${sp.token.parentUserId}")
     private String devParentUserId;
@@ -106,40 +106,47 @@ public class WeChatWorkOAuthController extends BaseController {
                 }
             }
 
-            // 第一步：嘗試獲取家校用戶信息（家長或學生）
+            // OAuth code 只能用一次：只呼叫 school/getuserinfo，禁止再用同一 code 呼叫 auth/getuserinfo（否則 40029 invalid code）
+            logger.info("呼叫微信 school/getuserinfo（code 僅此一次）");
             JSONObject userInfo = weChatWorkOAuth2Utils.getSchoolUserInfo(code);
-            logger.info("獲取企業微信家校用戶信息，用戶userInfo: {}", userInfo);
+            logger.info("school/getuserinfo 結果: {}", userInfo);
+
+            Integer schoolErr = userInfo.getInteger("errcode");
+            if (schoolErr != null && schoolErr != 0) {
+                logger.error("school/getuserinfo 失敗, errcode={}, errmsg={}",
+                        schoolErr, userInfo.getString("errmsg"));
+                redirectToFrontend(response, "/login?error=user_info_failed&message=" +
+                        URLEncoder.encode("微信授權失敗，請重新進入系統", "UTF-8"));
+                return;
+            }
 
             String userId = null;
             int userType = -1; // -1 表示未找到有效用戶
 
-            // 檢查是否包含家校用戶ID（家長或學生）
-            if (userInfo.containsKey("parent_userid") || userInfo.containsKey("student_userid")) {
-                // 獲取家校用戶信息成功
-                userId = userInfo.containsKey("parent_userid") ? userInfo.getString("parent_userid")
-                        : userInfo.getString("student_userid");
-                userType = userInfo.containsKey("parent_userid") ? 1 : 0;
-                logger.info("處理家校授權用戶，用戶ID: {}, 類型: {}", userId, userType == 1 ? "家長" : "學生");
+            if (userInfo.containsKey("parent_userid")) {
+                userId = userInfo.getString("parent_userid");
+                userType = 1;
+                logger.info("識別為家長, userId={}", userId);
+            } else if (userInfo.containsKey("student_userid")) {
+                userId = userInfo.getString("student_userid");
+                userType = 0;
+                logger.info("識別為學生, userId={}", userId);
             } else {
-                // 第二步：如果不是家校用戶，嘗試獲取企業微信員工信息
-                logger.info("未找到家校用戶信息，嘗試獲取企業微信員工信息");
-                JSONObject employeeInfo = weChatWorkOAuth2Utils.getAuthUserInfo(code);
-                logger.info("獲取企業微信員工信息，員工info: {}", employeeInfo);
-
-                // 檢查是否獲取成功且狀態爲1（已激活）
-                if (employeeInfo.getInteger("errcode") == 0 && employeeInfo.containsKey("userid")) {
-                    // 獲取狀態
-                    Integer status = employeeInfo.getInteger("status");
-                    // 是否已激活
-                    if (status != null && status == 1) {
-                        userId = employeeInfo.getString("userid");
-                        userType = 2; // 員工類型爲2
-                        logger.info("處理企業微信員工授權，用戶ID: {}, 狀態: 已激活", userId);
-                    } else {
-                        logger.warn("企業微信員工狀態異常，status: {}", status);
-                    }
+                // 部分場景企業成員會在家校接口帶回 userid/UserId（不再二次消耗 code）
+                String staffId = userInfo.getString("userid");
+                if (staffId == null || staffId.isEmpty()) {
+                    staffId = userInfo.getString("UserId");
+                }
+                if (staffId != null && !staffId.isEmpty()) {
+                    userId = staffId;
+                    userType = 2;
+                    logger.info("識別為員工(來自 school/getuserinfo), userId={}", userId);
                 } else {
-                    logger.error("獲取企業微信員工信息失敗: {}", employeeInfo.getString("errmsg"));
+                    logger.error("school/getuserinfo 未返回家長/學生/員工身份, 且不可再用同一 code 呼叫 auth/getuserinfo。完整響應: {}",
+                            userInfo);
+                    redirectToFrontend(response, "/login?error=user_info_failed&message=" +
+                            URLEncoder.encode("無法識別用戶身份，請確認已綁定家校家長後重試", "UTF-8"));
+                    return;
                 }
             }
 
@@ -158,8 +165,8 @@ public class WeChatWorkOAuthController extends BaseController {
 
             // 如果是家長用戶，驗證家長是否綁定了學生
             if (userType == 1) {
-                // 驗證家長是否綁定了學生（檢查是否在sys_department_parent_binding表中有綁定學生）
-                if (!departmentParentBindingService.checkHasBoundStudents(userId)) {
+                // 驗證家長是否已綁定學生（sys_school_family_contact）
+                if (!schoolFamilyContactService.checkHasBoundStudents(userId)) {
                     logger.warn("家長用戶 {} 不存在有效的學生關聯，授權失敗", userId);
                     // 重定向到錯誤頁面
                     redirectToFrontend(response, "/login?error=authorization_failed&message=" +
