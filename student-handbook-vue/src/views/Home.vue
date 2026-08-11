@@ -83,7 +83,7 @@ import settings from '@/config/settings'
 import { API_ENDPOINTS, baseURL } from '@/config/api.js'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 import StudentChip from '@/components/StudentChip.vue'
-import { isWeChatEnv, saveTokenFromUrl } from '@/utils/wechat.js'
+import { isWeChatEnv, saveTokenFromUrl, isCampusNoticeState, parseCampusNoticeId, buildOAuthState } from '@/utils/wechat.js'
 
 export default {
   name: 'Home',
@@ -103,24 +103,27 @@ export default {
   },
   async mounted() {
     // 檢查URL參數中是否有token（來自微信授權回調）
-    this.checkTokenFromUrl();
+    if (this.checkTokenFromUrl()) {
+      // 已跳轉校園系統，停止後續初始化
+      return;
+    }
 
     // 根據配置決定是否執行Token驗證
     if (settings.enableTokenAuth) {
-      // 檢查是否存在token，如果沒有則重定向到登錄頁面
-      this.checkToken();
+      if (!this.checkToken()) {
+        return;
+      }
     }
 
-    // ① 先確保默認學生 ID 已存入 localStorage（首次登入時 localStorage 中尚無記錄）
-    await this.ensureDefaultStudent();
+    const userType = this.userType;
+    // 職工不需要家長相關接口，避免無效請求與日誌噪音
+    if (userType !== 2) {
+      await this.ensureDefaultStudent();
+      await this.fetchUnreadCount();
+    }
 
-    // ② 有了正確的 studentId 後，再拉未讀數，確保數字對應正確的學生
-    await this.fetchUnreadCount();
-
-    // 獲取使用者資訊（包含 userType）
     await this.fetchUserInfo();
 
-    // 監聽學生切換事件
     window.addEventListener('studentChanged', this.handleStudentChanged);
   },
   beforeUnmount() {
@@ -144,17 +147,17 @@ export default {
       }
 
       const pendingCampus = sessionStorage.getItem('pendingCampusRedirect') === 'true';
-      const campusNotice = state && state.startsWith('campus_notice_');
+      const campusNotice = isCampusNoticeState(state);
       if (pendingCampus || campusNotice) {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return false;
 
         sessionStorage.removeItem('pendingCampusRedirect');
 
         let targetUrl = settings.campusSystemUrl;
         if (campusNotice) {
-          const noticeId = state.replace('campus_notice_', '');
-          if (noticeId !== 'root') {
+          const noticeId = parseCampusNoticeId(state);
+          if (noticeId && noticeId !== 'root') {
             const baseUrl = settings.campusSystemUrl.endsWith('/') ? settings.campusSystemUrl : settings.campusSystemUrl + '/';
             targetUrl = `${baseUrl}${noticeId}`;
           }
@@ -166,8 +169,9 @@ export default {
         } else {
           this.openCampusUrl(campusUrl);
         }
-        return;
+        return true;
       }
+      return false;
     },
 
     // ① 首次登入時，確保默認學生已嵌入 localStorage，並同步顯示姓名
@@ -202,13 +206,14 @@ export default {
       }
     },
 
-    // 檢查是否存在token
+    // 檢查是否存在token；無 token 時跳轉登錄並返回 false
     checkToken() {
       const token = localStorage.getItem('token');
       if (!token) {
-        // 如果沒有token，重定向到登錄頁面
         this.$router.push('/login');
+        return false;
       }
+      return true;
     },
 
     // 獲取未讀通知數量
@@ -309,7 +314,7 @@ export default {
       sessionStorage.setItem('pendingCampusRedirect', 'true');
 
       if (import.meta.env.MODE !== 'production') {
-        window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=dev';
+        window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=' + encodeURIComponent(buildOAuthState());
         return;
       }
 
@@ -322,7 +327,11 @@ export default {
       const redirectUri = encodeURIComponent(settings.wechat.redirectUri);
       const corpId = settings.wechat.corpId;
       const agentId = settings.wechat.agentId;
-      window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=default#wechat_redirect`;
+      const state = encodeURIComponent(buildOAuthState());
+      window.location.href =
+        `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}` +
+        `&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base` +
+        `&agentid=${agentId}&state=${state}#wechat_redirect`;
     },
 
     // 處理學生切換事件（其他頁面發出的）

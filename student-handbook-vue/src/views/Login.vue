@@ -27,7 +27,7 @@ import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 導入全局配置設置
 import { baseURL, API_ENDPOINTS } from '@/config/api.js' // 導入 API 基礎路徑
-import {isWeChatEnv, saveTokenFromUrl} from '@/utils/wechat.js'
+import {isWeChatEnv, isWeComEnv, buildOAuthState, saveTokenFromUrl} from '@/utils/wechat.js'
 
 export default {
   name: 'Login',
@@ -54,7 +54,7 @@ export default {
     }
 
     // 檢查URL參數中的授權code
-    if (await this.checkWeChatAuthCode()) {
+    if (this.checkWeChatAuthCode()) {
       return;
     }
 
@@ -85,6 +85,7 @@ export default {
       if (expire && Date.now() > parseInt(expire, 10)) {
         localStorage.removeItem('token');
         localStorage.removeItem('token_expire');
+        localStorage.removeItem('userType');
         return false;
       }
 
@@ -100,6 +101,9 @@ export default {
         console.warn('本地 token 已失效:', error);
       }
 
+      localStorage.removeItem('token');
+      localStorage.removeItem('token_expire');
+      localStorage.removeItem('userType');
       return false;
     },
 
@@ -118,43 +122,32 @@ export default {
     },
 
     // 檢查URL參數中是否有微信授權code
-    async checkWeChatAuthCode() {
+    // 生產環境 redirect_uri 指向後端（302），理論上前端不會拿到 code；
+    // 若誤配置到前端，用整頁跳轉交給後端兌換，避免 axios 期待 JSON / 重複消耗。
+    checkWeChatAuthCode() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       const state = urlParams.get('state');
 
-      // 檢查是否有錯誤參數
       const errcode = urlParams.get('errcode');
       if (errcode) {
         console.error(`微信授權錯誤，錯誤碼: ${errcode}`);
-        ElMessage.error('微信授權失敗');
-        return;
-      }
-
-      if (code) {
-        console.log('檢測到微信授權code，開始登錄流程');
-        this.loginLoading = true;
-
-        try {
-          const response = await service.get(`${baseURL}/wechat/oauth/callback?code=${code}&state=${state || 'default'}`);
-
-          if (response.data.code === 200) {
-            ElMessage.success('登錄成功');
-            const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
-            sessionStorage.removeItem('redirect_url');
-            this.$router.push(redirectUrl);
-          } else {
-            ElMessage.error(response.data.msg || '登錄失敗');
-          }
-        } catch (error) {
-          console.error('登錄請求失敗:', error);
-          ElMessage.error('登錄請求失敗');
-        } finally {
-          this.loginLoading = false;
-        }
+        this.showError = true;
+        this.errorMessage = '微信授權失敗';
         return true;
       }
-      return false;
+
+      if (!code) {
+        return false;
+      }
+
+      const oauthState = state || buildOAuthState();
+      console.log('檢測到授權 code，轉交後端兌換');
+      this.loginLoading = true;
+      window.location.replace(
+        `${baseURL}/wechat/oauth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(oauthState)}`
+      );
+      return true;
     },
 
     // 檢查URL參數，確定是否顯示錯誤
@@ -164,7 +157,9 @@ export default {
 
       if (error) {
         this.showError = true;
-        this.errorMessage = '授權失敗無法進入系統，請聯繫學校管理員';
+        // URLSearchParams 已自動 decode，勿再 decodeURIComponent（避免二次解碼破壞中文）
+        const message = urlParams.get('message');
+        this.errorMessage = message || '授權失敗無法進入系統，請聯繫學校管理員';
       }
 
       return !!error;
@@ -183,45 +178,37 @@ export default {
       }
     },
 
-    // 自動微信登錄
+    // 自動微信/企微登錄
     async autoWechatLogin() {
       const urlParams = new URLSearchParams(window.location.search);
-      let state = 'default';
       const redirectToCampus = urlParams.get('redirect_to_campus');
-      if (redirectToCampus) {
-          state = 'campus_notice_' + redirectToCampus;
-      }
-      
-      // 如果是開發環境，直接調用模擬的 callback，透過 code=dev 讓後端返回配置的 token
+      const state = buildOAuthState(redirectToCampus || undefined);
+
       if (import.meta.env.MODE !== 'production') {
-        // 非生產環境（本地 vite dev 或 build:dev 部署到測試服）都走 mock 登錄，跳過微信驗證
-        console.log('非生產環境，直接跳轉到模擬登錄');
+        console.log('非生產環境，直接跳轉到模擬登錄, state=', state);
         this.loginLoading = true;
         window.location.href = baseURL + '/wechat/oauth/callback?code=dev&state=' + encodeURIComponent(state);
         return;
       }
 
-      // 僅在微信內自動發起 OAuth
       if (isWeChatEnv()) {
-        console.log('在微信環境中，自動觸發微信授權');
-        await this.getWeChatUserInfoByOAuth(state);
+        console.log(isWeComEnv() ? '企微環境 → 職工授權' : '微信環境 → 家長授權');
+        this.getWeChatUserInfoByOAuth(state);
       }
     },
 
     // 通過OAuth2方式獲取微信用戶信息
-    async getWeChatUserInfoByOAuth(state) {
+    getWeChatUserInfoByOAuth(state) {
       try {
-        console.log('構建微信授權鏈接');
-        // 從配置文件中讀取企業微信相關參數
         const redirectUri = encodeURIComponent(settings.wechat.redirectUri);
         const corpId = settings.wechat.corpId;
         const agentId = settings.wechat.agentId;
-        const safeState = state || 'default';
+        const safeState = encodeURIComponent(state || buildOAuthState());
 
-        // 構造適合手機端的企業微信OAuth2授權鏈接，使用動態狀態
-        console.log('跳轉到微信授權頁面: https://open.weixin.qq.com/connect/oauth2/authorize');
-        // 重定向到授權頁面
-        window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&agentid=${agentId}&state=${safeState}#wechat_redirect`;
+        window.location.href =
+          `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${corpId}` +
+          `&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base` +
+          `&agentid=${agentId}&state=${safeState}#wechat_redirect`;
       } catch (error) {
         console.error('發起微信授權失敗: ' + error.message);
       }

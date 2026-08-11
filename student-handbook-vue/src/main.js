@@ -16,7 +16,8 @@ app.use(ElementPlus, {
 
 router.beforeEach((to, from, next) => {
     if (settings.enableTokenAuth) {
-        const publicPages = ['/', '/login']
+        // 僅登錄頁公開；首頁 / 需 token（OAuth 回跳帶 ?token= 時會先寫入再放行）
+        const publicPages = ['/login']
         const isPublicPage = publicPages.includes(to.path)
         const token = localStorage.getItem('token')
 
