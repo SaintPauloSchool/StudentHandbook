@@ -73,7 +73,7 @@ public class HttpUtils
         try
         {
             String urlNameString = StringUtils.isNotBlank(param) ? url + "?" + param : url;
-            log.info("sendGet - {}", urlNameString);
+            log.info("sendGet - {}", redactSensitiveUrl(urlNameString));
             URL realUrl = new URL(urlNameString);
             URLConnection connection = realUrl.openConnection();
             connection.setRequestProperty("accept", "*/*");
@@ -89,23 +89,23 @@ public class HttpUtils
             {
                 result.append(line);
             }
-            log.info("recv - {}", result);
+            log.info("recv - {}", redactSensitiveBody(result.toString()));
         }
         catch (ConnectException e)
         {
-            log.error("調用HttpUtils.sendGet ConnectException, url=" + url + ",param=" + param, e);
+            log.error("調用HttpUtils.sendGet ConnectException, url=" + redactSensitiveUrl(url) + ",param=" + param, e);
         }
         catch (SocketTimeoutException e)
         {
-            log.error("調用HttpUtils.sendGet SocketTimeoutException, url=" + url + ",param=" + param, e);
+            log.error("調用HttpUtils.sendGet SocketTimeoutException, url=" + redactSensitiveUrl(url) + ",param=" + param, e);
         }
         catch (IOException e)
         {
-            log.error("調用HttpUtils.sendGet IOException, url=" + url + ",param=" + param, e);
+            log.error("調用HttpUtils.sendGet IOException, url=" + redactSensitiveUrl(url) + ",param=" + param, e);
         }
         catch (Exception e)
         {
-            log.error("調用HttpsUtil.sendGet Exception, url=" + url + ",param=" + param, e);
+            log.error("調用HttpsUtil.sendGet Exception, url=" + redactSensitiveUrl(url) + ",param=" + param, e);
         }
         finally
         {
@@ -118,10 +118,29 @@ public class HttpUtils
             }
             catch (Exception ex)
             {
-                log.error("調用in.close Exception, url=" + url + ",param=" + param, ex);
+                log.error("調用in.close Exception, url=" + redactSensitiveUrl(url) + ",param=" + param, ex);
             }
         }
         return result.toString();
+    }
+
+    /** 日誌中隱藏 corpsecret / access_token / code 等敏感查詢參數 */
+    private static String redactSensitiveUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return url;
+        }
+        return url
+                .replaceAll("(?i)(corpsecret=)[^&]*", "$1***")
+                .replaceAll("(?i)(access_token=)[^&]*", "$1***")
+                .replaceAll("(?i)(?<=[?&]code=)[^&]*", "***");
+    }
+
+    /** 日誌中隱藏響應裡的 access_token */
+    private static String redactSensitiveBody(String body) {
+        if (body == null || body.isEmpty()) {
+            return body;
+        }
+        return body.replaceAll("(?i)(\"access_token\"\\s*:\\s*\")[^\"]*", "$1***");
     }
 
     /**

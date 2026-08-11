@@ -1,6 +1,52 @@
+/** 是否在企業微信 WebView 內（UA 含 wxwork） */
+export function isWeComEnv() {
+    return /wxwork/i.test(navigator.userAgent)
+}
+
 /** 是否在微信 / 企業微信 WebView 內 */
 export function isWeChatEnv() {
-    return /MicroMessenger/i.test(navigator.userAgent)
+    return /MicroMessenger/i.test(navigator.userAgent) || isWeComEnv()
+}
+
+/**
+ * OAuth 渠道：企微職工 wecom，微信家長 wechat。
+ * 後端依 state 前綴決定兌換 auth/getuserinfo 或 school/getuserinfo。
+ */
+export function getOAuthChannel() {
+    return isWeComEnv() ? 'wecom' : 'wechat'
+}
+
+/**
+ * 構建 OAuth state。
+ * 例：wecom / wechat / wecom_campus_notice_123 / wechat_campus_notice_root
+ */
+export function buildOAuthState(redirectToCampus) {
+    const channel = getOAuthChannel()
+    if (redirectToCampus) {
+        return `${channel}_campus_notice_${redirectToCampus}`
+    }
+    return channel
+}
+
+/** state 是否含校園通知跳轉意圖 */
+export function isCampusNoticeState(state) {
+    return !!state && state.includes('campus_notice_')
+}
+
+/**
+ * 從 state 解析校園通知 ID。
+ * 兼容舊格式 campus_notice_xxx 與新格式 wecom_campus_notice_xxx。
+ */
+export function parseCampusNoticeId(state) {
+    if (!state) {
+        return null
+    }
+    const marker = 'campus_notice_'
+    const idx = state.indexOf(marker)
+    if (idx < 0) {
+        return null
+    }
+    return state.substring(idx + marker.length) || null
 }
 
 function stripTokenFromUrlParams(urlParams) {
@@ -13,16 +59,13 @@ function stripTokenFromUrlParams(urlParams) {
 
 /**
  * 從 URL 參數保存 token。
- * 微信內：保留 URL 中的 token，方便用戶用微信自帶「複製鏈接」到瀏覽器。
- * 普通瀏覽器：保存後立即從地址欄清除 token。
+ * @returns {boolean} URL 中是否帶有 token（已寫入 localStorage）
  */
 export function saveTokenFromUrl(urlParams = new URLSearchParams(window.location.search)) {
     const tokenFromUrl = urlParams.get('token')
     if (!tokenFromUrl) {
         return false
     }
-
-    const isNewLogin = localStorage.getItem('token') !== tokenFromUrl
 
     localStorage.setItem('token', tokenFromUrl)
     localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString())
@@ -35,7 +78,7 @@ export function saveTokenFromUrl(urlParams = new URLSearchParams(window.location
     if (!isWeChatEnv()) {
         window.history.replaceState({}, document.title, stripTokenFromUrlParams(urlParams))
     }
-    return isNewLogin
+    return true
 }
 
 /**
