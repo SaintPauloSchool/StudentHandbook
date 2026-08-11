@@ -17,6 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 企業微信授權回調
@@ -26,6 +29,10 @@ import java.net.URLEncoder;
 public class WeChatWorkOAuthController extends BaseController {
 
     private static final Logger logger = LoggerFactory.getLogger(WeChatWorkOAuthController.class);
+
+    /** 防止同一 OAuth code 被並發/重複回調（微信 code 只能用一次） */
+    private static final ConcurrentHashMap<String, Long> USED_OAUTH_CODES = new ConcurrentHashMap<>();
+    private static final long OAUTH_CODE_TTL_MS = 5 * 60 * 1000L;
 
     @Autowired
     private WeChatWorkOAuth2Utils weChatWorkOAuth2Utils;
@@ -76,7 +83,10 @@ public class WeChatWorkOAuthController extends BaseController {
             HttpSession session,
             HttpServletResponse response) {
 
-        logger.info("接收到企業微信授權回調，code: {}, state: {}", code, state);
+        logger.info("接收到企業微信授權回調，code前綴={}, code長度={}, state={}, profile={}",
+                code != null && code.length() > 6 ? code.substring(0, 6) + "..." : code,
+                code != null ? code.length() : 0,
+                state, activeProfile);
 
         try {
             // 如果是在開發環境中，直接返回預設的userId生成的Token
@@ -87,6 +97,25 @@ public class WeChatWorkOAuthController extends BaseController {
                 logger.info("開發環境模擬登錄，生成token: {}", token);
                 // 重定向回 dev 前端（帶完整 host:port，避免跳到 prod 的 port 80）
                 response.sendRedirect(buildFrontendRedirect("/?token=" + token + "&userType=1"));
+                return;
+            }
+
+            // 生產環境誤用 code=dev 會直接被微信判定 invalid code
+            if ("dev".equals(code)) {
+                logger.error("非開發環境收到 code=dev，這不是微信授權碼。請確認前端走真實 OAuth");
+                redirectToFrontend(response, "/login?error=invalid_code&message=" +
+                        URLEncoder.encode("授權參數錯誤，請從微信重新進入", "UTF-8"));
+                return;
+            }
+
+            // 同一 code 重複進入（刷新回調頁 / 並發請求）直接拒絕，避免二次兌換 40029
+            purgeExpiredOauthCodes();
+            Long firstSeen = USED_OAUTH_CODES.putIfAbsent(code, System.currentTimeMillis());
+            if (firstSeen != null) {
+                logger.warn("檢測到同一 OAuth code 重複回調（距首次 {}ms），忽略本次以免 40029",
+                        System.currentTimeMillis() - firstSeen);
+                redirectToFrontend(response, "/login?error=invalid_code&message=" +
+                        URLEncoder.encode("授權碼已使用，請關閉後從微信重新進入系統", "UTF-8"));
                 return;
             }
 
@@ -115,8 +144,11 @@ public class WeChatWorkOAuthController extends BaseController {
             if (schoolErr != null && schoolErr != 0) {
                 logger.error("school/getuserinfo 失敗, errcode={}, errmsg={}",
                         schoolErr, userInfo.getString("errmsg"));
+                String tip = (schoolErr == 40029)
+                        ? "授權碼無效或已被使用，請勿刷新頁面，請從微信重新進入系統"
+                        : "微信授權失敗，請重新進入系統";
                 redirectToFrontend(response, "/login?error=user_info_failed&message=" +
-                        URLEncoder.encode("微信授權失敗，請重新進入系統", "UTF-8"));
+                        URLEncoder.encode(tip, "UTF-8"));
                 return;
             }
 
@@ -194,6 +226,17 @@ public class WeChatWorkOAuthController extends BaseController {
                         URLEncoder.encode(e.getMessage(), "UTF-8"));
             } catch (IOException ioException) {
                 logger.error("重定向失敗", ioException);
+            }
+        }
+    }
+
+    private void purgeExpiredOauthCodes() {
+        long now = System.currentTimeMillis();
+        Iterator<Map.Entry<String, Long>> it = USED_OAUTH_CODES.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Long> e = it.next();
+            if (now - e.getValue() > OAUTH_CODE_TTL_MS) {
+                it.remove();
             }
         }
     }
