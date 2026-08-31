@@ -207,6 +207,8 @@ public class FileUtils
                 return "image/gif";
             case "bmp":
                 return "image/bmp";
+            case "webp":
+                return "image/webp";
             case "zip":
                 return "application/zip";
             case "rar":
