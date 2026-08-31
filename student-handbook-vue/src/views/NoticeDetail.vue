@@ -61,10 +61,22 @@
                 v-for="(attachment, index) in attachmentList"
                 :key="index"
             >
-              <img v-if="isImage(attachment)" :src="getFullAttachmentUrl(attachment)" :alt="getAttachmentName(attachment)" class="attachment-image" @error="handleImageError" />
-              <a v-else href="javascript:void(0)" class="attachment-link" @click.prevent="handleSecureDownload(attachment)">
-                <span class="link-icon">📎</span>
+              <img
+                  v-if="isImage(attachment) && !isAttachmentImageFailed(attachment, index)"
+                  :src="getFullAttachmentUrl(attachment)"
+                  :alt="getAttachmentName(attachment)"
+                  class="attachment-image"
+                  @error="handleImageError(attachment, index)"
+              />
+              <a
+                  v-else
+                  href="javascript:void(0)"
+                  class="attachment-link"
+                  @click.prevent="handleSecureDownload(attachment)"
+              >
+                <span class="link-icon">{{ getAttachmentFileIcon(attachment) }}</span>
                 <span class="link-text">{{ getAttachmentName(attachment) }}</span>
+                <span class="link-hint">點擊下載</span>
               </a>
             </div>
           </div>
@@ -394,6 +406,8 @@ import { User, Clock, ArrowLeft, ArrowRight, Document, Select, UploadFilled, Che
 import settings from '@/config/settings' // 導入全局配置設置
 import CryptoJS from 'crypto-js' // 導入crypto-js庫用於MD5加密
 import StudentChip from '@/components/StudentChip.vue'
+import { normalizeProfileUrl, toPublicProfilePath, buildProfileDownloadUrl } from '@/utils/deployment.js'
+import { isWeChatEnv } from '@/utils/wechat.js'
 
 export default {
   name: 'NoticeDetail',
@@ -424,7 +438,7 @@ export default {
       isExpired: false, // 是否已過期
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
-      showCenterToast: false,
+      failedAttachmentImageKeys: {},
       showCompleteDialog: false, // 是否顯示自訂完成彈窗
       activeCompleteQuestion: null, // 當前完成的邏輯表單問題對象
       toastMessage: '',
@@ -451,15 +465,35 @@ export default {
       if (!this.notice || !this.notice.attachmentUrls) {
         return []
       }
-      try {
-        const parsed = JSON.parse(this.notice.attachmentUrls)
-        return parsed
-      } catch (e) {
-        // 如果不是JSON，可能是單個URL字符串
-        if (typeof this.notice.attachmentUrls === 'string' && this.notice.attachmentUrls.trim()) {
-          return [this.notice.attachmentUrls]
-        }
+      const normalize = (list) => list.filter((item) => {
+        const url = typeof item === 'object' ? item?.url : item
+        return url && String(url).trim()
+      })
+
+      const raw = this.notice.attachmentUrls
+      if (Array.isArray(raw)) {
+        return normalize(raw)
+      }
+      if (typeof raw === 'object') {
         return []
+      }
+      try {
+        let parsed = JSON.parse(raw)
+        // 兼容雙重 JSON 序列化
+        if (typeof parsed === 'string') {
+          try {
+            parsed = JSON.parse(parsed)
+          } catch (inner) {
+            return normalize([parsed])
+          }
+        }
+        if (Array.isArray(parsed)) {
+          return normalize(parsed)
+        }
+        return parsed ? normalize([parsed]) : []
+      } catch (e) {
+        const trimmed = String(raw).trim()
+        return trimmed ? [trimmed] : []
       }
     },
 
@@ -621,6 +655,7 @@ export default {
         })
         if (response.data.code === 200) {
           this.notice = response.data.data.notification
+          this.failedAttachmentImageKeys = {}
           this.questions = response.data.data.questions || []
           this.userAnswer = response.data.data.userAnswer || null
           this.answererInfo = response.data.data.answererInfo || ''
@@ -1390,30 +1425,14 @@ export default {
       }
     },
 
-    // 獲取完整的附件URL
+    // 獲取完整的附件 URL（Nginx location /profile/ → /usr/local/upload/）
     getFullAttachmentUrl(attachment) {
       if (!attachment) return ''
 
-      // 如果是對象，提取url屬性
-      let url = typeof attachment === 'object' ? attachment.url : attachment
-
+      const url = typeof attachment === 'object' ? attachment.url : attachment
       if (!url || typeof url !== 'string') return ''
 
-      // 如果已經是完整URL（以http或https開頭），直接返回
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        return url
-      }
-
-      // 清理URL中的雙斜槓
-      url = url.replace(/\/+/g, '/')
-
-      // 統一使用相對路徑，通過Nginx代理訪問後端
-      // 開發環境（localhost）和生產環境（Nginx代理）都使用相同的路徑
-      const origin = window.location.origin
-      if (url.startsWith('/')) {
-        return origin + url
-      }
-      return origin + '/' + url
+      return normalizeProfileUrl(url, { absolute: true, encode: true })
     },
 
     // 獲取附件名稱
@@ -1444,7 +1463,7 @@ export default {
       }
     },
 
-    // 處理安全下載附件（帶Token）
+    // 處理安全下載附件（PDF/Word 等 Nginx 禁止直鏈，走後端下載接口）
     async handleSecureDownload(attachment) {
       if (!attachment) return;
 
@@ -1452,13 +1471,18 @@ export default {
       let url = typeof attachment === 'object' ? attachment.url : attachment;
       if (!url) return;
 
-      // 清理URL中的雙斜線
-      url = url.replace(/\/+/g, '/');
+      url = toPublicProfilePath(url);
+      if (!url) return;
 
-      // Android 設備特殊處理：跳過 Blob 下載，直接使用 URL 進行下載/預覽
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      if (isAndroid) {
-        const directUrl = window.location.origin + API_ENDPOINTS.FILE_UPLOAD.replace('/upload', '/download/resource') + '?resource=' + encodeURIComponent(url);
+      const downloadApiPath = API_ENDPOINTS.FILE_UPLOAD.replace('/upload', '/download/resource');
+      const useDirectDownload = /Android/i.test(navigator.userAgent) || isWeChatEnv();
+
+      if (useDirectDownload) {
+        const directUrl = buildProfileDownloadUrl(url, fileName, { downloadApiPath });
+        if (!directUrl) {
+          this.showToast('附件地址無效', 'error');
+          return;
+        }
         this.showToast('開始下載', 'success');
         window.location.href = directUrl;
         return;
@@ -1467,17 +1491,24 @@ export default {
       this.showToast('準備下載...', 'info');
 
       try {
-        // 使用 axios 請求二進制流，這樣會自動帶上 Token
-        const response = await service.get(API_ENDPOINTS.FILE_UPLOAD.replace('/upload', '/download/resource'), {
-          params: { resource: url },
-          responseType: 'blob', // 重要：指定為 blob
-          timeout: 60000 // 文件下載可能較慢，延長超時時間
+        const response = await service.get(downloadApiPath, {
+          params: { resource: url, name: fileName },
+          responseType: 'blob',
+          timeout: 60000,
+          validateStatus: (status) => status >= 200 && status < 300
         });
 
-        // 創建一個 Blob 對象
-        const blob = new Blob([response.data]);
+        if (!response.data || response.data.size === 0) {
+          throw new Error('empty file');
+        }
 
-        // 如果後端有返回文件名（從 header 取 Content-Disposition），可以使用後端的文件名
+        if (response.status >= 400) {
+          throw new Error(`download failed: ${response.status}`);
+        }
+
+        const contentType = response.headers['content-type'] || 'application/octet-stream';
+        const blob = new Blob([response.data], { type: contentType });
+
         let downloadName = fileName;
         const disposition = response.headers['content-disposition'];
         if (disposition && disposition.indexOf('filename=') !== -1) {
@@ -1487,7 +1518,6 @@ export default {
           }
         }
 
-        // 創建下載鏈接並觸發點擊
         const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.style.display = 'none';
@@ -1496,28 +1526,57 @@ export default {
 
         document.body.appendChild(link);
         link.click();
-
-        // 清理
         document.body.removeChild(link);
         window.URL.revokeObjectURL(blobUrl);
 
         this.showToast('開始下載', 'success');
       } catch (error) {
         console.error('下載失敗:', error);
-        this.showToast('下載失敗，請確保您有權限或稍後再試', 'error');
+        this.showToast('下載失敗，請稍後再試', 'error');
       }
     },
 
-    // 判斷是否爲圖片
+    getAttachmentFileIcon(attachment) {
+      const name = this.getAttachmentName(attachment).toLowerCase();
+      if (name.endsWith('.pdf')) return '📄';
+      if (name.endsWith('.doc') || name.endsWith('.docx')) return '📝';
+      if (name.endsWith('.xls') || name.endsWith('.xlsx')) return '📊';
+      if (name.endsWith('.ppt') || name.endsWith('.pptx')) return '📽️';
+      if (name.endsWith('.zip') || name.endsWith('.rar')) return '🗂️';
+      if (this.isImage(attachment)) return '🖼️';
+      return '📎';
+    },
+
+    // 判斷是否爲圖片（優先 URL 後綴，避免僅 name 帶 .png 誤判）
     isImage(attachment) {
       if (!attachment) return false
 
-      // 如果是對象，提取url屬性
-      let url = typeof attachment === 'object' ? attachment.url : attachment
-
-      if (!url || typeof url !== 'string') return false
+      const url = typeof attachment === 'object' ? attachment.url : attachment
+      const name = typeof attachment === 'object' ? attachment.name : ''
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
-      return imageExtensions.some(ext => url.toLowerCase().endsWith(ext))
+
+      const getExt = (value) => {
+        if (!value || typeof value !== 'string') return ''
+        const base = value.split('?')[0].split('#')[0].toLowerCase()
+        const dot = base.lastIndexOf('.')
+        return dot >= 0 ? base.substring(dot) : ''
+      }
+
+      const urlExt = getExt(url)
+      if (urlExt) {
+        return imageExtensions.includes(urlExt)
+      }
+      const nameExt = getExt(name)
+      return nameExt && imageExtensions.includes(nameExt)
+    },
+
+    attachmentImageKey(attachment, index) {
+      const url = typeof attachment === 'object' ? attachment.url : attachment
+      return `${index}_${url || ''}`
+    },
+
+    isAttachmentImageFailed(attachment, index) {
+      return !!this.failedAttachmentImageKeys[this.attachmentImageKey(attachment, index)]
     },
 
     // 提交回答
@@ -1844,9 +1903,10 @@ export default {
       });
     },
 
-    // 圖片加載錯誤處理
-    handleImageError(event) {
-      event.target.style.display = 'none'
+    // 圖片加載失敗時改為下載鏈接，避免空白
+    handleImageError(attachment, index) {
+      const key = this.attachmentImageKey(attachment, index)
+      this.failedAttachmentImageKeys = { ...this.failedAttachmentImageKeys, [key]: true }
     },
 
     // 顯示居中提示
@@ -2233,6 +2293,13 @@ export default {
 
 .link-text {
   font-size: 14px;
+  flex: 1;
+}
+
+.link-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 8px;
 }
 
 /* 外部跳轉連結 */
