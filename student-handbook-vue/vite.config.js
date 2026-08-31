@@ -28,6 +28,10 @@ export default defineConfig(({ mode }) => ({
             '/sp-api': {
                 target: 'http://localhost:8002',
                 changeOrigin: false
+            },
+            '/profile': {
+                target: 'http://localhost:8002',
+                changeOrigin: false
             }
         }
     },

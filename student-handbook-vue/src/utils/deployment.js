@@ -35,6 +35,10 @@ export function toPublicProfilePath(url) {
     result = result.replace(/^\/profile\/+/, `${PROFILE_PUBLIC_PATH}/`)
   } else if (result.startsWith('profile/')) {
     result = `${PROFILE_PUBLIC_PATH}/${result.substring('profile/'.length)}`
+  } else if (result.startsWith('/upload/') || result.startsWith('/upload//')) {
+    result = `${PROFILE_PUBLIC_PATH}/${result.replace(/^\/upload\/+/, 'upload/')}`
+  } else if (result.startsWith('upload/')) {
+    result = `${PROFILE_PUBLIC_PATH}/${result}`
   } else if (!result.startsWith(PROFILE_PUBLIC_PATH)) {
     return result
   }
