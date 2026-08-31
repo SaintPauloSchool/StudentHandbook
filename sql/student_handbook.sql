@@ -240,27 +240,6 @@ CREATE TABLE sys_department (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部門表';
 
 -- ----------------------------
--- 家校通訊錄表
--- ----------------------------
-DROP TABLE IF EXISTS sys_department_parent_binding;
-DROP TABLE IF EXISTS sys_parent_student_relation;
-DROP TABLE IF EXISTS sys_school_family_contact;
-CREATE TABLE sys_school_family_contact (
-                                           id                  BIGINT          NOT NULL AUTO_INCREMENT    COMMENT '主鍵 ID',
-                                           department_id       BIGINT          NOT NULL                   COMMENT '部門 ID',
-                                           parent_user_id      VARCHAR(64)     NOT NULL                   COMMENT '家長用戶 ID',
-                                           student_user_id     VARCHAR(64)     NOT NULL                   COMMENT '學生用戶 ID',
-                                           student_name        VARCHAR(100)    DEFAULT NULL               COMMENT '學生姓名',
-                                           relation_desc       VARCHAR(50)     DEFAULT '家長'             COMMENT '關係描述',
-                                           mobile              VARCHAR(20)     DEFAULT NULL               COMMENT '家長手機號',
-                                           external_userid     VARCHAR(64)     DEFAULT NULL               COMMENT '家長外部用戶 ID',
-                                           create_time         DATETIME        DEFAULT NULL               COMMENT '創建時間',
-                                           update_time         DATETIME        DEFAULT NULL               COMMENT '更新時間',
-                                           PRIMARY KEY (id),
-                                           UNIQUE KEY uk_parent_student_dept (parent_user_id, student_user_id, department_id)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='家校通訊錄表';
-
--- ----------------------------
 -- 班級對照表
 -- ----------------------------
 DROP TABLE IF EXISTS class_section;
@@ -398,17 +377,19 @@ CREATE TABLE sys_admin (
                            id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主鍵ID',
                            user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID（關聯token表的user_id）',
                            admin_name          VARCHAR(100)    DEFAULT NULL               COMMENT '管理員姓名',
+                           type                CHAR(1)         NOT NULL DEFAULT '1'       COMMENT '類型（0超級管理員 1管理員）',
                            status              CHAR(1)         DEFAULT '0'                COMMENT '狀態（0正常 1停用）',
                            create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '創建時間',
                            update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
                            remark              VARCHAR(500)    DEFAULT NULL               COMMENT '備註',
                            PRIMARY KEY (id),
                            UNIQUE KEY uk_user_id (user_id),
-                           KEY idx_status (status)
+                           KEY idx_status (status),
+                           KEY idx_type (type)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='系統管理員表';
 
 -- 插入示例管理員數據（需要根據實際user_id調整）
--- INSERT INTO sys_admin VALUES(1, 'admin_user_id', '系統管理員', '0', NOW(), NOW(), '超級管理員');
+-- INSERT INTO sys_admin VALUES(1, 'admin_user_id', '系統管理員', '0', '0', NOW(), NOW(), '超級管理員');
 -- ----------------------------
 -- 行事曆事件表
 -- ----------------------------
@@ -466,14 +447,15 @@ CREATE TABLE `sys_scheduled_task` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='定時任務配置表';
 
 INSERT INTO sys_scheduled_task (task_key, task_name, task_bean, method_name, cron_expression, enabled, sort_order) VALUES
-   ('failed_task_notifier',       '檢查失敗任務通知',       'failedTaskNotifierTask',       'executeTask', '0 0 9 * * ?',         '0', 1),
-   ('department_sync',            '家校通訊錄部門數據同步', 'departmentSyncTask',           'executeTask', '0 0 0 * * ?',         '0', 2),
-   ('school_family_contact_sync', '家校通訊錄同步',         'schoolFamilyContactSyncTask',  'executeTask', '0 30 0 * * ?',        '0', 3),
-   ('wecom_school_department',    '企業微信部門與成員同步', 'wecomSchoolDepartmentTask',    'executeTask', '0 0 1 * * ?',         '0', 4),
-   ('notification_reminder',      '定時提示家長回復通知',   'notificationReminderTask',     'executeTask', '0 30 9 * * ?',        '0', 5),
-   ('notification_resend',          '定時重新發送失敗通知',   'notificationResendTask',       'executeTask', '0 0 9-18 * * ?',      '0', 6),
-   ('school_notice',              '每日學生手冊通知發送',   'schoolNoticeTask',             'executeTask', '0 0 18 ? * MON-FRI',  '0', 7),
-   ('attendance_notify',          '考勤拍卡通知發送',       'attendanceNotifyTask',         'executeTask', '0 * * * * ?',         '1', 8);
+                                                                                                                       ('failed_task_notifier',       '檢查失敗任務通知',       'failedTaskNotifierTask',       'executeTask', '0 0 9 * * ?',         '0', 1),
+                                                                                                                       ('department_sync',            '家校通訊錄部門數據同步', 'departmentSyncTask',           'executeTask', '0 0 0 * * ?',         '0', 2),
+                                                                                                                       ('school_family_contact_sync', '家校通訊錄同步',         'schoolFamilyContactSyncTask',  'executeTask', '0 30 0 * * ?',        '0', 3),
+                                                                                                                       ('student_match_sync',         '學生數據自動匹配',       'studentMatchSyncTask',         'executeTask', '0 0 1 * * ?',         '0', 4),
+                                                                                                                       ('wecom_school_department',    '企業微信部門與成員同步', 'wecomSchoolDepartmentTask',    'executeTask', '0 30 1 * * ?',        '0', 5),
+                                                                                                                       ('notification_reminder',      '定時提示家長回復通知',   'notificationReminderTask',     'executeTask', '0 30 9 * * ?',        '0', 6),
+                                                                                                                       ('notification_resend',          '定時重新發送失敗通知',   'notificationResendTask',       'executeTask', '0 0 9-18 * * ?',      '0', 7),
+                                                                                                                       ('school_notice',              '每日學生手冊通知發送',   'schoolNoticeTask',             'executeTask', '0 0 18 ? * MON-FRI',  '0', 8),
+                                                                                                                       ('attendance_notify',          '考勤拍卡通知發送',       'attendanceNotifyTask',         'executeTask', '0 * * * * ?',         '1', 9);
 -- ----------------------------
 -- 學生數據匹配表
 -- ----------------------------
@@ -490,6 +472,23 @@ CREATE TABLE IF NOT EXISTS sys_student_match (
     UNIQUE KEY uk_student_contact (student_id, user_id, student_user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='學生數據匹配表（學生與家長多對多）';
 -- ----------------------------
+-- 家校通訊錄表
+-- ----------------------------
+DROP TABLE IF EXISTS sys_school_family_contact;
+CREATE TABLE `sys_school_family_contact` (
+                                             `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主鍵 ID',
+                                             `department_id` bigint NOT NULL COMMENT '部門 ID',
+                                             `parent_user_id` varchar(64) NOT NULL COMMENT '家長用戶 ID',
+                                             `student_user_id` varchar(64) NOT NULL COMMENT '學生用戶 ID',
+                                             `student_name` varchar(100) DEFAULT NULL COMMENT '學生姓名',
+                                             `relation_desc` varchar(50) DEFAULT '家長' COMMENT '關係描述',
+                                             `mobile` varchar(20) DEFAULT NULL COMMENT '家長手機號',
+                                             `external_userid` varchar(64) DEFAULT NULL COMMENT '家長外部用戶 ID',
+                                             `create_time` datetime DEFAULT NULL COMMENT '創建時間',
+                                             `update_time` datetime DEFAULT NULL COMMENT '更新時間',
+                                             PRIMARY KEY (`id`),
+                                             UNIQUE KEY `uk_parent_student_dept` (`parent_user_id`,`student_user_id`,`department_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家校通訊錄表'
 -- 系統公用配置表
 -- ----------------------------
 DROP TABLE IF EXISTS sys_config;
