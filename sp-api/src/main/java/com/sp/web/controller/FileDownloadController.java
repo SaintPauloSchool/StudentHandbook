@@ -6,7 +6,7 @@ import com.sp.common.utils.StringUtils;
 import com.sp.common.utils.file.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,22 +27,38 @@ public class FileDownloadController {
      * 本地資源通用下載
      */
     @GetMapping("/resource")
-    public void resourceDownload(String resource, HttpServletRequest request, HttpServletResponse response) {
+    public void resourceDownload(String resource, String name, HttpServletRequest request, HttpServletResponse response) {
         try {
             if (!FileUtils.checkAllowDownload(resource)) {
-                throw new Exception(StringUtils.format("資源文件({})非法，不允許下載。 ", resource));
+                response.sendError(HttpStatus.FORBIDDEN.value(), "資源文件非法，不允許下載");
+                return;
             }
-            // 本地資源路徑
             String localPath = OverallSituationConfig.getProfile();
-            // 數據庫資源地址
             String downloadPath = localPath + StringUtils.substringAfter(resource, Constants.RESOURCE_PREFIX);
-            // 下載名稱
-            String downloadName = StringUtils.substringAfterLast(downloadPath, "/");
-            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            java.io.File file = new java.io.File(downloadPath);
+            if (!file.exists() || !file.isFile()) {
+                log.warn("下載文件不存在: {}", downloadPath);
+                response.sendError(HttpStatus.NOT_FOUND.value(), "文件不存在");
+                return;
+            }
+            String diskFileName = StringUtils.substringAfterLast(downloadPath, "/");
+            String downloadName = diskFileName;
+            if (StringUtils.isNotEmpty(name) && FileUtils.isValidFilename(name)) {
+                downloadName = name;
+            }
+            String contentType = FileUtils.getContentTypeByFileName(downloadName);
+            response.setContentType(contentType);
             FileUtils.setAttachmentResponseHeader(response, downloadName);
             FileUtils.writeBytes(downloadPath, response.getOutputStream());
         } catch (Exception e) {
             log.error("下載文件失敗", e);
+            try {
+                if (!response.isCommitted()) {
+                    response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "下載失敗");
+                }
+            } catch (Exception ignored) {
+                // ignore
+            }
         }
     }
 }

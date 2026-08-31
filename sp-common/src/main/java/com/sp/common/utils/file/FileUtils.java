@@ -168,6 +168,57 @@ public class FileUtils
     }
 
     /**
+     * 按文件名推斷 Content-Type，供附件下載響應使用。
+     */
+    public static String getContentTypeByFileName(String fileName)
+    {
+        String ext = FileTypeUtils.getFileType(fileName);
+        if (StringUtils.isEmpty(ext))
+        {
+            return "application/octet-stream";
+        }
+        switch (ext)
+        {
+            case "pdf":
+                return "application/pdf";
+            case "doc":
+                return "application/msword";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "xls":
+                return "application/vnd.ms-excel";
+            case "xlsx":
+                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "ppt":
+                return "application/vnd.ms-powerpoint";
+            case "pptx":
+                return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            case "txt":
+                return "text/plain;charset=UTF-8";
+            case "html":
+            case "htm":
+                return "text/html;charset=UTF-8";
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+            case "gif":
+                return "image/gif";
+            case "bmp":
+                return "image/bmp";
+            case "zip":
+                return "application/zip";
+            case "rar":
+                return "application/x-rar-compressed";
+            case "mp4":
+                return "video/mp4";
+            default:
+                return "application/octet-stream";
+        }
+    }
+
+    /**
      * 下載文件名重新編碼
      * 
      * @param request 請求對象
