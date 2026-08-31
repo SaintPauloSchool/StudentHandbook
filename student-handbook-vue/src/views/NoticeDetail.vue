@@ -59,15 +59,28 @@
             <div
                 class="attachment-item"
                 v-for="(attachment, index) in attachmentList"
-                :key="index"
+                :key="attachmentImageKey(attachment, index)"
             >
-              <img
-                  v-if="isImage(attachment) && !isAttachmentImageFailed(attachment, index)"
-                  :src="getFullAttachmentUrl(attachment)"
-                  :alt="getAttachmentName(attachment)"
-                  class="attachment-image"
-                  @error="handleImageError(attachment, index)"
-              />
+              <!-- 圖片：直接內嵌預覽 -->
+              <div v-if="isImage(attachment)" class="attachment-image-wrap">
+                <img
+                    v-if="!isAttachmentImageFailed(attachment, index)"
+                    :src="getAttachmentImageSrc(attachment, index)"
+                    :alt="getAttachmentName(attachment)"
+                    class="attachment-image"
+                    @error="handleImageError(attachment, index)"
+                />
+                <div v-else class="attachment-image-fallback">
+                  <span class="fallback-text">圖片暫時無法預覽</span>
+                  <a
+                      href="javascript:void(0)"
+                      class="fallback-download"
+                      @click.prevent="handleSecureDownload(attachment)"
+                  >點擊下載查看</a>
+                </div>
+                <div class="attachment-image-name">{{ getAttachmentName(attachment) }}</div>
+              </div>
+              <!-- 非圖片：下載鏈接 -->
               <a
                   v-else
                   href="javascript:void(0)"
@@ -439,6 +452,8 @@ export default {
       logicFormDataCache: {}, // 緩存解析結果
       logicFormStates: {}, // 邏輯表單狀態緩存
       failedAttachmentImageKeys: {},
+      attachmentImagePreviewUrls: {},
+      attachmentImageLoadingKeys: {},
       showCompleteDialog: false, // 是否顯示自訂完成彈窗
       activeCompleteQuestion: null, // 當前完成的邏輯表單問題對象
       toastMessage: '',
@@ -507,6 +522,9 @@ export default {
       return
     }
     await this.loadNoticeDetail()
+  },
+  beforeUnmount() {
+    this.clearAttachmentImagePreviews()
   },
   methods: {
     // MD5加密函數（使用crypto-js庫）
@@ -655,7 +673,9 @@ export default {
         })
         if (response.data.code === 200) {
           this.notice = response.data.data.notification
+          this.clearAttachmentImagePreviews()
           this.failedAttachmentImageKeys = {}
+          this.attachmentImageLoadingKeys = {}
           this.questions = response.data.data.questions || []
           this.userAnswer = response.data.data.userAnswer || null
           this.answererInfo = response.data.data.answererInfo || ''
@@ -1435,6 +1455,57 @@ export default {
       return normalizeProfileUrl(url, { absolute: true, encode: true })
     },
 
+    /** 圖片 src：優先直鏈，失敗後用下載接口換取的 blob 預覽地址 */
+    getAttachmentImageSrc(attachment, index) {
+      const key = this.attachmentImageKey(attachment, index)
+      if (this.attachmentImagePreviewUrls[key]) {
+        return this.attachmentImagePreviewUrls[key]
+      }
+      return this.getFullAttachmentUrl(attachment)
+    },
+
+    clearAttachmentImagePreviews() {
+      Object.values(this.attachmentImagePreviewUrls).forEach((blobUrl) => {
+        if (blobUrl && String(blobUrl).startsWith('blob:')) {
+          window.URL.revokeObjectURL(blobUrl)
+        }
+      })
+      this.attachmentImagePreviewUrls = {}
+    },
+
+    async fetchImagePreviewBlob(attachment) {
+      let url = typeof attachment === 'object' ? attachment.url : attachment
+      if (!url) return null
+      url = toPublicProfilePath(url)
+      if (!url || !url.startsWith('/profile/')) return null
+
+      const fileName = this.getAttachmentName(attachment)
+      const downloadApiPath = API_ENDPOINTS.FILE_UPLOAD.replace('/upload', '/download/resource')
+
+      try {
+        const response = await service.get(downloadApiPath, {
+          params: { resource: url, name: fileName },
+          responseType: 'blob',
+          timeout: 60000,
+          validateStatus: (status) => status >= 200 && status < 300
+        })
+        if (!response.data || response.data.size === 0) {
+          return null
+        }
+        const contentType = (response.headers['content-type'] || '').toLowerCase()
+        // 攔截器錯誤等會返回 JSON/HTML，不能當圖片預覽
+        if (contentType.includes('application/json') || contentType.includes('text/html')) {
+          return null
+        }
+        const blobType = contentType || 'image/png'
+        const blob = new Blob([response.data], { type: blobType })
+        return window.URL.createObjectURL(blob)
+      } catch (e) {
+        console.warn('圖片預覽拉取失敗', e)
+        return null
+      }
+    },
+
     // 獲取附件名稱
     getAttachmentName(attachment) {
       if (!attachment) return '未知文件'
@@ -1547,13 +1618,25 @@ export default {
       return '📎';
     },
 
-    // 判斷是否爲圖片（優先 URL 後綴，避免僅 name 帶 .png 誤判）
+    // 判斷是否爲圖片（MIME → URL 後綴 → name 後綴）
     isImage(attachment) {
       if (!attachment) return false
 
       const url = typeof attachment === 'object' ? attachment.url : attachment
       const name = typeof attachment === 'object' ? attachment.name : ''
+      const mime = typeof attachment === 'object' ? attachment.type : ''
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
+
+      if (mime && typeof mime === 'string') {
+        const normalizedMime = mime.toLowerCase()
+        if (normalizedMime.startsWith('image/')) {
+          return true
+        }
+        const mimeExt = normalizedMime.startsWith('.') ? normalizedMime : `.${normalizedMime}`
+        if (imageExtensions.includes(mimeExt)) {
+          return true
+        }
+      }
 
       const getExt = (value) => {
         if (!value || typeof value !== 'string') return ''
@@ -1577,6 +1660,17 @@ export default {
 
     isAttachmentImageFailed(attachment, index) {
       return !!this.failedAttachmentImageKeys[this.attachmentImageKey(attachment, index)]
+    },
+
+    markAttachmentImageFailed(key) {
+      const blobUrl = this.attachmentImagePreviewUrls[key]
+      if (blobUrl && String(blobUrl).startsWith('blob:')) {
+        window.URL.revokeObjectURL(blobUrl)
+      }
+      const previews = { ...this.attachmentImagePreviewUrls }
+      delete previews[key]
+      this.attachmentImagePreviewUrls = previews
+      this.failedAttachmentImageKeys = { ...this.failedAttachmentImageKeys, [key]: true }
     },
 
     // 提交回答
@@ -1903,10 +1997,29 @@ export default {
       });
     },
 
-    // 圖片加載失敗時改為下載鏈接，避免空白
-    handleImageError(attachment, index) {
+    // 直鏈失敗時嘗試通過下載接口預覽，仍失敗才顯示下載提示
+    async handleImageError(attachment, index) {
       const key = this.attachmentImageKey(attachment, index)
-      this.failedAttachmentImageKeys = { ...this.failedAttachmentImageKeys, [key]: true }
+      if (this.failedAttachmentImageKeys[key] || this.attachmentImageLoadingKeys[key]) {
+        return
+      }
+
+      // blob 預覽地址仍加載失敗 → 不再重試，顯示下載回退
+      if (this.attachmentImagePreviewUrls[key]) {
+        this.markAttachmentImageFailed(key)
+        return
+      }
+
+      this.attachmentImageLoadingKeys = { ...this.attachmentImageLoadingKeys, [key]: true }
+      const blobUrl = await this.fetchImagePreviewBlob(attachment)
+      this.attachmentImageLoadingKeys = { ...this.attachmentImageLoadingKeys, [key]: false }
+
+      if (blobUrl) {
+        this.attachmentImagePreviewUrls = { ...this.attachmentImagePreviewUrls, [key]: blobUrl }
+        return
+      }
+
+      this.markAttachmentImageFailed(key)
     },
 
     // 顯示居中提示
@@ -2264,11 +2377,45 @@ export default {
   overflow: hidden;
 }
 
-.attachment-image {
-  width: 100%;
-  max-height: 300px;
-  object-fit: cover;
+.attachment-image-wrap {
   border-radius: 6px;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+
+.attachment-image {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  background: #f5f7fa;
+}
+
+.attachment-image-name {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #606266;
+  background: #fafafa;
+  border-top: 1px solid #ebeef5;
+}
+
+.attachment-image-fallback {
+  padding: 24px 12px;
+  text-align: center;
+  background: #f5f7fa;
+}
+
+.fallback-text {
+  display: block;
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.fallback-download {
+  font-size: 14px;
+  color: #67c23a;
+  text-decoration: none;
 }
 
 .attachment-link {
