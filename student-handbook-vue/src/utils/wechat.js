@@ -59,13 +59,16 @@ function stripTokenFromUrlParams(urlParams) {
 
 /**
  * 從 URL 參數保存 token。
- * @returns {boolean} URL 中是否帶有 token（已寫入 localStorage）
+ * @returns {boolean} 是否為「新登錄」（URL 中的 token 與本地不同或本地尚無 token）
  */
 export function saveTokenFromUrl(urlParams = new URLSearchParams(window.location.search)) {
     const tokenFromUrl = urlParams.get('token')
     if (!tokenFromUrl) {
         return false
     }
+
+    const existingToken = localStorage.getItem('token')
+    const isNewLogin = !existingToken || existingToken !== tokenFromUrl
 
     localStorage.setItem('token', tokenFromUrl)
     localStorage.setItem('token_expire', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString())
@@ -78,7 +81,7 @@ export function saveTokenFromUrl(urlParams = new URLSearchParams(window.location
     if (!isWeChatEnv()) {
         window.history.replaceState({}, document.title, stripTokenFromUrlParams(urlParams))
     }
-    return true
+    return isNewLogin
 }
 
 /**
