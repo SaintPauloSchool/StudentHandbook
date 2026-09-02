@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * code 只能兌換一次，必須按入口分流（前端 state 前綴）：
  * <ul>
- *   <li>wecom* → auth/getuserinfo → wecom_school_department_member → 職工</li>
+ *   <li>wecom* / campus_notice_*（抄送）→ auth/getuserinfo → 職工</li>
  *   <li>其餘（wechat* / default 等）→ school/getuserinfo → 家校通訊錄 → 家長/學生</li>
  * </ul>
  */
@@ -87,12 +87,12 @@ public class WeChatWorkOAuthController extends BaseController {
             }
 
             if ("dev".equals(code)) {
-                fail(response, "invalid_code", "授權參數錯誤，請從微信/企微重新進入");
+                fail(response, "invalid_code", "授權參數錯誤，請從微信/企微重新進入", state);
                 return;
             }
 
             if (!markCodeUsed(code)) {
-                fail(response, "invalid_code", "授權碼已使用，請關閉後重新進入系統");
+                fail(response, "invalid_code", "授權碼已使用，請關閉後重新進入系統", state);
                 return;
             }
 
@@ -100,15 +100,15 @@ public class WeChatWorkOAuthController extends BaseController {
                 String savedState = (String) session.getAttribute("wechat_oauth_state");
                 if (savedState == null || !savedState.equals(state)) {
                     logger.warn("state 校驗失敗: {}", state);
-                    fail(response, "invalid_state", "授權狀態校驗失敗，請重新進入系統");
+                    fail(response, "invalid_state", "授權狀態校驗失敗，請重新進入系統", state);
                     return;
                 }
                 session.removeAttribute("wechat_oauth_state");
             }
 
-            LoginIdentity identity = isWecomChannel(state)
-                    ? resolveStaff(code, response)
-                    : resolveFamily(code, response);
+            LoginIdentity identity = shouldUseStaffOAuth(state)
+                    ? resolveStaff(code, response, state)
+                    : resolveFamily(code, response, state);
             if (identity == null) {
                 return;
             }
@@ -119,32 +119,32 @@ public class WeChatWorkOAuthController extends BaseController {
         } catch (Exception e) {
             logger.error("OAuth 回調異常", e);
             fail(response, "internal_error",
-                    e.getMessage() != null ? e.getMessage() : "系統內部錯誤");
+                    e.getMessage() != null ? e.getMessage() : "系統內部錯誤", state);
         }
     }
 
     /** 企微職工：auth/getuserinfo + wecom_school_department_member */
-    private LoginIdentity resolveStaff(String code, HttpServletResponse response) throws Exception {
-        logger.info("入口=企微職工 → auth/getuserinfo");
+    private LoginIdentity resolveStaff(String code, HttpServletResponse response, String state) throws Exception {
+        logger.info("入口=企微職工 → auth/getuserinfo, state={}", state);
         JSONObject authInfo = weChatWorkOAuth2Utils.getAuthUserIdentity(code);
 
         if (!isApiOk(authInfo)) {
             Integer err = authInfo.getInteger("errcode");
             logger.error("auth/getuserinfo 失敗: errcode={}, errmsg={}", err, authInfo.getString("errmsg"));
-            fail(response, "user_info_failed", tipForErr(err, true));
+            fail(response, "user_info_failed", tipForErr(err, true), state);
             return null;
         }
 
         String userId = firstNonEmpty(authInfo.getString("userid"), authInfo.getString("UserId"));
         if (userId == null) {
             logger.error("auth/getuserinfo 未返回 userid: {}", authInfo);
-            fail(response, "user_info_failed", "無法識別企微用戶身份，請聯繫學校管理員");
+            fail(response, "user_info_failed", "無法識別企微用戶身份，請聯繫學校管理員", state);
             return null;
         }
 
         if (!wecomSchoolDepartmentMemberService.checkIsDepartmentMember(userId)) {
             logger.warn("職工 {} 不在 wecom_school_department_member", userId);
-            fail(response, "authorization_failed", "您的企微賬戶未在學校部門成員中，請聯繫管理員確認");
+            fail(response, "authorization_failed", "您的企微賬戶未在學校部門成員中，請聯繫管理員確認", state);
             return null;
         }
 
@@ -153,14 +153,14 @@ public class WeChatWorkOAuthController extends BaseController {
     }
 
     /** 微信家長/學生：school/getuserinfo + 家校通訊錄 */
-    private LoginIdentity resolveFamily(String code, HttpServletResponse response) throws Exception {
-        logger.info("入口=微信家校 → school/getuserinfo");
+    private LoginIdentity resolveFamily(String code, HttpServletResponse response, String state) throws Exception {
+        logger.info("入口=微信家校 → school/getuserinfo, state={}", state);
         JSONObject userInfo = weChatWorkOAuth2Utils.getSchoolUserInfo(code);
 
         if (!isApiOk(userInfo)) {
             Integer err = userInfo.getInteger("errcode");
             logger.error("school/getuserinfo 失敗: errcode={}, errmsg={}", err, userInfo.getString("errmsg"));
-            fail(response, "user_info_failed", tipForErr(err, false));
+            fail(response, "user_info_failed", tipForErr(err, false), state);
             return null;
         }
 
@@ -170,7 +170,7 @@ public class WeChatWorkOAuthController extends BaseController {
         if (parentId != null && !parentId.isEmpty()) {
             if (!schoolFamilyContactService.checkHasBoundStudents(parentId)) {
                 logger.warn("家長 {} 無學生關聯", parentId);
-                fail(response, "authorization_failed", "家長賬戶未關聯任何學生，請聯繫學校管理員確認");
+                fail(response, "authorization_failed", "家長賬戶未關聯任何學生，請聯繫學校管理員確認", state);
                 return null;
             }
             logger.info("識別為家長, userId={}", parentId);
@@ -183,12 +183,19 @@ public class WeChatWorkOAuthController extends BaseController {
         }
 
         logger.error("school/getuserinfo 無家長/學生身份: keys={}", userInfo.keySet());
-        fail(response, "user_info_failed", "無法識別用戶身份，請確認已綁定家校家長後重試");
+        fail(response, "user_info_failed", "無法識別用戶身份，請確認已綁定家校家長後重試", state);
         return null;
     }
 
-    private boolean isWecomChannel(String state) {
-        return state != null && state.startsWith("wecom");
+    /**
+     * 是否走企微職工 OAuth（auth/getuserinfo）。
+     * wecom*：企微入口；campus_notice_*：抄送通知（僅職工，兼容舊消息 state）。
+     */
+    private boolean shouldUseStaffOAuth(String state) {
+        if (state == null || state.isEmpty()) {
+            return false;
+        }
+        return state.startsWith("wecom") || state.startsWith("campus_notice_");
     }
 
     /**
@@ -257,8 +264,15 @@ public class WeChatWorkOAuthController extends BaseController {
     }
 
     private void fail(HttpServletResponse response, String error, String message) throws IOException {
+        fail(response, error, message, null);
+    }
+
+    private void fail(HttpServletResponse response, String error, String message, String state) throws IOException {
         String url = frontendBase() + "/login?error=" + urlEncode(error)
                 + "&message=" + urlEncode(message);
+        if (state != null && !state.isEmpty()) {
+            url += "&oauth_state=" + urlEncode(state);
+        }
         response.sendRedirect(url);
     }
 
