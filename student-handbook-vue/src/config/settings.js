@@ -1,7 +1,7 @@
 // 前端全局配置設置
 export default {
     // 系統版本號
-    version: 'V 0.0.1',
+    version: 'V 1.0.0',
 
     // 微信驗證開關
     enableWeChatAuth: true,

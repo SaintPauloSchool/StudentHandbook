@@ -68,7 +68,7 @@
 
     <!-- 頁尾版權資訊 -->
     <div class="footer-info">
-      ©2017-2024 Saint Paul School, Macau 澳門聖保祿學校 All rights reserved | {{ version }}
+      ©2025-2027 Saint Paul School, Macau 澳門聖保祿學校 All rights reserved | {{ version }}
     </div>
 
     <!-- 共用切換學生彈窗元件 -->
