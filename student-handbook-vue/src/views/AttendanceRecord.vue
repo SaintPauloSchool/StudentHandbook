@@ -148,7 +148,7 @@ export default {
       const studentName = record.studentName || this.currentStudentName || ''
       const datetime = record.accessDatetime || ''
       const action = this.formatDirection(record.direction)
-      return `貴子弟 ${classSection} ${studentName} 在 ${datetime} ${action} 聖保祿學校`
+      return `貴子弟 ${classSection} ${studentName} 在 ${datetime} ${action} 聖保祿學校飯堂`
     },
 
     async loadRecords() {
