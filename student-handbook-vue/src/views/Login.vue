@@ -171,7 +171,9 @@ export default {
       this.errorMessage = '授權失敗無法進入系統，請聯繫學校管理員';
       if (settings.enableWeChatAuth) {
         if (this.shouldAutoLogin()) {
-          this.autoWechatLogin();
+          const urlParams = new URLSearchParams(window.location.search);
+          const oauthState = urlParams.get('oauth_state');
+          this.autoWechatLogin(oauthState);
         }
       } else {
         this.$router.push('/');
@@ -179,10 +181,10 @@ export default {
     },
 
     // 自動微信/企微登錄
-    async autoWechatLogin() {
+    async autoWechatLogin(oauthState) {
       const urlParams = new URLSearchParams(window.location.search);
       const redirectToCampus = urlParams.get('redirect_to_campus');
-      const state = buildOAuthState(redirectToCampus || undefined);
+      const state = oauthState || buildOAuthState(redirectToCampus || undefined);
 
       if (import.meta.env.MODE !== 'production') {
         console.log('非生產環境，直接跳轉到模擬登錄, state=', state);
