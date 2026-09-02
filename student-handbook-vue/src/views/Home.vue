@@ -15,7 +15,7 @@
       <div class="logo-badge">
         <img src="../logo/sp.jpg" alt="School Logo" class="school-logo-img">
       </div>
-      <h1 class="welcome-title">歡迎使用學生系統</h1>
+      <h1 class="welcome-title">歡迎使用保祿家校通</h1>
     </div>
 
     <div class="buttons-container">
