@@ -2653,7 +2653,7 @@ export default {
 
 .logic-option-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 12px 16px;
   background: #ffffff;
   border: 1px solid #d1d5db;
@@ -2661,6 +2661,7 @@ export default {
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  gap: 8px;
 }
 
 .logic-option-item:hover {
@@ -2679,16 +2680,20 @@ export default {
 
 .option-content {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
+  flex: 1;
+  min-width: 0;
 }
 
 .opt-label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   min-width: 24px;
   height: 24px;
+  margin-top: 1px;
   line-height: 1;
   border-radius: 50%;
   background: #f1f5f9;
@@ -2704,14 +2709,21 @@ export default {
 }
 
 .opt-text {
+  flex: 1;
+  min-width: 0;
   font-size: 15px;
   color: #334155;
   font-weight: 500;
-  white-space: nowrap;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .check-icon {
+  flex-shrink: 0;
   margin-left: auto;
+  margin-top: 2px;
   color: #3b82f6;
   font-size: 20px;
   font-weight: bold;
@@ -3203,6 +3215,11 @@ export default {
   color: #606266;
   cursor: pointer;
   flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* 輸入框樣式 */
