@@ -2662,6 +2662,7 @@ export default {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   gap: 8px;
+  text-align: left;
 }
 
 .logic-option-item:hover {
@@ -2715,6 +2716,7 @@ export default {
   color: #334155;
   font-weight: 500;
   line-height: 1.5;
+  text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -3217,6 +3219,7 @@ export default {
   flex: 1;
   min-width: 0;
   line-height: 1.5;
+  text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
