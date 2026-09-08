@@ -76,22 +76,25 @@ import { API_ENDPOINTS } from '@/config/api.js'
 import { HomeFilled, Refresh, Calendar } from '@element-plus/icons-vue'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 import StudentChip from '@/components/StudentChip.vue'
+import { getCurrentStudentSession, ensureCurrentStudent } from '@/utils/wechat.js'
 
 export default {
   name: 'AttendanceRecord',
   components: { HomeFilled, Refresh, Calendar, StudentSwitchDialog, StudentChip },
   data() {
+    const student = getCurrentStudentSession()
     return {
       records: [],
       loading: false,
       studentDialogVisible: false,
       selectedDate: null,
-      currentStudentName: localStorage.getItem('currentStudentName') || '',
-      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
-      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || ''
+      currentStudentName: student.studentName,
+      currentStudentClassSection: student.classSection,
+      currentStudentProfileNumber: student.studentProfileNumber
     }
   },
-  mounted() {
+  async mounted() {
+    await this.syncStudentSession()
     this.loadRecords()
     window.addEventListener('studentChanged', this.handleStudentChanged)
   },
@@ -99,6 +102,30 @@ export default {
     window.removeEventListener('studentChanged', this.handleStudentChanged)
   },
   methods: {
+    async syncStudentSession() {
+      try {
+        const selected = await ensureCurrentStudent(async () => {
+          const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS)
+          if (response.data.code === 200) {
+            return response.data.data || []
+          }
+          return []
+        })
+        if (selected) {
+          this.currentStudentName = selected.studentName
+          this.currentStudentClassSection = selected.classSection || ''
+          this.currentStudentProfileNumber = selected.studentProfileNumber || ''
+          return
+        }
+      } catch (e) {
+        // fall through
+      }
+      const student = getCurrentStudentSession()
+      this.currentStudentName = student.studentName
+      this.currentStudentClassSection = student.classSection
+      this.currentStudentProfileNumber = student.studentProfileNumber
+    },
+
     goBack() {
       this.$router.push('/')
     },
@@ -126,16 +153,17 @@ export default {
     },
 
     handleStudentChanged() {
-      this.currentStudentName = localStorage.getItem('currentStudentName') || ''
-      this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || ''
-      this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || ''
+      const student = getCurrentStudentSession()
+      this.currentStudentName = student.studentName
+      this.currentStudentClassSection = student.classSection
+      this.currentStudentProfileNumber = student.studentProfileNumber
       this.loadRecords()
     },
 
     onStudentSwitched({ studentName, classSection, studentProfileNumber }) {
-      this.currentStudentName = studentName || localStorage.getItem('currentStudentName') || ''
-      this.currentStudentClassSection = classSection || localStorage.getItem('currentStudentClassSection') || ''
-      this.currentStudentProfileNumber = studentProfileNumber || localStorage.getItem('currentStudentProfileNumber') || ''
+      this.currentStudentName = studentName || ''
+      this.currentStudentClassSection = classSection || ''
+      this.currentStudentProfileNumber = studentProfileNumber || ''
       this.loadRecords()
     },
 
@@ -152,7 +180,7 @@ export default {
     },
 
     async loadRecords() {
-      const studentId = localStorage.getItem('currentStudentId')
+      const studentId = getCurrentStudentSession().studentId
       if (!studentId) {
         ElMessage.warning('請先選擇學生')
         return
