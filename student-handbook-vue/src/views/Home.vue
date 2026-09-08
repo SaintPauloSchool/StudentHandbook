@@ -83,26 +83,30 @@ import settings from '@/config/settings'
 import { API_ENDPOINTS, baseURL } from '@/config/api.js'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 import StudentChip from '@/components/StudentChip.vue'
-import { isWeChatEnv, saveTokenFromUrl, isCampusNoticeState, parseCampusNoticeId, buildOAuthState } from '@/utils/wechat.js'
+import { isWeChatEnv, saveTokenFromUrl, isCampusNoticeState, parseCampusNoticeId, buildOAuthState, clearAuthSession, getCurrentStudentSession, ensureCurrentStudent } from '@/utils/wechat.js'
 
 export default {
   name: 'Home',
   components: { StudentSwitchDialog, StudentChip },
   data() {
     const cachedUserType = localStorage.getItem('userType');
+    const student = getCurrentStudentSession();
     return {
       unreadCount: 0,
       isNavigatingToCampus: false,
       userType: cachedUserType !== null ? parseInt(cachedUserType) : null,
-      currentStudentName: localStorage.getItem('currentStudentName') || '',
-      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
-      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
+      currentStudentName: student.studentName,
+      currentStudentClassSection: student.classSection,
+      currentStudentProfileNumber: student.studentProfileNumber,
       studentDialogVisible: false, // 切換彈窗是否顯示
       version: settings.version // 系統版本號
     }
   },
   async mounted() {
-    // 檢查URL參數中是否有token（來自微信授權回調）
+    // 路由守衛可能已先消費 URL 中的 token，這裡補齊「新登錄」的 UI 處理
+    this.applyNewLoginFromUrlToken()
+
+    // 檢查是否需跳轉校園系統（state=campus_notice_*）
     if (this.checkTokenFromUrl()) {
       // 已跳轉校園系統，停止後續初始化
       return;
@@ -132,18 +136,32 @@ export default {
   },
 
   methods: {
+    /** 路由守衛已寫入 token 後，補齊首頁新登錄提示與學生顯示清理 */
+    applyNewLoginFromUrlToken() {
+      if (!saveTokenFromUrl.lastWasNewLogin) {
+        return;
+      }
+      saveTokenFromUrl.lastWasNewLogin = false;
+
+      const urlUserType = localStorage.getItem('userType');
+      if (urlUserType !== null) {
+        this.userType = parseInt(urlUserType, 10);
+      } else {
+        this.userType = null;
+      }
+      this.currentStudentName = '';
+      this.currentStudentClassSection = '';
+      this.currentStudentProfileNumber = '';
+      ElMessage.success('登錄成功');
+    },
+
     checkTokenFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       const state = urlParams.get('state');
 
+      // 若守衛尚未消費（極少見），這裡再兜底一次
       if (saveTokenFromUrl(urlParams)) {
-        const urlUserType = localStorage.getItem('userType');
-        if (urlUserType !== null) {
-          this.userType = parseInt(urlUserType, 10);
-        } else {
-          this.userType = null;
-        }
-        ElMessage.success('登錄成功');
+        this.applyNewLoginFromUrlToken();
       }
 
       const pendingCampus = sessionStorage.getItem('pendingCampusRedirect') === 'true';
@@ -174,32 +192,24 @@ export default {
       return false;
     },
 
-    // ① 首次登入時，確保默認學生已嵌入 localStorage，並同步顯示姓名
+    // ① 確保當前學生屬於本次登錄帳號（必須打接口校驗，禁止信任舊 localStorage）
     async ensureDefaultStudent() {
-      // 如果已經有緬存的學生 ID，直接同步姓名後返回
-      if (localStorage.getItem('currentStudentId')) {
-        this.currentStudentName = localStorage.getItem('currentStudentName') || '';
-        this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || '';
-        this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || '';
-        if (this.currentStudentName && this.currentStudentClassSection && this.currentStudentProfileNumber) return;
-      }
-
       try {
-        const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
-        if (response.data.code === 200) {
-          const relations = response.data.data;
-          if (relations && relations.length > 0) {
-            const savedId = localStorage.getItem('currentStudentId');
-            const matched = savedId ? relations.find(r => r.studentId === savedId) : null;
-            const defaultRel = matched || relations[0];
-            this.currentStudentName = defaultRel.studentName;
-            this.currentStudentClassSection = defaultRel.classSection || '';
-            this.currentStudentProfileNumber = defaultRel.studentProfileNumber || '';
-            localStorage.setItem('currentStudentId', defaultRel.studentId);
-            localStorage.setItem('currentStudentName', defaultRel.studentName);
-            localStorage.setItem('currentStudentClassSection', defaultRel.classSection || '');
-            localStorage.setItem('currentStudentProfileNumber', defaultRel.studentProfileNumber || '');
+        const selected = await ensureCurrentStudent(async () => {
+          const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS);
+          if (response.data.code === 200) {
+            return response.data.data || [];
           }
+          return [];
+        });
+        if (selected) {
+          this.currentStudentName = selected.studentName;
+          this.currentStudentClassSection = selected.classSection || '';
+          this.currentStudentProfileNumber = selected.studentProfileNumber || '';
+        } else {
+          this.currentStudentName = '';
+          this.currentStudentClassSection = '';
+          this.currentStudentProfileNumber = '';
         }
       } catch (error) {
         console.warn('首頁初始化：無法取得學生列表（可能是員工身份）', error.message);
@@ -210,6 +220,11 @@ export default {
     checkToken() {
       const token = localStorage.getItem('token');
       if (!token) {
+        clearAuthSession();
+        this.currentStudentName = '';
+        this.currentStudentClassSection = '';
+        this.currentStudentProfileNumber = '';
+        this.userType = null;
         this.$router.push('/login');
         return false;
       }
@@ -220,7 +235,7 @@ export default {
     async fetchUnreadCount() {
       try {
         // 從localStorage獲取當前選中的學生ID
-        const studentId = localStorage.getItem('currentStudentId');
+        const studentId = getCurrentStudentSession().studentId;
 
         const params = {};
         if (studentId) {
@@ -310,7 +325,11 @@ export default {
       }
     },
     reAuthAndOpenCampus() {
-      localStorage.removeItem('token');
+      clearAuthSession();
+      this.userType = null;
+      this.currentStudentName = '';
+      this.currentStudentClassSection = '';
+      this.currentStudentProfileNumber = '';
       sessionStorage.setItem('pendingCampusRedirect', 'true');
 
       if (import.meta.env.MODE !== 'production') {
@@ -336,9 +355,10 @@ export default {
 
     // 處理學生切換事件（其他頁面發出的）
     handleStudentChanged() {
-      this.currentStudentName = localStorage.getItem('currentStudentName') || '';
-      this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || '';
-      this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || '';
+      const student = getCurrentStudentSession();
+      this.currentStudentName = student.studentName;
+      this.currentStudentClassSection = student.classSection;
+      this.currentStudentProfileNumber = student.studentProfileNumber;
       console.log('學生已切換，重新獲取未讀通知數量');
       this.fetchUnreadCount();
     },
@@ -350,9 +370,9 @@ export default {
 
     // StudentSwitchDialog 切換成功後的回調
     onStudentSwitched({ studentName, classSection, studentProfileNumber }) {
-      this.currentStudentName = studentName;
-      this.currentStudentClassSection = classSection || localStorage.getItem('currentStudentClassSection') || '';
-      this.currentStudentProfileNumber = studentProfileNumber || localStorage.getItem('currentStudentProfileNumber') || '';
+      this.currentStudentName = studentName || '';
+      this.currentStudentClassSection = classSection || '';
+      this.currentStudentProfileNumber = studentProfileNumber || '';
       this.fetchUnreadCount();
     },
   }

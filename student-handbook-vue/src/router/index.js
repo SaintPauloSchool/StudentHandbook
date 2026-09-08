@@ -4,7 +4,7 @@ import StudentHandbook from '../views/StudentHandbook.vue'
 import Login from '../views/Login.vue'
 import ParentNotice from '../views/ParentNotice.vue'
 import NoticeDetail from '../views/NoticeDetail.vue'
-import {syncTokenToUrlForWeChatShare} from '@/utils/wechat.js'
+import {stripAuthParamsFromUrl, saveTokenFromUrl} from '@/utils/wechat.js'
 
 const routes = [
     {
@@ -63,7 +63,12 @@ router.afterEach((to, from) => {
     } else {
         to.meta = { fromPath: from.path }
     }
-    syncTokenToUrlForWeChatShare(to.path)
+    // 清掉地址欄殘留的 token，避免微信複製/轉發鏈接洩露登錄態
+    stripAuthParamsFromUrl()
+    // 非首頁不保留「新登錄」標記，避免之後進首頁誤彈「登錄成功」
+    if (to.path !== '/') {
+        saveTokenFromUrl.lastWasNewLogin = false
+    }
 })
 
 export default router

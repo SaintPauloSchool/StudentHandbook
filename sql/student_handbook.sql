@@ -324,6 +324,7 @@ CREATE TABLE sys_school_department (
                                        order_num           INT(11)         DEFAULT NULL                    COMMENT '在父部門中的次序值',
                                        department_leader   TEXT            DEFAULT NULL                    COMMENT '部門負責人的 UserID（JSON 數組字符串）',
                                        type                TINYINT(1)      DEFAULT 1                       COMMENT '類型：1-學校部門通訊錄，2-家校通訊錄',
+                                       owner_userid        VARCHAR(64)     DEFAULT NULL                    COMMENT '擁有者企微 userid',
                                        create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP       COMMENT '創建時間',
                                        update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
                                        PRIMARY KEY (id)
@@ -370,26 +371,26 @@ CREATE TABLE `notification_resend_fail_record` (
                                                    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='通知重發失敗記錄表';
 -- ----------------------------
--- 系統管理員表（全局）
+-- 系統用戶角色表
 -- ----------------------------
-DROP TABLE IF EXISTS sys_admin;
-CREATE TABLE sys_admin (
-                           id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主鍵ID',
-                           user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID（關聯token表的user_id）',
-                           admin_name          VARCHAR(100)    DEFAULT NULL               COMMENT '管理員姓名',
-                           type                CHAR(1)         NOT NULL DEFAULT '1'       COMMENT '類型（0超級管理員 1管理員）',
-                           status              CHAR(1)         DEFAULT '0'                COMMENT '狀態（0正常 1停用）',
-                           create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '創建時間',
-                           update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
-                           remark              VARCHAR(500)    DEFAULT NULL               COMMENT '備註',
-                           PRIMARY KEY (id),
-                           UNIQUE KEY uk_user_id (user_id),
-                           KEY idx_status (status),
-                           KEY idx_type (type)
-) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='系統管理員表';
+DROP TABLE IF EXISTS sys_user_role;
+CREATE TABLE sys_user_role (
+                               id                  BIGINT(20)      NOT NULL AUTO_INCREMENT    COMMENT '主鍵ID',
+                               user_id             VARCHAR(64)     NOT NULL                   COMMENT '用戶ID（關聯token表的user_id）',
+                               admin_name          VARCHAR(100)    DEFAULT NULL               COMMENT '用戶真實姓名（後台顯示）',
+                               sender_display_name VARCHAR(100)    DEFAULT NULL               COMMENT '對外顯示名稱（通知發送人等）',
+                               type                CHAR(1)         NOT NULL DEFAULT '1'       COMMENT '類型（0超級管理員 1管理員 2其他）',
+                               status              CHAR(1)         DEFAULT '0'                COMMENT '狀態（0正常 1停用）',
+                               create_time         DATETIME        DEFAULT CURRENT_TIMESTAMP  COMMENT '創建時間',
+                               update_time         DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+                               remark              VARCHAR(500)    DEFAULT NULL               COMMENT '備註',
+                               PRIMARY KEY (id),
+                               UNIQUE KEY uk_user_id (user_id),
+                               KEY idx_status (status),
+                               KEY idx_type (type)
+) ENGINE=InnoDB AUTO_INCREMENT=1 COLLATE=utf8mb4_0900_ai_ci COMMENT='系統用戶角色表';
 
--- 插入示例管理員數據（需要根據實際user_id調整）
--- INSERT INTO sys_admin VALUES(1, 'admin_user_id', '系統管理員', '0', '0', NOW(), NOW(), '超級管理員');
+-- INSERT INTO sys_user_role VALUES(1, 'admin_user_id', '系統管理員', '校務處', '0', '0', NOW(), NOW(), '超級管理員');
 -- ----------------------------
 -- 行事曆事件表
 -- ----------------------------
@@ -440,6 +441,8 @@ CREATE TABLE `sys_scheduled_task` (
                                       `cron_expression` varchar(64)  NOT NULL                COMMENT 'Cron 表達式',
                                       `enabled`         char(1)      NOT NULL DEFAULT '0'    COMMENT '是否啟用（0停用 1啟用）',
                                       `sort_order`      int(11)      NOT NULL DEFAULT 0      COMMENT '排序',
+                                      `lock_until`      datetime     DEFAULT NULL            COMMENT '執行鎖過期時間',
+                                      `lock_owner`      varchar(128) DEFAULT NULL            COMMENT '當前持有鎖的實例標識',
                                       `create_time`     datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
                                       `update_time`     datetime     DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
                                       PRIMARY KEY (`id`),

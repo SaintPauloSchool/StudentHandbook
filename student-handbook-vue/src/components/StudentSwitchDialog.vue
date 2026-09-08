@@ -40,6 +40,7 @@
 import service from '@/utils/request.js'
 import { ElMessage } from 'element-plus'
 import { API_ENDPOINTS } from '@/config/api.js'
+import { setCurrentStudentSession, getCurrentStudentSession } from '@/utils/wechat.js'
 
 export default {
   name: 'StudentSwitchDialog',
@@ -70,7 +71,7 @@ export default {
         const res = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS)
         if (res.data.code === 200 && res.data.data?.length > 0) {
           this.studentRelations = res.data.data
-          const savedId = localStorage.getItem('currentStudentId')
+          const savedId = getCurrentStudentSession().studentId
           this.selectedId = savedId && this.studentRelations.some(r => r.studentId === savedId)
             ? savedId
             : this.studentRelations[0].studentId
@@ -100,10 +101,12 @@ export default {
           studentId: rel.studentId
         })
         if (res.data.code === 200) {
-          localStorage.setItem('currentStudentId', rel.studentId)
-          localStorage.setItem('currentStudentName', rel.studentName)
-          localStorage.setItem('currentStudentClassSection', rel.classSection || '')
-          localStorage.setItem('currentStudentProfileNumber', rel.studentProfileNumber || '')
+          setCurrentStudentSession({
+            studentId: rel.studentId,
+            studentName: rel.studentName,
+            classSection: rel.classSection || '',
+            studentProfileNumber: rel.studentProfileNumber || ''
+          })
           ElMessage.success({
             message: '已切換至 ' + rel.studentName,
             duration: 1000
@@ -115,6 +118,7 @@ export default {
             classSection: rel.classSection || '',
             studentProfileNumber: rel.studentProfileNumber || ''
           })
+          window.dispatchEvent(new CustomEvent('studentChanged'))
         } else {
           ElMessage.error(res.data.msg || '切換學生失敗')
         }

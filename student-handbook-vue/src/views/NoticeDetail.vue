@@ -420,7 +420,7 @@ import settings from '@/config/settings' // 導入全局配置設置
 import CryptoJS from 'crypto-js' // 導入crypto-js庫用於MD5加密
 import StudentChip from '@/components/StudentChip.vue'
 import { normalizeProfileUrl, toPublicProfilePath, buildProfileDownloadUrl } from '@/utils/deployment.js'
-import { isWeChatEnv } from '@/utils/wechat.js'
+import { isWeChatEnv, getCurrentStudentSession, setCurrentStudentSession } from '@/utils/wechat.js'
 
 export default {
   name: 'NoticeDetail',
@@ -440,6 +440,7 @@ export default {
     Link
   },
   data() {
+    const student = getCurrentStudentSession()
     return {
       notice: null,
       questions: [],
@@ -459,9 +460,9 @@ export default {
       toastMessage: '',
       errorMessage: '', // 錯誤信息
       isFromWechatLink: false, // 是否從微信鏈接進入（帶有sid參數）
-      currentStudentName: localStorage.getItem('currentStudentName') || '',
-      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
-      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
+      currentStudentName: student.studentName,
+      currentStudentClassSection: student.classSection,
+      currentStudentProfileNumber: student.studentProfileNumber,
     }
   },
   computed: {
@@ -544,10 +545,12 @@ export default {
     },
 
     setCurrentStudent(relation) {
-      localStorage.setItem('currentStudentId', relation.studentId);
-      localStorage.setItem('currentStudentName', relation.studentName);
-      localStorage.setItem('currentStudentClassSection', relation.classSection || '');
-      localStorage.setItem('currentStudentProfileNumber', relation.studentProfileNumber || '');
+      setCurrentStudentSession({
+        studentId: relation.studentId,
+        studentName: relation.studentName,
+        classSection: relation.classSection || '',
+        studentProfileNumber: relation.studentProfileNumber || ''
+      });
       this.currentStudentName = relation.studentName;
       this.currentStudentClassSection = relation.classSection || '';
       this.currentStudentProfileNumber = relation.studentProfileNumber || '';
@@ -594,7 +597,7 @@ export default {
               }
             } else {
               // 沒有sid參數，檢查localStorage中是否已有選中的學生
-              const savedStudentId = localStorage.getItem('currentStudentId');
+              const savedStudentId = getCurrentStudentSession().studentId;
               if (savedStudentId) {
                 // 驗證保存的學生ID是否在當前關係中
                 const isValid = relations.some(r => r.studentId === savedStudentId);
@@ -605,9 +608,7 @@ export default {
                   if (rel) {
                     this.setCurrentStudent(rel);
                   } else {
-                    this.currentStudentName = localStorage.getItem('currentStudentName');
-                    this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || '';
-                    this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || '';
+                    this.setCurrentStudent(relations[0]);
                   }
                 }
               } else {
@@ -654,7 +655,7 @@ export default {
       this.loading = true
       try {
         // 從localStorage獲取當前選中的學生ID
-        const studentId = localStorage.getItem('currentStudentId')
+        const studentId = getCurrentStudentSession().studentId
 
         // 如果沒有學生ID，顯示錯誤
         if (!studentId) {
@@ -713,7 +714,7 @@ export default {
     async markAsRead(notificationId) {
       try {
         // 從localStorage獲取當前選中的學生ID
-        const studentId = localStorage.getItem('currentStudentId')
+        const studentId = getCurrentStudentSession().studentId
 
         const params = {}
         if (studentId) {
@@ -1243,7 +1244,7 @@ export default {
         formData.append('file', file);
 
         // 獲取當前選中的學生ID（從localStorage或sessionStorage）
-        const studentId = localStorage.getItem('currentStudentId');
+        const studentId = getCurrentStudentSession().studentId;
         console.log('當前學生ID:', studentId);
 
         if (!studentId) {
@@ -1694,7 +1695,7 @@ export default {
         this.submitting = true;
 
         // 從localStorage獲取當前選中的學生ID
-        const studentId = localStorage.getItem('currentStudentId');
+        const studentId = getCurrentStudentSession().studentId;
         if (!studentId) {
           ElMessage.error('請指定學生ID');
           this.submitting = false;

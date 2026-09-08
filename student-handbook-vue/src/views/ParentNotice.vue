@@ -97,6 +97,7 @@ import { API_ENDPOINTS } from '@/config/api.js'
 import { User, Clock, HomeFilled, Refresh } from '@element-plus/icons-vue'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 import StudentChip from '@/components/StudentChip.vue'
+import { getCurrentStudentSession, ensureCurrentStudent } from '@/utils/wechat.js'
 
 export default {
   name: 'ParentNotice',
@@ -109,6 +110,7 @@ export default {
     StudentChip
   },
   data() {
+    const student = getCurrentStudentSession()
     return {
       noticeList: [],
       loading: false,
@@ -119,37 +121,53 @@ export default {
       hasMore: true,
       savedScrollTop: 0, // 保存滾動位置
       isInitialMount: false, // 是否初次掛載
-      
+      // keep-alive 下用於偵測換帳號（同一學生 ID 跨家長時 studentId 比對不夠）
+      boundAuthToken: localStorage.getItem('token') || '',
+
       // 學生選擇相關
       studentDialogVisible: false,
-      currentStudentName: localStorage.getItem('currentStudentName') || '',
-      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
-      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
-      selectedStudentId: localStorage.getItem('currentStudentId') || ''
+      currentStudentName: student.studentName,
+      currentStudentClassSection: student.classSection,
+      currentStudentProfileNumber: student.studentProfileNumber,
+      selectedStudentId: student.studentId
     }
   },
-  mounted() {
+  async mounted() {
     this.isInitialMount = true
-    this.selectedStudentId = localStorage.getItem('currentStudentId') || ''
-    this.currentStudentName = localStorage.getItem('currentStudentName') || ''
-    this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || ''
-    this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || ''
+    await this.syncStudentSession()
+    this.boundAuthToken = localStorage.getItem('token') || ''
     this.loadNoticeList()
   },
-  activated() {
+  async activated() {
     if (this.isInitialMount) {
       this.isInitialMount = false
       return
     }
-    
+
+    // keep-alive 可能仍持有上一帳號的列表/學生 UI
+    const currentToken = localStorage.getItem('token') || ''
+    const session = getCurrentStudentSession()
+    const authMismatch = !currentToken || currentToken !== this.boundAuthToken
+    const studentMismatch = !session.studentId || session.studentId !== this.selectedStudentId
+    if (authMismatch || studentMismatch) {
+      await this.syncStudentSession()
+      this.boundAuthToken = localStorage.getItem('token') || ''
+      this.savedScrollTop = 0
+      this.$nextTick(() => {
+        if (this.$refs.scrollContainer) {
+          this.$refs.scrollContainer.scrollTop = 0
+        }
+      })
+      this.loadNoticeList(true)
+      return
+    }
+
     const fromPath = this.$route.meta.fromPath || ''
-    
+
     if (!fromPath.startsWith('/notice/')) {
       // 從首頁或其他地方進入：刷新列表並回到頂部
-      this.selectedStudentId = localStorage.getItem('currentStudentId') || ''
-      this.currentStudentName = localStorage.getItem('currentStudentName') || ''
-      this.currentStudentClassSection = localStorage.getItem('currentStudentClassSection') || ''
-      this.currentStudentProfileNumber = localStorage.getItem('currentStudentProfileNumber') || ''
+      await this.syncStudentSession()
+      this.boundAuthToken = localStorage.getItem('token') || ''
       this.savedScrollTop = 0
       this.$nextTick(() => {
         if (this.$refs.scrollContainer) {
@@ -170,6 +188,32 @@ export default {
     }
   },
   methods: {
+    async syncStudentSession() {
+      try {
+        const selected = await ensureCurrentStudent(async () => {
+          const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS)
+          if (response.data.code === 200) {
+            return response.data.data || []
+          }
+          return []
+        })
+        if (selected) {
+          this.selectedStudentId = selected.studentId
+          this.currentStudentName = selected.studentName
+          this.currentStudentClassSection = selected.classSection || ''
+          this.currentStudentProfileNumber = selected.studentProfileNumber || ''
+          return
+        }
+      } catch (e) {
+        // fall through
+      }
+      const student = getCurrentStudentSession()
+      this.selectedStudentId = student.studentId
+      this.currentStudentName = student.studentName
+      this.currentStudentClassSection = student.classSection
+      this.currentStudentProfileNumber = student.studentProfileNumber
+    },
+
     // 返回上一頁
     goBack() {
       this.$router.push('/')
@@ -344,10 +388,10 @@ export default {
 
     // 學生切換成功的回調
     onStudentSwitched({ studentId, studentName, classSection, studentProfileNumber }) {
-      this.selectedStudentId = studentId;
-      this.currentStudentName = studentName || localStorage.getItem('currentStudentName') || '';
-      this.currentStudentClassSection = classSection || localStorage.getItem('currentStudentClassSection') || '';
-      this.currentStudentProfileNumber = studentProfileNumber || localStorage.getItem('currentStudentProfileNumber') || '';
+      this.selectedStudentId = studentId || '';
+      this.currentStudentName = studentName || '';
+      this.currentStudentClassSection = classSection || '';
+      this.currentStudentProfileNumber = studentProfileNumber || '';
       // 刷新通知列表
       this.loadNoticeList(true);
       
