@@ -27,7 +27,7 @@ import service from '@/utils/request.js'
 import {ElMessage} from 'element-plus'
 import settings from '@/config/settings' // 導入全局配置設置
 import { baseURL, API_ENDPOINTS } from '@/config/api.js' // 導入 API 基礎路徑
-import {isWeChatEnv, isWeComEnv, buildOAuthState, saveTokenFromUrl} from '@/utils/wechat.js'
+import {isWeChatEnv, isWeComEnv, buildOAuthState, saveTokenFromUrl, clearAuthSession, sanitizeRedirectUrl} from '@/utils/wechat.js'
 
 export default {
   name: 'Login',
@@ -83,9 +83,7 @@ export default {
 
       const expire = localStorage.getItem('token_expire');
       if (expire && Date.now() > parseInt(expire, 10)) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('token_expire');
-        localStorage.removeItem('userType');
+        clearAuthSession();
         return false;
       }
 
@@ -94,16 +92,14 @@ export default {
         if (response.data.code === 200) {
           const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
           sessionStorage.removeItem('redirect_url');
-          this.$router.push(redirectUrl);
+          this.$router.push(sanitizeRedirectUrl(redirectUrl));
           return true;
         }
       } catch (error) {
         console.warn('本地 token 已失效:', error);
       }
 
-      localStorage.removeItem('token');
-      localStorage.removeItem('token_expire');
-      localStorage.removeItem('userType');
+      clearAuthSession();
       return false;
     },
 
@@ -112,10 +108,14 @@ export default {
       const urlParams = new URLSearchParams(window.location.search);
 
       if (saveTokenFromUrl(urlParams)) {
-        ElMessage.success('登錄成功');
+        if (saveTokenFromUrl.lastWasNewLogin) {
+          ElMessage.success('登錄成功');
+        }
+        // 已提示過，避免跳首頁後 Home 再彈一次
+        saveTokenFromUrl.lastWasNewLogin = false;
         const redirectUrl = sessionStorage.getItem('redirect_url') || '/';
         sessionStorage.removeItem('redirect_url');
-        this.$router.push(redirectUrl);
+        this.$router.push(sanitizeRedirectUrl(redirectUrl));
         return true;
       }
       return false;

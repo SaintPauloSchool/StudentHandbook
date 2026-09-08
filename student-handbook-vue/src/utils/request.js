@@ -3,6 +3,7 @@ import axios from 'axios'
 import {ElMessage} from 'element-plus' // 導入Element Plus的消息組件
 import settings from '@/config/settings' // 導入全局配置設置
 import MD5 from 'crypto-js/md5' // 導入 MD5 用於計算籤名
+import { clearAuthSession, clearStudentSession, sanitizeRedirectUrl } from '@/utils/wechat.js'
 
 // 生成唯一標識符(UUID的簡易實現)
 const generateNonce = () => {
@@ -65,8 +66,12 @@ service.interceptors.response.use(
 
         // 如果後端返回了token信息，保存到本地存儲
         if (res.code === 200 && res.data && res.data.token) {
-            // 將token保存到本地存儲
-            localStorage.setItem('token', res.data.token);
+            const newToken = res.data.token
+            const existingToken = localStorage.getItem('token')
+            if (existingToken && existingToken !== newToken) {
+                clearStudentSession()
+            }
+            localStorage.setItem('token', newToken);
         }
 
         return response;
@@ -75,13 +80,15 @@ service.interceptors.response.use(
         console.log('err' + error)// for debug
         if (settings.enableTokenAuth) { // 只有在啓用Token驗證時才進行跳轉
             if (error.response && error.response.status === 401) {
-                // token過期/無效，跳轉到登錄頁面
-                localStorage.removeItem('token')
+                // token過期/無效，跳轉到登錄頁面（連同學生緩存一起清，避免顯示別人孩子）
+                clearAuthSession()
                 sessionStorage.setItem(
                     'redirect_url',
-                    window.location.pathname +
-                    window.location.search +
-                    window.location.hash
+                    sanitizeRedirectUrl(
+                        window.location.pathname +
+                        window.location.search +
+                        window.location.hash
+                    )
                 )
                 window.location.href = '/login'
                 ElMessage.error('請先登錄')

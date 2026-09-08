@@ -105,6 +105,7 @@ import {ElMessage} from 'element-plus'
 import { HomeFilled } from '@element-plus/icons-vue'
 import StudentSwitchDialog from '@/components/StudentSwitchDialog.vue'
 import StudentChip from '@/components/StudentChip.vue'
+import { getCurrentStudentSession, ensureCurrentStudent } from '@/utils/wechat.js'
 
 export default {
   name: 'StudentHandbook',
@@ -115,6 +116,7 @@ export default {
   },
 
   data() {
+    const student = getCurrentStudentSession()
     return {
       loading: false,
       allGroupedHandbookList: [],
@@ -125,10 +127,10 @@ export default {
 
       // 切換學生彈窗（共用元件）
       studentDialogVisible: false,
-      currentStudentName: localStorage.getItem('currentStudentName') || '',
-      currentStudentClassSection: localStorage.getItem('currentStudentClassSection') || '',
-      currentStudentProfileNumber: localStorage.getItem('currentStudentProfileNumber') || '',
-      selectedStudentId: localStorage.getItem('currentStudentId') || '',
+      currentStudentName: student.studentName,
+      currentStudentClassSection: student.classSection,
+      currentStudentProfileNumber: student.studentProfileNumber,
+      selectedStudentId: student.studentId,
 
       // 滑動相關數據
       touchStartX: 0,
@@ -143,9 +145,9 @@ export default {
       return this.allGroupedHandbookList.slice(startIndex, endIndex);
     }
   },
-  mounted() {
+  async mounted() {
     this.activeButton = 'today';
-    this.selectedStudentId = localStorage.getItem('currentStudentId') || ''
+    await this.syncStudentSession()
     this.fetchTodayHandbookList()
     window.addEventListener('scroll', this.handleScroll)
   },
@@ -153,6 +155,32 @@ export default {
     window.removeEventListener('scroll', this.handleScroll)
   },
   methods: {
+    async syncStudentSession() {
+      try {
+        const selected = await ensureCurrentStudent(async () => {
+          const response = await service.get(API_ENDPOINTS.STUDENT_HANDBOOK_STUDENTS)
+          if (response.data.code === 200) {
+            return response.data.data || []
+          }
+          return []
+        })
+        if (selected) {
+          this.selectedStudentId = selected.studentId
+          this.currentStudentName = selected.studentName
+          this.currentStudentClassSection = selected.classSection || ''
+          this.currentStudentProfileNumber = selected.studentProfileNumber || ''
+          return
+        }
+      } catch (e) {
+        // fall through
+      }
+      const student = getCurrentStudentSession()
+      this.selectedStudentId = student.studentId
+      this.currentStudentName = student.studentName
+      this.currentStudentClassSection = student.classSection
+      this.currentStudentProfileNumber = student.studentProfileNumber
+    },
+
     goHome() {
       this.$router.push('/');
     },
@@ -466,10 +494,10 @@ export default {
 
     // StudentSwitchDialog 切換成功後的回調
     onStudentSwitched({ studentId, studentName, classSection, studentProfileNumber }) {
-      this.currentStudentName = studentName;
-      this.currentStudentClassSection = classSection || localStorage.getItem('currentStudentClassSection') || '';
-      this.currentStudentProfileNumber = studentProfileNumber || localStorage.getItem('currentStudentProfileNumber') || '';
-      this.selectedStudentId = studentId;
+      this.currentStudentName = studentName || '';
+      this.currentStudentClassSection = classSection || '';
+      this.currentStudentProfileNumber = studentProfileNumber || '';
+      this.selectedStudentId = studentId || '';
       // 重新載入當前視圖的學生手冊數據
       const refreshMethods = {
         'today': this.fetchTodayHandbookList,
