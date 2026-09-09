@@ -15,7 +15,11 @@
                ar.access_datetime,
                ar.direction,
                si.class_section,
-               si.id_name
+               CASE
+                   WHEN si.id_name IS NULL OR si.id_name = '' OR si.id_name = '----'
+                   THEN IFNULL(NULLIF(si.id_english_name, ''), si.id_name)
+                   ELSE si.id_name
+               END AS id_name
         FROM attendance_record ar
         INNER JOIN ${studentProfilesDatabase}.student_info si
             ON si.student_id COLLATE utf8mb4_unicode_ci = ar.employee_id
