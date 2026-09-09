@@ -406,7 +406,7 @@ export default {
   background: white;
   border-bottom: 1.5px solid rgba(64, 158, 255, 0.18);
   box-shadow: 0 2px 12px rgba(26, 115, 232, 0.08);
-  padding: 14px 16px;
+  padding: 14px 10px;
   min-height: 88px;
   height: auto;
   box-sizing: border-box;
@@ -414,11 +414,13 @@ export default {
 
 .student-top-bar :deep(.student-top-bar-chip) {
   padding: 8px 12px;
+  position: relative;
+  left: -4px;
 }
 
 .switch-student-btn {
   margin-right: 0;
-  padding: 14px 20px;
+  padding: 12px 12px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
@@ -427,8 +429,10 @@ export default {
   transition: all 0.3s ease;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
+  position: relative;
+  left: 4px;
 }
 
 @media (hover: hover) {
