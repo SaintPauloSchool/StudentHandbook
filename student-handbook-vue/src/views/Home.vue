@@ -418,7 +418,7 @@ export default {
 
 .switch-student-btn {
   margin-right: 0;
-  padding: 10px 16px;
+  padding: 14px 20px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
@@ -427,7 +427,7 @@ export default {
   transition: all 0.3s ease;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
 }
 

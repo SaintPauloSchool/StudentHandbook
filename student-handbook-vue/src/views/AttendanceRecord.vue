@@ -271,14 +271,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 18px;
+  padding: 14px 20px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
   border: none;
   box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -325,14 +325,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 18px;
+  padding: 14px 20px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
   border: none;
   box-shadow: 0 4px 6px rgba(147, 197, 253, 0.2);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -404,31 +404,31 @@ export default {
   }
 
   .date-button {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 12px 16px;
+    font-size: 15px;
     gap: 5px;
   }
 
   .reset-date-button {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 12px 16px;
+    font-size: 15px;
   }
 
   .back-button {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 12px 16px;
+    font-size: 15px;
     gap: 5px;
   }
 
   .refresh-button {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 12px 16px;
+    font-size: 15px;
     gap: 5px;
   }
 
   .user-switch-btn {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 12px 16px;
+    font-size: 15px;
     gap: 5px;
   }
 

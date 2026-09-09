@@ -269,7 +269,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
@@ -307,7 +307,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
