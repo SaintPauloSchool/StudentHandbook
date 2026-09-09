@@ -13,7 +13,11 @@
     <select id="selectStudentsByParentUserId" resultMap="StudentRelationVOResult">
         SELECT DISTINCT
             m.student_id,
-            si.id_name AS student_name,
+            CASE
+                WHEN si.id_name IS NULL OR si.id_name = '' OR si.id_name = '----'
+                THEN IFNULL(NULLIF(si.id_english_name, ''), si.id_name)
+                ELSE si.id_name
+            END AS student_name,
             si.class_section,
             si.class_num,
             si.student_profile_number,
@@ -25,13 +29,17 @@
             ON sfc.parent_user_id = m.user_id
            AND sfc.student_user_id = m.student_user_id
         WHERE m.user_id = #{parentUserId}
-        ORDER BY si.class_section, si.class_num, si.id_name
+        ORDER BY si.class_section, si.class_num, student_name
     </select>
 
     <select id="selectByParentAndStudentId" resultMap="StudentRelationVOResult">
         SELECT
             m.student_id,
-            si.id_name AS student_name,
+            CASE
+                WHEN si.id_name IS NULL OR si.id_name = '' OR si.id_name = '----'
+                THEN IFNULL(NULLIF(si.id_english_name, ''), si.id_name)
+                ELSE si.id_name
+            END AS student_name,
             si.class_section,
             si.student_profile_number,
             sfc.relation_desc
