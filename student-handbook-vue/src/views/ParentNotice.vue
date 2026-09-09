@@ -436,7 +436,7 @@ export default {
   justify-self: center;
   display: flex;
   justify-content: center;
-  margin-left: 12px;
+  margin-left: 9px;
 }
 
 .header-right {
