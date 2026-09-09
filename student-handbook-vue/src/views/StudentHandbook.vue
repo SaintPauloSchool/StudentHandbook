@@ -567,7 +567,8 @@ export default {
 
 .home-btn {
   margin-right: 0;
-  padding: 8px 12px;
+  height: 44px !important;
+  padding: 0 18px !important;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
@@ -576,7 +577,7 @@ export default {
   transition: all 0.3s ease;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px !important;
 }
 
 @media (hover: hover) {
@@ -594,7 +595,8 @@ export default {
 
 .user-switch-btn {
   margin-right: 0;
-  padding: 8px 12px;
+  height: 44px !important;
+  padding: 0 18px !important;
   border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #dbeafe 100%);
   color: #1e3a8a;
@@ -603,7 +605,7 @@ export default {
   transition: all 0.3s ease;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px !important;
 }
 
 @media (hover: hover) {
@@ -823,6 +825,17 @@ export default {
   box-shadow: 0 4px 6px rgba(96, 165, 250, 0.2);
   white-space: nowrap;
   min-width: auto;
+}
+
+.navigation-buttons .nav-arrow {
+  height: 44px !important;
+  padding: 0 18px !important;
+  font-size: 16px !important;
+}
+
+.navigation-buttons .prev-button {
+  position: relative;
+  left: 4px;
 }
 
 .nav-arrow:disabled {
