@@ -17,7 +17,7 @@ sp:
     # Token過期時間（天），默認7天
     expireTime: 7
     # 如果是dev開發時，請加上parentUserId數據測試，以便於調試家長學生關係相關功能
-    parentUserId: e4634d7bc64afa3e3462c6d6e4f6fd74
+    parentUserId: 0e78b1fc14173b60d5e1bf6ba0bd51e7
   # app交互祕鑰
   appSecret: HVc1D4MU69UDMr1g
   # app交互時間誤差範圍(毫秒)

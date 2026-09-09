@@ -241,7 +241,7 @@ export default {
   justify-self: center;
   display: flex;
   justify-content: center;
-  margin-left: 12px;
+  margin-left: 15px;
 }
 
 .header-right {
@@ -252,7 +252,9 @@ export default {
   gap: 10px;
 }
 
-.student-name-display { max-width: 200px; }
+.student-name-display {
+  max-width: 200px;
+}
 
 .date-actions {
   display: flex;
@@ -397,11 +399,64 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .header { padding: 12px 15px; }
-  .date-button { padding: 8px 12px; font-size: 14px; }
-  .reset-date-button { padding: 8px 12px; font-size: 14px; }
-  .back-button, .refresh-button, .user-switch-btn { padding: 8px 12px; font-size: 14px; }
-  .record-list { padding: 15px; }
-  .record-text { font-size: 15px; }
+  .header {
+    padding: 12px 15px;
+  }
+
+  .date-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
+  }
+
+  .reset-date-button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .back-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
+  }
+
+  .refresh-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
+  }
+
+  .user-switch-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
+  }
+
+  .student-name-display {
+    padding: 8px 12px;
+    font-size: 14px;
+    gap: 5px;
+  }
+
+  .header-left {
+    align-items: flex-start;
+  }
+
+  .header-center {
+    padding: 0 8px;
+  }
+
+  .header-right {
+    gap: 6px;
+    align-items: flex-end;
+  }
+
+  .record-list {
+    padding: 15px;
+  }
+
+  .record-text {
+    font-size: 15px;
+  }
 }
 </style>
