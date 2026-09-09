@@ -147,8 +147,8 @@ export default {
 .ssd-dialog {
   background: #ffffff;
   border-radius: 18px;
-  width: 78%;
-  max-width: 320px;
+  width: 86%;
+  max-width: 360px;
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
   overflow: hidden;
   animation: ssdScaleIn 0.22s ease-out;
@@ -206,7 +206,7 @@ export default {
 .ssd-option {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  align-items: center;
+  align-items: start;
   column-gap: 10px;
   padding: 12px 14px;
   border-radius: 14px;
@@ -233,6 +233,7 @@ export default {
 .ssd-class-slot {
   justify-self: start;
   min-width: 0;
+  padding-top: 2px;
 }
 
 .ssd-class {
@@ -244,14 +245,15 @@ export default {
 }
 
 .ssd-name {
-  text-align: center;
+  text-align: left;
   font-size: 16px;
   font-weight: 600;
   color: #0f172a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
   min-width: 0;
 }
 
@@ -263,6 +265,7 @@ export default {
   width: 28px;
   height: 28px;
   justify-self: end;
+  margin-top: 1px;
 }
 
 .ssd-check {
