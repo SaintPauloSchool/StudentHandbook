@@ -169,6 +169,12 @@
                       <span class="question-number-suffix">.</span>
                       <span class="question-title">{{ getActiveNode(question).node.title }}</span>
                     </div>
+                    <p
+                      class="option-limit-hint"
+                      v-if="String(getActiveNode(question).node.type) === '2' && getMultiSelectLimits(getActiveNode(question).node).hintText"
+                    >
+                      {{ getMultiSelectLimits(getActiveNode(question).node).hintText }}
+                    </p>
 
                     <!-- 單選/多選 -->
                     <div class="logic-options" v-if="['1', '2'].includes(String(getActiveNode(question).node.type))">
@@ -1156,36 +1162,41 @@ export default {
     // 獲取特定的填空題答案
     getLogicFillBlankAnswer(questionId, nodeId, index) {
       const state = this.logicFormStates[questionId];
-      if (!state || !state.answers[nodeId]) return '';
-      const ansArr = state.answers[nodeId];
-      return (Array.isArray(ansArr) ? ansArr[index] : '') || '';
+      const ansArr = this.getLogicNodeAnswer(state, nodeId);
+      if (!Array.isArray(ansArr)) return '';
+      return ansArr[index] || '';
     },
 
     // 更新特定的填空題答案
     updateLogicFillBlankAnswer(questionId, nodeId, index, value) {
       const state = this.logicFormStates[questionId];
       if (!state) return;
-      if (!Array.isArray(state.answers[nodeId])) {
-        state.answers[nodeId] = [];
+      let ansArr = this.getLogicNodeAnswer(state, nodeId);
+      if (!Array.isArray(ansArr)) {
+        ansArr = [];
+      } else {
+        ansArr = [...ansArr];
       }
-      state.answers[nodeId][index] = value;
+      ansArr[index] = value;
+      this.setLogicNodeAnswer(state, nodeId, ansArr);
     },
 
     // DFS 可見性判斷
     isNodeVisible(nodeId, question) {
       const logicData = this.getLogicFormData(question);
       const state = this.getLogicFormState(question);
+      if (!logicData || !state) return false;
       return this.checkNodeVisibilityRecursively(nodeId, logicData.allNodes, state.answers);
     },
 
     checkNodeVisibilityRecursively(nodeId, allNodes, answers) {
-      const nodeWrapper = allNodes.find(n => n.node.id === nodeId);
+      const nodeWrapper = allNodes.find(n => String(n.node.id) === String(nodeId));
       if (!nodeWrapper) return false;
       if (nodeWrapper.isRoot) return true;
 
       for (let p of nodeWrapper.parents) {
         if (this.checkNodeVisibilityRecursively(p.id, allNodes, answers)) {
-          const parentAns = answers[p.id];
+          const parentAns = answers[p.id] ?? answers[String(p.id)] ?? answers[Number(p.id)];
           if (Array.isArray(parentAns) && parentAns.includes(p.optIdx)) {
             return true;
           }
@@ -1197,54 +1208,146 @@ export default {
     // 獲取當前活動題目
     getActiveNode(question) {
       const state = this.getLogicFormState(question);
-      if (!state.activeNodeId) return null;
+      if (!state || !state.activeNodeId) return null;
       const logicData = this.getLogicFormData(question);
-      return logicData.allNodes.find(n => n.node.id === state.activeNodeId);
+      if (!logicData) return null;
+      return logicData.allNodes.find(n => String(n.node.id) === String(state.activeNodeId)) || null;
+    },
+
+    // 讀取多選題最少/最多可選數量
+    getMultiSelectLimits(node) {
+      if (!node) {
+        return { minOptions: 0, maxOptions: null, hintText: '' };
+      }
+      const rawMin = node.minOptions ?? node.min_options ?? node.minSelect ?? node.min;
+      const rawMax = node.maxOptions ?? node.max_options ?? node.maxSelect ?? node.max;
+      const minOptions = Number(rawMin);
+      const maxOptions = rawMax === null || rawMax === undefined || rawMax === ''
+        ? null
+        : Number(rawMax);
+      let safeMin = Number.isFinite(minOptions) && minOptions > 0 ? minOptions : 0;
+      const safeMax = Number.isFinite(maxOptions) && maxOptions > 0 ? maxOptions : null;
+
+      // 管理端多選題通常會設最大值；若只有最大值沒有最小值，至少按 1 項校驗
+      if (safeMax !== null && safeMin === 0) {
+        safeMin = 1;
+      }
+      // 最小值不能大於最大值
+      if (safeMax !== null && safeMin > safeMax) {
+        safeMin = safeMax;
+      }
+
+      let hintText = '';
+      if (safeMin > 0 && safeMax !== null) {
+        hintText = safeMin === safeMax
+          ? `請選擇 ${safeMin} 項`
+          : `請選擇 ${safeMin}～${safeMax} 項`;
+      } else if (safeMin > 0) {
+        hintText = `至少選擇 ${safeMin} 項`;
+      } else if (safeMax !== null) {
+        hintText = `最多選擇 ${safeMax} 項`;
+      }
+
+      return { minOptions: safeMin, maxOptions: safeMax, hintText };
+    },
+
+    // 統一讀取節點答案（兼容 number / string 的 nodeId）
+    getLogicNodeAnswer(state, nodeId) {
+      if (!state || !state.answers || nodeId === null || nodeId === undefined) return undefined;
+      if (Object.prototype.hasOwnProperty.call(state.answers, nodeId)) {
+        return state.answers[nodeId];
+      }
+      const asString = String(nodeId);
+      if (Object.prototype.hasOwnProperty.call(state.answers, asString)) {
+        return state.answers[asString];
+      }
+      const asNumber = Number(nodeId);
+      if (!Number.isNaN(asNumber) && Object.prototype.hasOwnProperty.call(state.answers, asNumber)) {
+        return state.answers[asNumber];
+      }
+      return undefined;
+    },
+
+    setLogicNodeAnswer(state, nodeId, value) {
+      if (!state) return;
+      if (!state.answers) state.answers = {};
+      // 統一用字串 key，避免 number/string 不一致
+      state.answers[String(nodeId)] = value;
+    },
+
+    // 多選題下一題前硬校驗：不通過則提示並停留當前題
+    validateMultiSelectBeforeNext(node, answerData) {
+      const answerIndices = Array.isArray(answerData) ? answerData : [];
+      const selectedCount = answerIndices.length;
+      const { minOptions, maxOptions } = this.getMultiSelectLimits(node);
+      const title = node.title || '此題';
+
+      if (selectedCount === 0) {
+        if (node.required || minOptions > 0) {
+          const msg = minOptions > 0
+            ? `「${title}」最少需要選擇 ${minOptions} 項（目前已選 ${selectedCount} 項）`
+            : '此題目是必答的！';
+          this.showValidationTip(msg);
+          return false;
+        }
+        return true;
+      }
+
+      if (minOptions > 0 && selectedCount < minOptions) {
+        this.showValidationTip(`「${title}」最少需要選擇 ${minOptions} 項（目前已選 ${selectedCount} 項）`);
+        return false;
+      }
+
+      if (maxOptions !== null && selectedCount > maxOptions) {
+        this.showValidationTip(`「${title}」最多只能選擇 ${maxOptions} 項（目前已選 ${selectedCount} 項）`);
+        return false;
+      }
+
+      return true;
+    },
+
+    showValidationTip(message) {
+      // 只用頁面居中 toast，避免與 ElMessage 重複彈兩次
+      this.showToast(message, 'warning', 2800);
     },
 
     // 判斷選項是否選中
     isLogicOptionSelected(questionId, nodeId, optIdx) {
       const state = this.logicFormStates[questionId];
       if (!state) return false;
-      const ans = state.answers[nodeId] || [];
-      return ans.includes(optIdx);
+      const ans = this.getLogicNodeAnswer(state, nodeId) || [];
+      return Array.isArray(ans) && ans.includes(optIdx);
     },
 
     // 處理選項點擊
     handleLogicOptionClick(question, node, optIdx) {
       const state = this.getLogicFormState(question);
-      let ans = state.answers[node.id] || [];
+      const current = this.getLogicNodeAnswer(state, node.id);
+      let ans = Array.isArray(current) ? [...current] : [];
       if (String(node.type) === '1') {
         // 單選
         ans = [optIdx];
-        state.answers[node.id] = ans;
+        this.setLogicNodeAnswer(state, node.id, ans);
         // 單選可自動進入下一題，提供極致流暢體驗
         setTimeout(() => {
           this.handleLogicNext(question);
         }, 300);
       } else if (String(node.type) === '2') {
         // 多選
-        const minOptions = node.minOptions || 0;
-        const maxOptions = node.maxOptions || null;
+        const { maxOptions } = this.getMultiSelectLimits(node);
 
-        // 如果已選中，則取消選擇
+        // 如果已選中，則取消選擇（最少數量在「下一題」時校驗）
         if (ans.includes(optIdx)) {
-          // 檢查是否達到最小選擇數量
-          if (minOptions > 0 && ans.length <= minOptions) {
-            this.showToast(`至少需要選擇 ${minOptions} 個選項`);
-            return;
-          }
           ans = ans.filter(i => i !== optIdx);
         } else {
-          // 如果未選中，則添加選擇
-          // 檢查是否達到最大選擇數量
+          // 超過最多可選時直接提示，不加入選項
           if (maxOptions !== null && ans.length >= maxOptions) {
-            this.showToast(`最多只能選擇 ${maxOptions} 個選項`);
+            this.showValidationTip(`最多只能選擇 ${maxOptions} 項`);
             return;
           }
           ans.push(optIdx);
         }
-        state.answers[node.id] = ans;
+        this.setLogicNodeAnswer(state, node.id, ans);
       }
     },
 
@@ -1321,12 +1424,12 @@ export default {
           const fileName = result.fileName || file.name; // 使用後端返回的文件名，如果沒有則使用原始文件名
           const state = this.logicFormStates[questionId];
           if (state) {
-            state.answers[nodeId] = {
+            this.setLogicNodeAnswer(state, nodeId, {
               name: fileName,
               url: fileUrl,
               size: file.size,
               type: file.type
-            };
+            });
           }
           this.showToast('文件上傳成功', 'success');
         } else {
@@ -1356,7 +1459,7 @@ export default {
       const allNodes = logicData.allNodes;
 
       // 檢查當前選中的選項是否有跳轉到結束的邏輯
-      const answerData = state.answers[nodeData.id];
+      const answerData = this.getLogicNodeAnswer(state, nodeData.id);
       let jumpToEnd = false;
       if (nodeData.logicRuleList && nodeData.logicRuleList.length > 0 && Array.isArray(answerData) && !['3'].includes(String(nodeData.type))) {
         for (let rule of nodeData.logicRuleList) {
@@ -1390,7 +1493,7 @@ export default {
       if (!currentNode) return;
       const nodeData = currentNode.node;
 
-      const answerData = state.answers[nodeData.id];
+      const answerData = this.getLogicNodeAnswer(state, nodeData.id);
       let hasAnswer = false;
 
       if (String(nodeData.type) === '3') {
@@ -1411,35 +1514,24 @@ export default {
       } else if (String(nodeData.type) === '4') {
         hasAnswer = !!answerData; // File 對象存在即代表已填答
       } else if (String(nodeData.type) === '2') {
-        // 多選題：驗證選項數量限制
-        const answerIndices = answerData || [];
-        const minOptions = nodeData.minOptions || 0;
-        const maxOptions = nodeData.maxOptions || null;
-
-        // 驗證最小選項數
-        if (minOptions > 0 && answerIndices.length < minOptions) {
-          this.showToast(`「${nodeData.title}」至少需要選擇 ${minOptions} 個選項`);
+        // 多選題：不通過則提示並強制停留當前題
+        if (!this.validateMultiSelectBeforeNext(nodeData, answerData)) {
           return;
         }
-
-        // 驗證最大選項數
-        if (maxOptions !== null && answerIndices.length > maxOptions) {
-          this.showToast(`「${nodeData.title}」最多只能選擇 ${maxOptions} 個選項`);
-          return;
-        }
-
-        hasAnswer = answerIndices.length >= minOptions;
+        const answerIndices = Array.isArray(answerData) ? answerData : [];
+        hasAnswer = answerIndices.length > 0;
       } else {
         const answerIndices = answerData || [];
-        hasAnswer = answerIndices.length > 0;
+        hasAnswer = Array.isArray(answerIndices) ? answerIndices.length > 0 : !!answerIndices;
       }
 
       if (nodeData.required && !hasAnswer) {
-        this.showToast('此題目是必答的！');
+        this.showValidationTip('此題目是必答的！');
         return;
       }
 
       const logicData = this.getLogicFormData(question);
+      if (!logicData) return;
       const allNodes = logicData.allNodes;
 
       // 檢查是否明確要求中止跳轉 (JumpTarget = 'end')
@@ -1736,7 +1828,7 @@ export default {
         // 驗證必填題
         const validation = this.validateRequiredQuestions();
         if (!validation.valid) {
-          this.showToast(validation.message);
+          this.showValidationTip(validation.message);
           return;
         }
 
@@ -1795,29 +1887,31 @@ export default {
     // 驗證必填問題
     validateRequiredQuestions() {
       for (const question of this.questions) {
-        // 跳過非必答問題
-        if (question.isRequired !== '1') continue;
-
-        // 檢查邏輯表單
+        // 邏輯表單：無論外層是否必答，都要校驗多選題最少/最多選項
         if (question.questionType === '5') {
           const state = this.logicFormStates[question.questionId];
-          if (!state || !state.isComplete) {
+          if (question.isRequired === '1' && (!state || !state.isComplete)) {
             return {
               valid: false,
               message: `問題「${question.questionTitle}」尚未完成作答`
             };
           }
 
-          // 驗證多選題的選項數量限制
-          const validation = this.validateLogicFormOptions(question, state);
-          if (!validation.valid) {
-            return validation;
+          if (state) {
+            const validation = this.validateLogicFormOptions(question, state);
+            if (!validation.valid) {
+              return validation;
+            }
           }
-        } else {
-          // 檢查普通問題
-          // TODO: 這裡需要根據實際的表單綁定來實現驗證
-          // 目前先假設用戶已經填寫
+          continue;
         }
+
+        // 跳過非必答的普通問題
+        if (question.isRequired !== '1') continue;
+
+        // 檢查普通問題
+        // TODO: 這裡需要根據實際的表單綁定來實現驗證
+        // 目前先假設用戶已經填寫
       }
       return { valid: true };
     },
@@ -1827,31 +1921,39 @@ export default {
       const logicData = this.getLogicFormData(question);
       if (!logicData) return { valid: true };
 
-      // 遍歷所有節點，驗證多選題的 minOptions 和 maxOptions
       for (const nodeInfo of logicData.allNodes) {
         const node = nodeInfo.node;
-        if (String(node.type) !== '2') continue; // 只驗證多選題
+        if (String(node.type) !== '2') continue;
+        if (!this.isNodeVisible(node.id, question)) continue;
 
-        const answerValue = state.answers[node.id];
-        if (!answerValue || !Array.isArray(answerValue)) continue;
+        const answerValue = this.getLogicNodeAnswer(state, node.id);
+        const selectedCount = Array.isArray(answerValue) ? answerValue.length : 0;
+        const { minOptions, maxOptions } = this.getMultiSelectLimits(node);
+        const title = node.title || '此題';
 
-        const selectedCount = answerValue.length;
-        const minOptions = node.minOptions || 0;
-        const maxOptions = node.maxOptions || null;
+        if (selectedCount === 0) {
+          if (node.required || minOptions > 0) {
+            return {
+              valid: false,
+              message: minOptions > 0
+                ? `「${title}」最少需要選擇 ${minOptions} 項（目前已選 ${selectedCount} 項）`
+                : `問題「${title}」尚未完成作答`
+            };
+          }
+          continue;
+        }
 
-        // 驗證最小選項數
         if (minOptions > 0 && selectedCount < minOptions) {
           return {
             valid: false,
-            message: `「${node.title}」至少需要選擇 ${minOptions} 個選項`
+            message: `「${title}」最少需要選擇 ${minOptions} 項（目前已選 ${selectedCount} 項）`
           };
         }
 
-        // 驗證最大選項數
         if (maxOptions !== null && selectedCount > maxOptions) {
           return {
             valid: false,
-            message: `「${node.title}」最多只能選擇 ${maxOptions} 個選項`
+            message: `「${title}」最多只能選擇 ${maxOptions} 項（目前已選 ${selectedCount} 項）`
           };
         }
       }
@@ -1910,8 +2012,8 @@ export default {
         let answerValue = state.answers[nodeId];
         if (answerValue === null || answerValue === undefined) return;
 
-        // 查找對應的節點信息
-        const nodeInfo = logicData.allNodes.find(n => n.node.id === Number(nodeId));
+        // 查找對應的節點信息（兼容 number / string id）
+        const nodeInfo = logicData.allNodes.find(n => String(n.node.id) === String(nodeId));
         if (!nodeInfo) return;
 
         const node = nodeInfo.node;
@@ -2008,19 +2110,26 @@ export default {
       // 統計已回答且當前可見的節點數
       let answeredCount = 0;
       visibleNodes.forEach(nodeInfo => {
-        const nodeId = nodeInfo.node.id;
-        const answer = state.answers[nodeId];
-        if (answer !== null && answer !== undefined) {
-          if (Array.isArray(answer)) {
-            if (answer.length > 0) {
-              answeredCount++;
-            }
-          } else if (typeof answer === 'object' && answer.name) {
-            // 文件上傳
-            answeredCount++;
-          } else if (String(answer).trim() !== '') {
+        const node = nodeInfo.node;
+        const answer = this.getLogicNodeAnswer(state, node.id);
+        if (answer === null || answer === undefined) return;
+
+        if (String(node.type) === '2') {
+          // 多選：需達到最少選項數才算已答
+          const { minOptions } = this.getMultiSelectLimits(node);
+          const selectedCount = Array.isArray(answer) ? answer.length : 0;
+          if (selectedCount > 0 && (minOptions <= 0 || selectedCount >= minOptions)) {
             answeredCount++;
           }
+        } else if (Array.isArray(answer)) {
+          if (answer.length > 0) {
+            answeredCount++;
+          }
+        } else if (typeof answer === 'object' && answer.name) {
+          // 文件上傳
+          answeredCount++;
+        } else if (String(answer).trim() !== '') {
+          answeredCount++;
         }
       });
 
@@ -2678,6 +2787,15 @@ export default {
   display: flex;
   align-items: baseline;
   gap: 6px;
+  text-align: left;
+}
+
+.option-limit-hint {
+  margin: -8px 0 16px;
+  padding: 0;
+  font-size: 13px;
+  color: #2563eb;
+  font-weight: 500;
   text-align: left;
 }
 
