@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -77,5 +78,24 @@ public class NotificationUserReadRecordServiceImpl implements INotificationUserR
         if (record != null && "0".equals(record.getReplyStatus())) {
             notificationUserReadRecordMapper.markAsReplied(record.getReadId(), LocalDateTime.now());
         }
+    }
+
+    @Override
+    public boolean isRecipient(Long notificationId, String userId, String studentId) {
+        if (notificationId == null || userId == null || userId.isEmpty()
+                || studentId == null || studentId.isEmpty()) {
+            return false;
+        }
+        return notificationUserReadRecordMapper.selectByNotificationAndUser(
+                notificationId, userId, studentId) != null;
+    }
+
+    @Override
+    public List<String> listRecipientStudentIds(Long notificationId, String userId) {
+        if (notificationId == null || userId == null || userId.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> ids = notificationUserReadRecordMapper.selectRecipientStudentIds(notificationId, userId);
+        return ids != null ? ids : Collections.emptyList();
     }
 }

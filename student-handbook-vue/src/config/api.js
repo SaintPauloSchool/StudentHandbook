@@ -12,6 +12,7 @@ const apiEndpoints = {
     NOTICE_DETAIL: '/system/notice',
     NOTICE_MARK_READ: '/system/notice',  // POST /{id}/read
     NOTICE_UNREAD_COUNT: '/system/notice/unreadCount',  // GET 獲取未讀通知數量
+    NOTICE_RECIPIENT_STUDENTS: '/system/notice', // GET /{id}/recipientStudents
     VALIDATE_TOKEN: '/system/token/validate',             // GET 校驗當前 token 是否有效
     FILE_UPLOAD: '/common/upload',                         // POST 文件上傳
     CALENDAR_LIST: '/system/calendar/list'                // 獲取行事曆列表

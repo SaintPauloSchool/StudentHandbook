@@ -114,4 +114,17 @@
         </if>
     </select>
 
+    <!-- 當前家長在該通告下可回覆的學生列表 -->
+    <select id="selectRecipientStudentIds" resultType="java.lang.String">
+        SELECT DISTINCT r.student_id
+        FROM notification_user_read_record r
+        INNER JOIN notification_send_record s ON s.send_record_id = r.send_record_id
+        INNER JOIN notification n ON n.notification_id = s.notification_id AND n.status = '1'
+        WHERE s.notification_id = #{notificationId}
+          AND r.user_id = #{userId}
+          AND r.send_status = '1'
+          AND r.student_id IS NOT NULL
+          AND r.student_id != ''
+    </select>
+
 </mapper>
