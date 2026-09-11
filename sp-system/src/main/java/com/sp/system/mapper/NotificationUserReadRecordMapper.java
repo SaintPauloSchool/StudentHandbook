@@ -63,4 +63,10 @@ public interface NotificationUserReadRecordMapper {
      * @return 未讀數量
      */
     int countUnreadNotificationsForUser(@Param("userId") String userId, @Param("studentId") String studentId);
+
+    /**
+     * 查詢當前家長在指定通告下的接收學生 student_id 列表
+     */
+    List<String> selectRecipientStudentIds(@Param("notificationId") Long notificationId,
+                                           @Param("userId") String userId);
 }

@@ -544,6 +544,29 @@ export default {
       return null
     },
 
+    /**
+     * 查詢本通告可回覆學生。
+     * @returns {{ ok: boolean, ids: string[] }} ok=false 表示請求失敗；ok=true 且 ids 為空表示確實無接收資格
+     */
+    async fetchRecipientStudentIds() {
+      const notificationId = this.$route.params.id
+      if (!notificationId) {
+        return { ok: false, ids: [] }
+      }
+      try {
+        const response = await service.get(
+          `${API_ENDPOINTS.NOTICE_RECIPIENT_STUDENTS}/${notificationId}/recipientStudents`
+        )
+        if (response.data.code !== 200 || !Array.isArray(response.data.data)) {
+          return { ok: false, ids: [] }
+        }
+        return { ok: true, ids: response.data.data }
+      } catch (e) {
+        console.warn('查詢通告可回覆學生失敗:', e)
+        return { ok: false, ids: [] }
+      }
+    },
+
     setCurrentStudent(relation) {
       setCurrentStudentSession({
         studentId: relation.studentId,
@@ -589,34 +612,67 @@ export default {
               const matchedStudent = this.matchStudentBySid(relations, urlSid);
 
               if (matchedStudent) {
-                this.setCurrentStudent(matchedStudent);
+                // sid 對上了，但仍需確認該子女是本通告接收對象（避免手足錯連）
+                const recipientResult = await this.fetchRecipientStudentIds()
+                if (!recipientResult.ok) {
+                  // 接收名單暫時查不到：仍先信任 sid（提交時後端會再攔）
+                  this.setCurrentStudent(matchedStudent)
+                } else if (recipientResult.ids.length && !recipientResult.ids.includes(matchedStudent.studentId)) {
+                  const preferred = relations.find(r => recipientResult.ids.includes(r.studentId))
+                  if (preferred) {
+                    this.setCurrentStudent(preferred)
+                  } else {
+                    this.errorMessage = '該連結對應的學生不在本通告接收名單中'
+                    this.loading = false
+                    return false
+                  }
+                } else if (!recipientResult.ids.length) {
+                  this.errorMessage = '您不在本通告接收名單中'
+                  this.loading = false
+                  return false
+                } else {
+                  this.setCurrentStudent(matchedStudent)
+                }
               } else {
                 this.errorMessage = '無效的訪問鏈接，無法識別學生信息';
                 this.loading = false;
                 return false;
               }
             } else {
-              // 沒有sid參數，檢查localStorage中是否已有選中的學生
-              const savedStudentId = getCurrentStudentSession().studentId;
-              if (savedStudentId) {
-                // 驗證保存的學生ID是否在當前關係中
-                const isValid = relations.some(r => r.studentId === savedStudentId);
-                if (!isValid) {
-                  this.setCurrentStudent(relations[0]);
+              // 沒有 sid：必須綁定本通告接收名單中的子女
+              const recipientResult = await this.fetchRecipientStudentIds()
+              if (!recipientResult.ok) {
+                this.errorMessage = '暫時無法確認接收資格，請稍後重試'
+                this.loading = false
+                return false
+              }
+              if (recipientResult.ids.length > 0) {
+                const savedStudentId = getCurrentStudentSession().studentId
+                let preferred = null
+                if (savedStudentId && recipientResult.ids.includes(savedStudentId)) {
+                  preferred = relations.find(r => r.studentId === savedStudentId) || null
+                }
+                if (!preferred) {
+                  preferred = relations.find(r => recipientResult.ids.includes(r.studentId)) || null
+                }
+                if (preferred) {
+                  this.setCurrentStudent(preferred)
                 } else {
-                  const rel = relations.find(r => r.studentId === savedStudentId);
-                  if (rel) {
-                    this.setCurrentStudent(rel);
-                  } else {
-                    this.setCurrentStudent(relations[0]);
-                  }
+                  this.errorMessage = '找不到可回覆的學生，請確認帳號綁定'
+                  this.loading = false
+                  return false
                 }
               } else {
-                this.setCurrentStudent(relations[0]);
+                this.errorMessage = '您不在本通告接收名單中'
+                this.loading = false
+                return false
               }
             }
           } else {
             console.warn('當前帳號未關聯任何學生');
+            this.errorMessage = '當前帳號未關聯任何學生'
+            this.loading = false
+            return false
           }
           return true
         } else {
