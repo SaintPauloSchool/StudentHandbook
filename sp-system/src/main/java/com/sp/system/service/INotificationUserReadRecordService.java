@@ -58,4 +58,14 @@ public interface INotificationUserReadRecordService {
      * @param studentId  學籍 student_id
      */
     void markAsReplied(Long notificationId, String userId, String studentId);
+
+    /**
+     * 判斷指定家長＋學生是否為該通告的接收對象（存在發送成功的閱讀記錄）
+     */
+    boolean isRecipient(Long notificationId, String userId, String studentId);
+
+    /**
+     * 查詢當前家長在該通告下可回覆的學籍 student_id 列表
+     */
+    List<String> listRecipientStudentIds(Long notificationId, String userId);
 }

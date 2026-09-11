@@ -120,6 +120,11 @@ public class ParentNoticeController extends BaseController {
                 return AjaxResult.error("請指定學生ID");
             }
 
+            // 僅允許為本通告接收對象的學生查看詳情，避免錯綁其他子女
+            if (!notificationUserReadRecordService.isRecipient(notificationId, userId, studentId)) {
+                return AjaxResult.error("該學生不在本通告接收名單中");
+            }
+
             // 獲取通知詳情
             NotificationDetailVO detail = notificationService.selectNotificationDetailForStudent(notificationId, studentId);
 
@@ -170,6 +175,25 @@ public class ParentNoticeController extends BaseController {
     }
 
     /**
+     * 查詢當前家長在該通告下可回覆的學生 student_id 列表
+     */
+    @Log(title = "查詢通告可回覆學生", businessType = BusinessType.SELECT)
+    @GetMapping("/{notificationId}/recipientStudents")
+    public AjaxResult listRecipientStudents(@PathVariable("notificationId") Long notificationId) {
+        try {
+            String userId = getUserId();
+            if (userId == null) {
+                return AjaxResult.error("無效的訪問令牌或用戶未登錄");
+            }
+            return AjaxResult.success(
+                    notificationUserReadRecordService.listRecipientStudentIds(notificationId, userId));
+        } catch (Exception e) {
+            logger.error("查詢通告可回覆學生失敗: {}", e.getMessage(), e);
+            return AjaxResult.error("查詢失敗: " + e.getMessage());
+        }
+    }
+
+    /**
      * 提交通知回答（單條），並標記為已回覆
      *
      * @param notificationId  通知 ID
@@ -206,6 +230,14 @@ public class ParentNoticeController extends BaseController {
                 // status='1' 表示已發布，非已發布不允許提交
                 return AjaxResult.error("通知不存在或已被撤回");
             }
+
+            // 僅允許為本通告接收對象的學生提交答案，避免寫入錯誤 student_id
+            if (!notificationUserReadRecordService.isRecipient(notificationId, userId, studentId)) {
+                return AjaxResult.error("該學生不在本通告接收名單中，無法提交");
+            }
+
+            // 以路徑上的 notificationId 為準，避免 body 竄改寫入其他通告
+            submitAnswersVO.getAnswer().setNotificationId(notificationId);
 
             int count = notificationAnswerService.submitAnswers(submitAnswersVO.getAnswer(), userId, studentId);
 
