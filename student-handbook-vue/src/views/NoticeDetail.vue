@@ -1309,7 +1309,7 @@ export default {
     },
 
     showValidationTip(message) {
-      this.showToast(message, 'warning', 2800);
+      this.showToast(message, 'warning', 1500);
     },
 
     // 判斷選項是否選中
