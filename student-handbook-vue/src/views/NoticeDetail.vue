@@ -1333,21 +1333,15 @@ export default {
           this.handleLogicNext(question);
         }, 300);
       } else if (String(node.type) === '2') {
-        // 多選
-        const { maxOptions } = this.getMultiSelectLimits(node);
-
-        // 如果已選中，則取消選擇（最少數量在「下一題」時校驗）
+        // 多選：點選時可自由勾選/取消，最少/最多數量只在「下一題」時校驗
         if (ans.includes(optIdx)) {
           ans = ans.filter(i => i !== optIdx);
         } else {
-          // 超過最多可選時直接提示，不加入選項
-          if (maxOptions !== null && ans.length >= maxOptions) {
-            this.showValidationTip(`最多只能選擇 ${maxOptions} 項`);
-            return;
-          }
           ans.push(optIdx);
         }
         this.setLogicNodeAnswer(state, node.id, ans);
+        // 點選過程中清掉舊提示，避免殘留造成「亂提示」
+        this.hideToast();
       }
     },
 
@@ -1514,7 +1508,7 @@ export default {
       } else if (String(nodeData.type) === '4') {
         hasAnswer = !!answerData; // File 對象存在即代表已填答
       } else if (String(nodeData.type) === '2') {
-        // 多選題：不通過則提示並強制停留當前題
+        // 多選題：只在點「下一題」時校驗；不通過則提示並強制停留
         if (!this.validateMultiSelectBeforeNext(nodeData, answerData)) {
           return;
         }
@@ -1529,6 +1523,9 @@ export default {
         this.showValidationTip('此題目是必答的！');
         return;
       }
+
+      // 通過校驗後清掉提示，再進入下一題/完成
+      this.hideToast();
 
       const logicData = this.getLogicFormData(question);
       if (!logicData) return;
