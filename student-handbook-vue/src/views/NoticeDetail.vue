@@ -1310,18 +1310,6 @@ export default {
 
     showValidationTip(message) {
       this.showToast(message, 'warning', 2800);
-      // 企業微信裡居中 toast 偶發被遮擋，用 ElMessage 再保一次
-      try {
-        ElMessage({
-          message,
-          type: 'warning',
-          duration: 2800,
-          offset: 80,
-          customClass: 'notice-validation-message'
-        });
-      } catch (e) {
-        // ignore
-      }
     },
 
     // 判斷選項是否選中
